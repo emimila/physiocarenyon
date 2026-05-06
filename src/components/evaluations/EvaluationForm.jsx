@@ -469,7 +469,9 @@ function EvaluationBlockCard({
 
       {block.type === "PAIN_VAS" && (
         <div className="evaluation-block-pain-vas">
-          <strong style={{ fontSize: 14 }}>{tt("evaluation.painVAS")}</strong>
+          <strong className="evaluation-pain-vas-title">
+            {tt("evaluation.painVAS")}
+          </strong>
           {[
             { key: "riposo", label: tt("evaluation.rest") },
             { key: "mattino", label: tt("evaluation.morning") },
@@ -484,22 +486,16 @@ function EvaluationBlockCard({
             },
           ].map(({ key, label }) => (
             <div key={key} className="evaluation-pain-vas-row">
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#555",
-                }}
-              >
-                {label}
-              </span>
+              <span className="evaluation-pain-vas-row__label">{label}</span>
               <div className="evaluation-pain-vas-sides">
                 <Score10
+                  compact
                   label={tt("evaluation.right")}
                   value={d.destro?.dolore?.[key]}
                   onChange={(v) => updateDolore(d.id, "destro", key, v)}
                 />
                 <Score10
+                  compact
                   label={tt("evaluation.left")}
                   value={d.sinistro?.dolore?.[key]}
                   onChange={(v) => updateDolore(d.id, "sinistro", key, v)}
@@ -514,6 +510,7 @@ function EvaluationBlockCard({
         <div className="evaluation-block-general-pain">
           <strong>{tt("evaluation.generalPainVAS")}</strong>
           <Score10
+            compact
             min={1}
             max={10}
             label={tt("evaluation.painVAS")}

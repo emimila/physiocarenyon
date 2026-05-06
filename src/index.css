@@ -471,6 +471,14 @@ body {
   min-width: 0;
 }
 
+.evaluation-side-scores h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--text-h);
+  line-height: 1.35;
+}
+
 @media (max-width: 720px) {
   .evaluation-block-kiviat {
     grid-template-columns: 1fr;
@@ -486,13 +494,28 @@ body {
   width: 100%;
 }
 
+.evaluation-pain-vas-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
+}
+
 /* Dolore VAS: per ogni fascia oraria, destro e sinistro affiancati. */
 .evaluation-pain-vas-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   margin-top: 4px;
   padding-top: 8px;
+}
+
+/* Come etichette .app-content label > strong (blocco tipo / note). */
+.evaluation-pain-vas-row__label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
 }
 
 .evaluation-pain-vas-row:not(:first-of-type) {
@@ -515,6 +538,21 @@ body {
   .evaluation-pain-vas-sides {
     grid-template-columns: 1fr;
   }
+}
+
+/* Score10 in Dolore VAS: stessa scala/spaziatura del Select/Textarea compact nel blocco. */
+.score10.score10--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.score10.score10--compact .score10__label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
 }
 
 .patient-card {
