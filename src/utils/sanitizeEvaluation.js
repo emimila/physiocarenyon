@@ -1,4 +1,10 @@
-const SCORE_KEYS = ["forza", "funzione", "mobilitaPassiva", "mobilitaAttiva"];
+const SCORE_KEYS = [
+  "forza",
+  "funzione",
+  "mobilitaPassiva",
+  "mobilitaAttiva",
+  "qualitaMovimento",
+];
 const DOLORE_KEYS = [
   "riposo",
   "mattino",

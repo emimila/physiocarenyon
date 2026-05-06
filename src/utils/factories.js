@@ -5,6 +5,7 @@ export const emptyScores = {
   funzione: "",
   mobilitaPassiva: "",
   mobilitaAttiva: "",
+  qualitaMovimento: "",
 };
 
 export function createEvaluation(numeroValutazione = "") {

@@ -137,6 +137,8 @@ export const translations = {
       activeMobility: "Mobilità attiva",
       passiveMobilityShort: "Mob. passiva",
       activeMobilityShort: "Mob. attiva",
+      movementQuality: "Qualità di movimento",
+      movementQualityShort: "Qual. mov.",
       painVAS: "Dolore VAS",
       rest: "Riposo",
       morning: "Mattino",
@@ -161,7 +163,7 @@ export const translations = {
       otherDetailsOptional: "Altro / note (opzionale)",
       otherExercise: "Altro esercizio",
       otherExerciseSpecify: "Specifica esercizio",
-      generalPainVAS: "Dolore generale (VAS 1–10)",
+      generalPainVAS: "Dolore valutazione generale",
     },
 
     options: {
@@ -654,6 +656,8 @@ export const translations = {
       activeMobility: "Mobilité active",
       passiveMobilityShort: "Mob. passive",
       activeMobilityShort: "Mob. active",
+      movementQuality: "Qualité du mouvement",
+      movementQualityShort: "Qual. mouv.",
       painVAS: "Douleur EVA",
       rest: "Au repos",
       morning: "Le matin",
@@ -678,7 +682,7 @@ export const translations = {
       otherDetailsOptional: "Autre / notes (facultatif)",
       otherExercise: "Autre exercice",
       otherExerciseSpecify: "Préciser l’exercice",
-      generalPainVAS: "Douleur générale (EVA 1–10)",
+      generalPainVAS: "Douleur (évaluation générale)",
     },
 
     options: {
@@ -1121,6 +1125,8 @@ tegner: {
       activeMobility: "Aktive Mobilität",
       passiveMobilityShort: "Passive Mob.",
       activeMobilityShort: "Aktive Mob.",
+      movementQuality: "Bewegungsqualität",
+      movementQualityShort: "Bew.-qual.",
       painVAS: "Schmerz VAS",
       rest: "In Ruhe",
       morning: "Morgens",
@@ -1145,7 +1151,7 @@ tegner: {
       otherDetailsOptional: "Sonstiges / Notizen (optional)",
       otherExercise: "Andere Übung",
       otherExerciseSpecify: "Übung beschreiben",
-      generalPainVAS: "Allgemeiner Schmerz (VAS 1–10)",
+      generalPainVAS: "Schmerz (allgemeine Bewertung)",
     },
 
     options: {
@@ -1521,6 +1527,8 @@ dominantHand: {
       activeMobility: "Movilidad activa",
       passiveMobilityShort: "Mob. pasiva",
       activeMobilityShort: "Mob. activa",
+      movementQuality: "Calidad del movimiento",
+      movementQualityShort: "Cal. mov.",
       painVAS: "Dolor EVA",
       rest: "En reposo",
       morning: "Por la mañana",
@@ -1545,7 +1553,7 @@ dominantHand: {
       otherDetailsOptional: "Otro / notas (opcional)",
       otherExercise: "Otro ejercicio",
       otherExerciseSpecify: "Describir el ejercicio",
-      generalPainVAS: "Dolor general (EVA 1–10)",
+      generalPainVAS: "Dolor (evaluación general)",
     },
 
     options: {
@@ -2034,6 +2042,8 @@ dominantHand: {
       activeMobility: "Active mobility",
       passiveMobilityShort: "Passive mob.",
       activeMobilityShort: "Active mob.",
+      movementQuality: "Movement quality",
+      movementQualityShort: "Mov. qual.",
       painVAS: "Pain VAS",
       rest: "At rest",
       morning: "Morning",
@@ -2058,7 +2068,7 @@ dominantHand: {
       otherDetailsOptional: "Other / notes (optional)",
       otherExercise: "Other exercise",
       otherExerciseSpecify: "Describe exercise",
-      generalPainVAS: "General pain (VAS 1–10)",
+      generalPainVAS: "General evaluation pain",
     },
 
     options: {

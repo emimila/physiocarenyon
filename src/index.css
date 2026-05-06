@@ -117,20 +117,40 @@ body {
   font-family: var(--sans);
 }
 
-.pdf-controls {
-  display: flex;
-  justify-content: flex-end;
-  margin: 0 0 12px;
-}
-
 /* Intestazione scheda / PDF: linea = border-bottom sotto. */
 .pdf-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 10px 0 14px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 14px;
+}
+
+.pdf-header-actions {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Stesso carattere del titolo clinica; più compatto del bottone globale. */
+.pdf-generate-btn {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.2px;
+  color: var(--text-h);
+  min-height: 0;
+  padding: 5px 12px;
+  line-height: 1.25;
+}
+
+@media (pointer: coarse) {
+  .pdf-generate-btn {
+    min-height: 40px;
+    font-size: 0.8125rem;
+    padding: 6px 14px;
+  }
 }
 
 .pdf-brand {
@@ -148,10 +168,10 @@ body {
 /* Box fisso: altrimenti flex (min-width:auto) espande la colonna alle dimensioni intrinseche del PNG. */
 .app-toolbar-hero {
   flex: 0 0 auto;
-  width: 28px;
-  height: 12px;
-  max-width: 28px;
-  max-height: 12px;
+  width: 224px;
+  height: 96px;
+  max-width: 224px;
+  max-height: 96px;
   min-width: 0;
   overflow: hidden;
   display: flex;
@@ -169,6 +189,12 @@ body {
   object-fit: contain;
   object-position: center;
   border-radius: 2px;
+}
+
+.data-backup-toolbar button {
+  font-size: 0.6875rem;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
 }
 
 .pdf-logo {
@@ -210,6 +236,89 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
+}
+
+/* Riepilogo distretto: colonne allineate tra tabella kiviat e tabella VAS lato */
+.pdf-root table.eval-district-table {
+  table-layout: fixed;
+}
+
+.pdf-root td.eval-table-side {
+  font-weight: 400;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+/* Titoli scheda valutazione: stessa scala tipografica delle sezioni (Dolore VAS, ecc.). */
+.pdf-root .eval-evaluation-card-title {
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
+  margin: 0 0 8px;
+}
+
+.pdf-root .eval-evaluation-card-title--centered {
+  text-align: center;
+}
+
+.pdf-root .eval-district-section-label {
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
+}
+
+.pdf-root .eval-district-section-label--block {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.pdf-root .eval-district-section-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdf-root .eval-section-heading-chart {
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: normal;
+  line-height: 1.35;
+  margin: 0 0 10px;
+}
+
+/* Scheda paziente: diagnosi e diagnostica affiancate, stesso corpo del testo dei <p>. */
+.pdf-root .patient-sheet-dx-img-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.pdf-root .patient-sheet-dx-col,
+.pdf-root .patient-sheet-img-col {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.pdf-root .patient-sheet-dx-list {
+  margin: 4px 0 0;
+  padding-left: 1.25rem;
+  font-size: 12px;
+  line-height: 1.35;
+  list-style-type: disc;
+}
+
+.pdf-root .patient-sheet-dx-list li {
+  margin-bottom: 4px;
 }
 
 .pdf-root th,
@@ -299,13 +408,15 @@ body {
 }
 
 .app-lang-select {
-  min-height: var(--control-min-h);
-  padding: 8px 14px;
+  min-height: 32px;
+  padding: 4px 10px;
   border-radius: var(--control-radius);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-h);
-  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  font-family: var(--sans);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   cursor: pointer;
   transition:
@@ -322,6 +433,29 @@ body {
 @media (pointer: coarse) {
   .app-lang-select {
     min-height: var(--tap-min);
+    font-size: 0.8125rem;
+    padding: 6px 12px;
+  }
+}
+
+.app-toolbar-search {
+  box-sizing: border-box;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  font-family: var(--sans);
+  padding: 4px 8px;
+  border-radius: var(--control-radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  min-height: 30px;
+}
+
+@media (pointer: coarse) {
+  .app-toolbar-search {
+    min-height: var(--tap-min);
+    font-size: 0.8125rem;
+    padding: 6px 10px;
   }
 }
 
@@ -722,7 +856,7 @@ body {
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .patient-card__name {

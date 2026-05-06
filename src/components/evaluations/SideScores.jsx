@@ -3,7 +3,7 @@ import ScoreSelect from "../ui/ScoreSelect";
 
 /**
  * Condizione base (Kiviat): stessa griglia compatta del Dolore VAS —
- * Sinistro | Destro solo in cima, righe = voci (Forza, …).
+ * Sinistro | Destro solo in cima; righe = Forza, Funzione, Mob. passiva/attiva, Qualità di movimento.
  */
 export default function SideScores({
   tt,
@@ -19,6 +19,7 @@ export default function SideScores({
     { key: "funzione", label: tt("evaluation.function") },
     { key: "mobilitaPassiva", label: tt("evaluation.passiveMobility") },
     { key: "mobilitaAttiva", label: tt("evaluation.activeMobility") },
+    { key: "qualitaMovimento", label: tt("evaluation.movementQuality") },
   ];
 
   return (

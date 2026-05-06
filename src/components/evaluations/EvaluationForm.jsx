@@ -423,6 +423,10 @@ function EvaluationBlockCard({
 
       {showKiviat && (
         <div className="evaluation-block-kiviat">
+          <strong className="evaluation-pain-vas-title">
+            {tt(`evaluation.blockType.${block.type}`) ||
+              tt("evaluation.blockType.KIVIAT")}
+          </strong>
           <SideScores
             tt={tt}
             ariaGroupLabel={
@@ -497,7 +501,9 @@ function EvaluationBlockCard({
 
       {block.type === "GENERAL_PAIN" && (
         <div className="evaluation-block-general-pain">
-          <strong>{tt("evaluation.generalPainVAS")}</strong>
+          <strong className="evaluation-pain-vas-title">
+            {tt("evaluation.generalPainVAS")}
+          </strong>
           <Score10
             compact
             min={1}

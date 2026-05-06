@@ -1,4 +1,7 @@
+import { useRef } from "react";
+
 export default function DataBackup({ patients, setPatients, compact }) {
+  const importInputRef = useRef(null);
   function exportData() {
     const data = {
       version: "1.0",
@@ -65,31 +68,26 @@ export default function DataBackup({ patients, setPatients, compact }) {
     : { marginTop: 10, marginBottom: 10 };
 
   return (
-    <div style={wrapStyle}>
+    <div className="data-backup-toolbar" style={wrapStyle}>
       <button type="button" onClick={exportData}>
         Esporta dati JSON
       </button>
 
-      <label style={compact ? undefined : { marginLeft: 10 }}>
-        <span
-          style={{
-            display: "inline-block",
-            padding: "6px 10px",
-            border: "1px solid #999",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
-        >
-          Importa dati JSON
-        </span>
+      <button
+        type="button"
+        onClick={() => importInputRef.current?.click()}
+      >
+        Importa dati JSON
+      </button>
 
-        <input
-          type="file"
-          accept="application/json"
-          onChange={importData}
-          style={{ display: "none" }}
-        />
-      </label>
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="application/json"
+        onChange={importData}
+        style={{ display: "none" }}
+        tabIndex={-1}
+      />
     </div>
   );
 }

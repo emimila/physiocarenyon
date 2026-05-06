@@ -18,15 +18,15 @@ export function bmiCategory(bmi) {
   return "Obesità";
 }
 
-/** Data ISO `YYYY-MM-DD` → `DD-MM-YYYY` (senza shift fuso). */
+/** Data ISO `YYYY-MM-DD` → `DD.MM.YYYY` (senza shift fuso). */
 export function formatDateDMY(dateString) {
   if (!dateString) return "";
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString).trim());
   if (!m) return String(dateString).trim();
-  return `${m[3]}-${m[2]}-${m[1]}`;
+  return `${m[3]}.${m[2]}.${m[1]}`;
 }
 
-/** Filtro elenco pazienti: nome, cognome, sport (come prima) + data di nascita (ISO o DD-MM-YYYY, anche solo cifre). */
+/** Filtro elenco pazienti: nome, cognome, sport (come prima) + data di nascita (ISO o DD.MM.YYYY, anche solo cifre). */
 export function patientMatchesSearchQuery(p, queryRaw) {
   const q = String(queryRaw ?? "").trim().toLowerCase();
   if (!q) return true;
@@ -42,7 +42,8 @@ export function patientMatchesSearchQuery(p, queryRaw) {
 
   const iso = dn.toLowerCase();
   const dmy = formatDateDMY(dn).toLowerCase();
-  if (iso.includes(q) || dmy.includes(q)) return true;
+  const dmyHyphen = dmy.replace(/\./g, "-");
+  if (iso.includes(q) || dmy.includes(q) || dmyHyphen.includes(q)) return true;
 
   const qDigits = q.replace(/\D/g, "");
   if (qDigits.length < 2) return false;
@@ -360,4 +361,20 @@ export function manualTextLower(s) {
   if (s == null) return "";
   const t = String(s).trim();
   return t ? t.toLowerCase() : "";
+}
+
+export function patientTrim(v) {
+  if (v == null) return "";
+  return String(v).trim();
+}
+
+/** True se la riga diagnosi ha almeno un valore da mostrare in scheda. */
+export function patientDiagnosiRowIsFilled(row, tt) {
+  if (!row) return false;
+  const dx = patientTrim(translatedPatientDiagnosis(row.diagnosi, tt));
+  const dist = row.distrettoDiagnosi
+    ? patientTrim(translatedDistrettoDiagnosi(row.distrettoDiagnosi, tt))
+    : "";
+  const det = patientTrim(manualTextLower(row.dettagli));
+  return Boolean(dx || dist || det);
 }

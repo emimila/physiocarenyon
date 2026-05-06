@@ -27,6 +27,8 @@ import {
   translatedDistrettoDiagnosi,
   manualTextLower,
   migrateDiagnosiRighe,
+  patientTrim,
+  patientDiagnosiRowIsFilled,
 } from "./utils/helpers";
 import {
   sanitizeEvaluationForSave,
@@ -429,14 +431,14 @@ export default function App() {
           </button>
 
           <input
+            className="app-toolbar-search"
             placeholder={tt("common.searchPatient")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             style={{
-              padding: 8,
-              flex: "1 1 120px",
-              maxWidth: 280,
-              minWidth: 100,
+              flex: "1 1 100px",
+              maxWidth: 220,
+              minWidth: 80,
             }}
           />
         </div>
@@ -503,9 +505,6 @@ export default function App() {
                   </span>
                 ) : null}
               </div>
-              <small className="patient-card__meta">
-                {(p.valutazioni || []).length} {tt("evaluation.evaluations")}
-              </small>
             </div>
           ))}
         </aside>
@@ -1462,26 +1461,21 @@ function GripStrengthTestSummary({ patient, evaluationDate, test, tt }) {
   );
 }
 
-/** Titolo valutazione in elenco (scheda / menu grafici): include distretti tradotti. */
-function evaluationListHeadingParts(v, tt) {
+/** Titolo valutazione: `Numero valutazione: 1   Distretto: Anca    06.05.2026` (data DD.MM.YYYY). */
+function evaluationCardHeadingText(v, tt) {
   const districtLabels = (v.distretti || [])
     .map((d) => {
       const nome = d?.nome;
       if (!nome) return "";
-      const label =
-        tt(`options.distretti.${String(nome).toLowerCase()}`) || nome;
-      const n = d?.numeroValutazioneDistretto;
-      return n ? `${label} (#${n})` : label;
+      return tt(`options.distretti.${String(nome).toLowerCase()}`) || nome;
     })
     .filter(Boolean);
   const districtSegment = districtLabels.length
     ? districtLabels.join(", ")
     : "—";
-  return [
-    `${tt("evaluation.number")} ${v.numeroValutazione || "-"}`,
-    `${tt("evaluation.district")}: ${districtSegment}`,
-    v.data || "-",
-  ];
+  const num = v.numeroValutazione ?? "-";
+  const dateStr = v.data ? formatDateDMY(v.data) : "—";
+  return `${tt("evaluation.number")}: ${num}   ${tt("evaluation.district")}: ${districtSegment}    ${dateStr}`;
 }
 
 /** Dati VAS per grafici: se c’è solo dolore generale, replica il valore sulle 5 voci. */
@@ -1536,12 +1530,6 @@ function PatientDetail({
 
   return (
     <div ref={pdfRef} className={`pdf-root ${isExportingPdf ? "pdf-exporting" : ""}`}>
-      <div className="pdf-controls no-pdf">
-        <button onClick={exportPdf} disabled={isExportingPdf}>
-          {isExportingPdf ? tt("common.loading", "Preparazione...") : tt("common.generatePdf")}
-        </button>
-      </div>
-
       <header className="pdf-header">
         <div className="pdf-brand">
           <img
@@ -1556,169 +1544,232 @@ function PatientDetail({
             <div className="pdf-clinic">Physiocare Nyon</div>
           </div>
         </div>
+        <div className="pdf-header-actions no-pdf">
+          <button
+            type="button"
+            className="pdf-generate-btn"
+            onClick={exportPdf}
+            disabled={isExportingPdf}
+          >
+            {isExportingPdf
+              ? tt("common.loading", "Preparazione...")
+              : tt("common.generatePdf")}
+          </button>
+        </div>
       </header>
 
       <h2>
         {selected.nome || "-"} {selected.cognome || "-"}
         {selected.dataNascita
-          ? ` — ${formatDateDMY(selected.dataNascita)}`
+          ? `  ${formatDateDMY(selected.dataNascita)}`
           : ""}
       </h2>
 
-      <p
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0 12px",
-          alignItems: "baseline",
-        }}
-      >
-        <span>
-          <strong>{tt("patient.weight")}:</strong> {selected.peso || "-"} kg
-        </span>
-        <span>
-          <strong>{tt("patient.height")}:</strong> {selected.altezza || "-"} cm
-        </span>
-        <span>
-          <strong>{tt("patient.bmi")}:</strong>{" "}
-          {calcBMI(selected.peso, selected.altezza) || "-"}
-        </span>
-        <span>
-          <strong>{tt("patient.sex")}:</strong>{" "}
-          {selected.sesso
-            ? tt(`options.sex.${selected.sesso}`) || selected.sesso
-            : "-"}
-        </span>
-        <span>
-          <strong>{tt("patient.dominantHand")}:</strong>{" "}
-          {selected.manoDominante
-            ? tt(`dominantHand.${selected.manoDominante}`) ||
-              selected.manoDominante
-            : "-"}
-        </span>
-      </p>
+      {(patientTrim(selected.peso) ||
+        patientTrim(selected.altezza) ||
+        patientTrim(calcBMI(selected.peso, selected.altezza)) ||
+        patientTrim(selected.sesso) ||
+        patientTrim(selected.manoDominante)) && (
+        <p
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0 12px",
+            alignItems: "baseline",
+          }}
+        >
+          {patientTrim(selected.peso) ? (
+            <span>
+              <strong>{tt("patient.weight")}:</strong> {selected.peso} kg
+            </span>
+          ) : null}
+          {patientTrim(selected.altezza) ? (
+            <span>
+              <strong>{tt("patient.height")}:</strong> {selected.altezza} cm
+            </span>
+          ) : null}
+          {patientTrim(calcBMI(selected.peso, selected.altezza)) ? (
+            <span>
+              <strong>{tt("patient.bmi")}:</strong>{" "}
+              {calcBMI(selected.peso, selected.altezza)}
+            </span>
+          ) : null}
+          {patientTrim(selected.sesso) ? (
+            <span>
+              <strong>{tt("patient.sex")}:</strong>{" "}
+              {tt(`options.sex.${selected.sesso}`) || selected.sesso}
+            </span>
+          ) : null}
+          {patientTrim(selected.manoDominante) ? (
+            <span>
+              <strong>{tt("patient.dominantHand")}:</strong>{" "}
+              {tt(`dominantHand.${selected.manoDominante}`) ||
+                selected.manoDominante}
+            </span>
+          ) : null}
+        </p>
+      )}
 
-<p>
-  <strong>{tt("patient.weightChange")}:</strong>{" "}
-  {selected.variazionePeso
-    ? tt(`options.yesNo.${selected.variazionePeso}`) ||
-      selected.variazionePeso
-    : "-"}
-</p>
+      {patientTrim(selected.variazionePeso) && (
+        <p>
+          <strong>{tt("patient.weightChange")}:</strong>{" "}
+          {tt(`options.yesNo.${selected.variazionePeso}`) ||
+            selected.variazionePeso}
+        </p>
+      )}
 
-{selected.variazionePeso === "Sì" && (
-  <p>
-    <strong>{tt("patient.weightChangeReason")}:</strong>{" "}
-    {manualTextLower(selected.motivoVariazionePeso) || "-"}
-  </p>
-)}
+      {selected.variazionePeso === "Sì" &&
+        patientTrim(manualTextLower(selected.motivoVariazionePeso)) && (
+          <p>
+            <strong>{tt("patient.weightChangeReason")}:</strong>{" "}
+            {manualTextLower(selected.motivoVariazionePeso)}
+          </p>
+        )}
 
-      <p
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0 12px",
-          alignItems: "baseline",
-        }}
-      >
-        <span>
-          <strong>{tt("patient.medications")}:</strong>{" "}
-          {manualTextLower(selected.farmaci) || "-"}
-        </span>
-        <span>|</span>
-        <span>
-          <strong>{tt("patient.pathologies")}:</strong>{" "}
-          {manualTextLower(selected.patologie) || "-"}
-        </span>
-        <span>|</span>
-        <span>
-          <strong>{tt("patient.epilepsy")}:</strong>{" "}
-          {selected.epilessia
-            ? tt(`options.yesNo.${selected.epilessia}`) || selected.epilessia
-            : "-"}
-        </span>
-      </p>
+      {(() => {
+        const farm = patientTrim(manualTextLower(selected.farmaci));
+        const pat = patientTrim(manualTextLower(selected.patologie));
+        const ep =
+          selected.epilessia &&
+          (tt(`options.yesNo.${selected.epilessia}`) || selected.epilessia);
+        const epStr = patientTrim(ep);
+        if (!farm && !pat && !epStr) return null;
+        const chunks = [];
+        if (farm) {
+          chunks.push(
+            <span key="farm">
+              <strong>{tt("patient.medications")}:</strong> {farm}
+            </span>
+          );
+        }
+        if (pat) {
+          chunks.push(
+            <span key="pat">
+              <strong>{tt("patient.pathologies")}:</strong> {pat}
+            </span>
+          );
+        }
+        if (epStr) {
+          chunks.push(
+            <span key="ep">
+              <strong>{tt("patient.epilepsy")}:</strong> {epStr}
+            </span>
+          );
+        }
+        return (
+          <p
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0 12px",
+              alignItems: "baseline",
+            }}
+          >
+            {chunks.flatMap((el, i) =>
+              i === 0 ? [el] : [<span key={`sep-${i}`}>|</span>, el]
+            )}
+          </p>
+        );
+      })()}
 
-      <p>
-        <strong>{tt("patient.relevantSurgeryHistory")}:</strong>{" "}
-        {manualTextLower(selected.antecedentiChirurgici) || "-"}
-      </p>
+      {patientTrim(manualTextLower(selected.antecedentiChirurgici)) && (
+        <p>
+          <strong>{tt("patient.relevantSurgeryHistory")}:</strong>{" "}
+          {manualTextLower(selected.antecedentiChirurgici)}
+        </p>
+      )}
 
-      {selected.sesso === "Donna" && (
-        <p style={{ lineHeight: 1.45 }}>
-          {(() => {
-            const yn = (v) =>
-              v ? tt(`options.yesNo.${v}`) || v : "-";
-            const parts = [
-              `${tt("patient.children")}: ${yn(selected.figli)}`,
-            ];
+      {selected.sesso === "Donna" &&
+        (() => {
+          const yn = (v) =>
+            v ? tt(`options.yesNo.${v}`) || v : "";
+          const parts = [];
+          if (patientTrim(selected.figli)) {
+            parts.push(`${tt("patient.children")}: ${yn(selected.figli)}`);
             if (selected.figli === "Sì") {
-              parts.push(
-                `${tt("patient.childrenCount")}: ${selected.numeroFigli || "-"}`
-              );
-              parts.push(
-                `${tt("patient.birthMode")}: ${
-                  selected.tipoParto
-                    ? tt(`options.birthType.${selected.tipoParto}`) ||
-                      selected.tipoParto
-                    : "-"
-                }`
-              );
+              if (patientTrim(selected.numeroFigli)) {
+                parts.push(
+                  `${tt("patient.childrenCount")}: ${selected.numeroFigli}`
+                );
+              }
+              if (patientTrim(selected.tipoParto)) {
+                parts.push(
+                  `${tt("patient.birthMode")}: ${
+                    tt(`options.birthType.${selected.tipoParto}`) ||
+                    selected.tipoParto
+                  }`
+                );
+              }
             }
+          }
+          if (patientTrim(selected.riabilitazionePerineale)) {
             parts.push(
               `${tt("patient.perinealRehab")}: ${yn(
                 selected.riabilitazionePerineale
               )}`
             );
+          }
+          if (patientTrim(selected.incontinenza)) {
             parts.push(
               `${tt("patient.urinaryIncontinence")}: ${yn(
                 selected.incontinenza
               )}`
             );
-            return parts.join(" | ");
-          })()}
+          }
+          if (!parts.length) return null;
+          return (
+            <p style={{ lineHeight: 1.45 }}>{parts.join(" | ")}</p>
+          );
+        })()}
+
+      {patientTrim(manualTextLower(selected.dominioLavoro)) && (
+        <p>
+          <strong>{tt("patient.workEducation")}:</strong>{" "}
+          {manualTextLower(selected.dominioLavoro)}
         </p>
       )}
 
-<p>
-  <strong>{tt("patient.workEducation")}:</strong>{" "}
-  {manualTextLower(selected.dominioLavoro) || "-"}
-</p>
-
-<p>
-  <strong>{tt("patient.professionalRiskNotes")}:</strong>{" "}
-  {manualTextLower(selected.rischiProfessionali) || "-"}
-</p>
+      {patientTrim(manualTextLower(selected.rischiProfessionali)) && (
+        <p>
+          <strong>{tt("patient.professionalRiskNotes")}:</strong>{" "}
+          {manualTextLower(selected.rischiProfessionali)}
+        </p>
+      )}
 
 {/* motivoAccesso (Referral / Già cliente / Internet): salvato nei dati e nell’export JSON per statistiche; non mostrato in questa scheda. */}
 
-<p>
-  <strong>{tt("patient.sports")}:</strong>{" "}
-  {(() => {
-    const list = (selected.sportMultipli || [])
-      .map((s) => {
-        const lower = String(s).toLowerCase();
-        const upper = String(s).charAt(0).toUpperCase() + String(s).slice(1);
+      {(() => {
+        const list = (selected.sportMultipli || [])
+          .filter(Boolean)
+          .map((s) => {
+            const lower = String(s).toLowerCase();
+            const upper =
+              String(s).charAt(0).toUpperCase() + String(s).slice(1);
+            return (
+              tt(`options.sport.${lower}`) ||
+              tt(`options.sport.${upper}`) ||
+              s
+            );
+          })
+          .join(", ");
+        const extra = patientTrim(manualTextLower(selected.sportAltro));
+        const body =
+          list && extra ? `${list}, ${extra}` : list || extra || "";
+        if (!body) return null;
         return (
-          tt(`options.sport.${lower}`) || tt(`options.sport.${upper}`) || s
+          <p>
+            <strong>{tt("patient.sports")}:</strong> {body}
+          </p>
         );
-      })
-      .join(", ");
-    const extra = manualTextLower(selected.sportAltro);
-    if (list && extra) return `${list}, ${extra}`;
-    if (list) return list;
-    if (extra) return extra;
-    return "-";
-  })()}
-</p>
+      })()}
 
-<p>
-  <strong>{tt("patient.sportPracticeLevel")}:</strong>{" "}
-  {selected.sportLivello
-    ? tt(`options.sportLevel.${selected.sportLivello}`) ||
-      selected.sportLivello
-    : "-"}
-</p>
+      {patientTrim(selected.sportLivello) && (
+        <p>
+          <strong>{tt("patient.sportPracticeLevel")}:</strong>{" "}
+          {tt(`options.sportLevel.${selected.sportLivello}`) ||
+            selected.sportLivello}
+        </p>
+      )}
 
       {(selected.sportMultipli || []).some(
         (s) => String(s).toLowerCase() === "running"
@@ -1754,179 +1805,238 @@ function PatientDetail({
     </p>
   )}
 
-{(selected.sportMultipli || []).some(
-  (s) => String(s).toLowerCase() === "surf"
-) && (
-  <p>
-    <strong>{tt("options.sport.surf") ?? "Surf"}:</strong>{" "}
-    {(selected.surfStance &&
-      (tt(`options.boardStance.${selected.surfStance}`) ||
-        selected.surfStance)) ||
-      "-"}
-  </p>
-)}
+      {(selected.sportMultipli || []).some(
+        (s) => String(s).toLowerCase() === "surf"
+      ) &&
+        patientTrim(selected.surfStance) && (
+          <p>
+            <strong>{tt("options.sport.surf") ?? "Surf"}:</strong>{" "}
+            {tt(`options.boardStance.${selected.surfStance}`) ||
+              selected.surfStance}
+          </p>
+        )}
 
-{(selected.sportMultipli || []).some(
-  (s) => String(s).toLowerCase() === "snowboard"
-) && (
-  <p>
-    <strong>{tt("options.sport.snowboard") ?? "Snowboard"}:</strong>{" "}
-    {(selected.snowboardStance &&
-      (tt(`options.boardStance.${selected.snowboardStance}`) ||
-        selected.snowboardStance)) ||
-      "-"}
-  </p>
-)}
+      {(selected.sportMultipli || []).some(
+        (s) => String(s).toLowerCase() === "snowboard"
+      ) &&
+        patientTrim(selected.snowboardStance) && (
+          <p>
+            <strong>{tt("options.sport.snowboard") ?? "Snowboard"}:</strong>{" "}
+            {tt(`options.boardStance.${selected.snowboardStance}`) ||
+              selected.snowboardStance}
+          </p>
+        )}
 
-{(selected.sportMultipli || []).some(
-  (s) => String(s).toLowerCase() === "skateboard"
-) && (
-  <p>
-    <strong>{tt("options.sport.skateboard") ?? "Skateboard"}:</strong>{" "}
-    {(selected.skateboardStance &&
-      (tt(`options.boardStance.${selected.skateboardStance}`) ||
-        selected.skateboardStance)) ||
-      "-"}
-  </p>
-)}
+      {(selected.sportMultipli || []).some(
+        (s) => String(s).toLowerCase() === "skateboard"
+      ) &&
+        patientTrim(selected.skateboardStance) && (
+          <p>
+            <strong>{tt("options.sport.skateboard") ?? "Skateboard"}:</strong>{" "}
+            {tt(`options.boardStance.${selected.skateboardStance}`) ||
+              selected.skateboardStance}
+          </p>
+        )}
 
-{(selected.sportMultipli || []).some(
-  (s) => String(s).toLowerCase() === "tennis"
-) && (
-  <p>
-    <strong>{tt("options.sport.tennis") ?? "Tennis"}:</strong>{" "}
-    {tt("patient.tennisBackhand") ?? "Rovescio"}:{" "}
-    {(selected.tennisBackhand &&
-      (tt(`options.tennisBackhand.${selected.tennisBackhand}`) ||
-        selected.tennisBackhand)) ||
-      "-"}{" "}
-    | {tt("patient.tennisStringTension") ?? "Tensione corde"}:{" "}
-    {manualTextLower(selected.tennisStringTension) || "-"}{" "}
-    | {tt("patient.tennisRacketChangedRecently") ?? "Racchetta cambiata"}:{" "}
-    {selected.tennisRacketChangedRecently
-      ? tt(`options.yesNo.${selected.tennisRacketChangedRecently}`) ||
-        selected.tennisRacketChangedRecently
-      : "-"}
-  </p>
-)}
+      {(selected.sportMultipli || []).some(
+        (s) => String(s).toLowerCase() === "tennis"
+      ) &&
+        (() => {
+          const bh =
+            selected.tennisBackhand &&
+            (tt(`options.tennisBackhand.${selected.tennisBackhand}`) ||
+              selected.tennisBackhand);
+          const tension = patientTrim(
+            manualTextLower(selected.tennisStringTension)
+          );
+          const racket = selected.tennisRacketChangedRecently
+            ? tt(`options.yesNo.${selected.tennisRacketChangedRecently}`) ||
+              selected.tennisRacketChangedRecently
+            : "";
+          const segs = [];
+          if (patientTrim(bh)) {
+            segs.push(
+              `${tt("patient.tennisBackhand") ?? "Rovescio"}: ${bh}`
+            );
+          }
+          if (tension) {
+            segs.push(
+              `${tt("patient.tennisStringTension") ?? "Tensione corde"}: ${tension}`
+            );
+          }
+          if (patientTrim(racket)) {
+            segs.push(
+              `${tt("patient.tennisRacketChangedRecently") ?? "Racchetta cambiata"}: ${racket}`
+            );
+          }
+          if (!segs.length) return null;
+          return (
+            <p>
+              <strong>{tt("options.sport.tennis") ?? "Tennis"}:</strong>{" "}
+              {segs.join(" | ")}
+            </p>
+          );
+        })()}
 
-{(selected.sportMultipli || []).some(
-  (s) => String(s).toLowerCase() === "padel"
-) && (
-  <p>
-    <strong>{tt("options.sport.padel") ?? "Padel"}:</strong>{" "}
-    {tt("patient.padelRacketChangedRecently") ??
-      "Racchetta cambiata di recente"}
-    :{" "}
-    {selected.padelRacketChangedRecently
-      ? tt(`options.yesNo.${selected.padelRacketChangedRecently}`) ||
-        selected.padelRacketChangedRecently
-      : "-"}
-  </p>
-)}
+      {(selected.sportMultipli || []).some(
+        (s) => String(s).toLowerCase() === "padel"
+      ) &&
+        patientTrim(selected.padelRacketChangedRecently) && (
+          <p>
+            <strong>{tt("options.sport.padel") ?? "Padel"}:</strong>{" "}
+            {tt("patient.padelRacketChangedRecently") ??
+              "Racchetta cambiata di recente"}
+            :{" "}
+            {tt(`options.yesNo.${selected.padelRacketChangedRecently}`) ||
+              selected.padelRacketChangedRecently}
+          </p>
+        )}
 
-<p>
-  <strong>{tt("patient.tegner")}:</strong> {selected.tegner || "-"}{" "}
-  {selected.tegner !== "" && selected.tegner != null
-    ? `- ${tt(`options.tegner.${selected.tegner}`) || tegnerInfo[selected.tegner]}`
-    : ""}
-</p>
+      {selected.tegner !== "" &&
+        selected.tegner != null &&
+        patientTrim(String(selected.tegner)) && (
+          <p>
+            <strong>{tt("patient.tegner")}:</strong> {selected.tegner}{" "}
+            {`- ${tt(`options.tegner.${selected.tegner}`) || tegnerInfo[selected.tegner]}`}
+          </p>
+        )}
 
-<p>
-  <strong>{tt("patient.weeklySportHours")}:</strong>{" "}
-  {tt(`options.weeklySportHours.${selected.oreSport}`) ||
-    selected.oreSport ||
-    "-"}
-</p>
+      {patientTrim(selected.oreSport) && (
+        <p>
+          <strong>{tt("patient.weeklySportHours")}:</strong>{" "}
+          {tt(`options.weeklySportHours.${selected.oreSport}`) ||
+            selected.oreSport}
+        </p>
+      )}
 
-<div style={{ marginBottom: 6 }}>
-  <strong>{tt("patient.diagnosisShort")}:</strong>
-  <ul
-    style={{
-      margin: "6px 0 0",
-      paddingLeft: "1.25rem",
-      textAlign: "left",
-    }}
-  >
-    {migrateDiagnosiRighe(selected).map((row) => {
-      const dx = translatedPatientDiagnosis(row.diagnosi, tt);
-      const dist = row.distrettoDiagnosi
-        ? translatedDistrettoDiagnosi(row.distrettoDiagnosi, tt)
-        : "";
-      const det = manualTextLower(row.dettagli);
-      const main = [dx, dist].filter(Boolean).join(" — ");
-      return (
-        <li key={row.id} style={{ marginBottom: 6 }}>
-          {main || "—"}
-          {det ? (
-            <span style={{ color: "var(--text-muted)" }}> — {det}</span>
-          ) : null}
-        </li>
-      );
-    })}
-  </ul>
-</div>
+      {(() => {
+        const dxRows = migrateDiagnosiRighe(selected).filter((row) =>
+          patientDiagnosiRowIsFilled(row, tt)
+        );
+        const imgMain =
+          tt(`options.imaging.${selected.diagnostica}`) ||
+          patientTrim(selected.diagnostica);
+        const imgDet = patientTrim(
+          manualTextLower(selected.diagnosticaDettagli)
+        );
+        const hasDx = dxRows.length > 0;
+        const hasImg = patientTrim(imgMain) || imgDet;
+        if (!hasDx && !hasImg) return null;
+        return (
+          <div className="patient-sheet-dx-img-row">
+            {hasDx ? (
+              <div className="patient-sheet-dx-col">
+                <strong>{tt("patient.diagnosisShort")}:</strong>
+                <ul className="patient-sheet-dx-list">
+                  {dxRows.map((row) => {
+                    const dx = translatedPatientDiagnosis(row.diagnosi, tt);
+                    const dist = row.distrettoDiagnosi
+                      ? translatedDistrettoDiagnosi(
+                          row.distrettoDiagnosi,
+                          tt
+                        )
+                      : "";
+                    const det = manualTextLower(row.dettagli);
+                    const main = [dx, dist].filter(Boolean).join(" — ");
+                    const detT = patientTrim(det);
+                    return (
+                      <li key={row.id}>
+                        {main ? (
+                          <>
+                            {main}
+                            {detT ? (
+                              <span style={{ color: "var(--text-muted)" }}>
+                                {" "}
+                                — {det}
+                              </span>
+                            ) : null}
+                          </>
+                        ) : detT ? (
+                          <span>{det}</span>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
+            {hasImg ? (
+              <div className="patient-sheet-img-col">
+                {patientTrim(imgMain) ? (
+                  <p style={{ margin: "0 0 6px" }}>
+                    <strong>{tt("patient.imaging")}:</strong> {imgMain}
+                  </p>
+                ) : null}
+                {imgDet ? (
+                  <p style={{ margin: 0 }}>
+                    <strong>{tt("patient.imagingDetails")}:</strong> {imgDet}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        );
+      })()}
 
-<p>
-  <strong>{tt("patient.imaging")}:</strong>{" "}
-  {tt(`options.imaging.${selected.diagnostica}`) ||
-    selected.diagnostica ||
-    "-"}
-</p>
+      {(() => {
+        const img2 =
+          tt(`options.imaging.${selected.diagnostica2}`) ||
+          patientTrim(selected.diagnostica2);
+        const det2 = patientTrim(
+          manualTextLower(selected.diagnosticaDettagli2)
+        );
+        if (!patientTrim(img2) && !det2) return null;
+        return (
+          <>
+            {patientTrim(img2) ? (
+              <p>
+                <strong>{tt("patient.imaging2")}:</strong> {img2}
+              </p>
+            ) : null}
+            {det2 ? (
+              <p>
+                <strong>{tt("patient.imagingDetails2")}:</strong> {det2}
+              </p>
+            ) : null}
+          </>
+        );
+      })()}
 
-<p>
-  <strong>{tt("patient.imagingDetails")}:</strong>{" "}
-  {manualTextLower(selected.diagnosticaDettagli) || "-"}
-</p>
+      {patientTrim(selected.dataInfortunio) && (
+        <p>
+          <strong>{tt("patient.injuryDate")}:</strong>{" "}
+          {`${formatDateDMY(selected.dataInfortunio)} \u2026 ${timeSinceYWD(
+            selected.dataInfortunio,
+            tt
+          )}`}
+        </p>
+      )}
 
-{(selected.diagnostica2 || selected.diagnosticaDettagli2) && (
-  <>
-    <p>
-      <strong>{tt("patient.imaging2")}:</strong>{" "}
-      {tt(`options.imaging.${selected.diagnostica2}`) ||
-        selected.diagnostica2 ||
-        "—"}
-    </p>
-    <p>
-      <strong>{tt("patient.imagingDetails2")}:</strong>{" "}
-      {manualTextLower(selected.diagnosticaDettagli2) || "-"}
-    </p>
-  </>
-)}
+      {patientTrim(selected.dataOperazione) && (
+        <p>
+          <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
+          {`${formatDateDMY(selected.dataOperazione)} \u2026 ${timeSinceYWD(
+            selected.dataOperazione,
+            tt
+          )}`}
+        </p>
+      )}
 
-      <p>
-        <strong>{tt("patient.injuryDate")}:</strong>{" "}
-        {selected.dataInfortunio
-          ? `${formatDateDMY(selected.dataInfortunio)} — ${timeSinceYWD(
-              selected.dataInfortunio,
-              tt
-            )}`
-          : "-"}
-      </p>
+      {patientTrim(selected.artoOperato) && (
+        <p>
+          <strong>{tt("patient.operatedLimbShort")}:</strong>{" "}
+          {tt(`options.operatedLimb.${selected.artoOperato}`) ||
+            selected.artoOperato}
+        </p>
+      )}
 
-      <p>
-        <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
-        {selected.dataOperazione
-          ? `${formatDateDMY(selected.dataOperazione)} — ${timeSinceYWD(
-              selected.dataOperazione,
-              tt
-            )}`
-          : "-"}
-      </p>
-
-<p>
-  <strong>{tt("patient.operatedLimbShort")}:</strong>{" "}
-  {tt(`options.operatedLimb.${selected.artoOperato}`) ||
-    selected.artoOperato ||
-    "-"}
-</p>
-
-<p>
-  <strong>{tt("patient.surgeryType")}:</strong>{" "}
-  {tt(`options.surgeryType.${selected.tipoOperazione}`) ||
-    selected.tipoOperazione ||
-    "-"}
-</p>
+      {patientTrim(selected.tipoOperazione) && (
+        <p>
+          <strong>{tt("patient.surgeryType")}:</strong>{" "}
+          {tt(`options.surgeryType.${selected.tipoOperazione}`) ||
+            selected.tipoOperazione}
+        </p>
+      )}
       <div className="no-pdf">
         <button type="button" onClick={() => editPatient(selected)}>
           {tt("common.edit")}
@@ -1970,7 +2080,9 @@ function PatientDetail({
             marginBottom: 12,
           }}
         >
-          <h4>{evaluationListHeadingParts(v, tt).join(" — ")}</h4>
+          <h4 className="eval-evaluation-card-title eval-evaluation-card-title--centered">
+            {evaluationCardHeadingText(v, tt)}
+          </h4>
 
           {v.note && (
             <p>
@@ -1993,7 +2105,12 @@ function PatientDetail({
               )}
 
               {distrettoHasKiviat(d) && (
+              <>
+              <div className="eval-district-section-label eval-district-section-label--block">
+                {tt("evaluation.blockType.KIVIAT")}:
+              </div>
               <table
+                className="eval-district-table"
                 border="1"
                 cellPadding="6"
                 style={{
@@ -2002,6 +2119,14 @@ function PatientDetail({
                   width: "100%",
                 }}
               >
+                <colgroup>
+                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "17.2%" }} />
+                  <col style={{ width: "17.2%" }} />
+                  <col style={{ width: "17.2%" }} />
+                  <col style={{ width: "17.2%" }} />
+                  <col style={{ width: "17.2%" }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th></th>
@@ -2009,39 +2134,39 @@ function PatientDetail({
                     <th>{tt("evaluation.function")}</th>
                     <th>{tt("evaluation.passiveMobilityShort")}</th>
                     <th>{tt("evaluation.activeMobilityShort")}</th>
+                    <th>{tt("evaluation.movementQualityShort")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{tt("evaluation.left")}</td>
+                    <td className="eval-table-side">{tt("evaluation.left")}</td>
                     <td>{d.sinistro?.forza || "-"}</td>
                     <td>{d.sinistro?.funzione || "-"}</td>
                     <td>{d.sinistro?.mobilitaPassiva || "-"}</td>
                     <td>{d.sinistro?.mobilitaAttiva || "-"}</td>
+                    <td>{d.sinistro?.qualitaMovimento ?? "-"}</td>
                   </tr>
                   <tr>
-                    <td>{tt("evaluation.right")}</td>
+                    <td className="eval-table-side">{tt("evaluation.right")}</td>
                     <td>{d.destro?.forza || "-"}</td>
                     <td>{d.destro?.funzione || "-"}</td>
                     <td>{d.destro?.mobilitaPassiva || "-"}</td>
                     <td>{d.destro?.mobilitaAttiva || "-"}</td>
+                    <td>{d.destro?.qualitaMovimento ?? "-"}</td>
                   </tr>
                 </tbody>
               </table>
-              )}
-
-              {distrettoHasGeneralPainVAS(d) && (
-                <p style={{ marginTop: 8 }}>
-                  <strong>{tt("evaluation.generalPainVAS")}:</strong>{" "}
-                  {d.doloreGeneraleVAS || "-"}
-                </p>
+              </>
               )}
 
               {distrettoHasSidePainTable(d) && (
               <div style={{ marginTop: 8 }}>
-                <strong>{tt("evaluation.painVAS")}:</strong>
+                <div className="eval-district-section-label eval-district-section-label--block">
+                  {tt("evaluation.painVAS")}:
+                </div>
 
                 <table
+                  className="eval-district-table"
                   border="1"
                   cellPadding="6"
                   style={{
@@ -2050,6 +2175,14 @@ function PatientDetail({
                     width: "100%",
                   }}
                 >
+                  <colgroup>
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "17.2%" }} />
+                    <col style={{ width: "17.2%" }} />
+                    <col style={{ width: "17.2%" }} />
+                    <col style={{ width: "17.2%" }} />
+                    <col style={{ width: "17.2%" }} />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th></th>
@@ -2062,7 +2195,7 @@ function PatientDetail({
                   </thead>
                   <tbody>
                   <tr>
-                    <th scope="row">{tt("evaluation.left")}</th>
+                    <td className="eval-table-side">{tt("evaluation.left")}</td>
                     <td>{d.sinistro?.dolore?.riposo ?? d.dolore?.riposo ?? "-"}</td>
                     <td>{d.sinistro?.dolore?.mattino ?? d.dolore?.mattino ?? "-"}</td>
                     <td>{d.sinistro?.dolore?.sera ?? d.dolore?.sera ?? "-"}</td>
@@ -2070,7 +2203,7 @@ function PatientDetail({
                     <td>{d.sinistro?.dolore?.dopoAttivita ?? d.dolore?.dopoAttivita ?? "-"}</td>
                   </tr>
                   <tr>
-                    <th scope="row">{tt("evaluation.right")}</th>
+                    <td className="eval-table-side">{tt("evaluation.right")}</td>
                     <td>{d.destro?.dolore?.riposo ?? d.dolore?.riposo ?? "-"}</td>
                     <td>{d.destro?.dolore?.mattino ?? d.dolore?.mattino ?? "-"}</td>
                     <td>{d.destro?.dolore?.sera ?? d.dolore?.sera ?? "-"}</td>
@@ -2080,6 +2213,18 @@ function PatientDetail({
                   </tbody>
 </table>
 </div>
+              )}
+
+              {distrettoHasGeneralPainVAS(d) && (
+                <div
+                  className="eval-district-section-label eval-district-section-label--block eval-district-section-label--with-value"
+                  style={{ marginTop: 8 }}
+                >
+                  {tt("evaluation.generalPainVAS")}:{" "}
+                  <span className="eval-district-section-value">
+                    {d.doloreGeneraleVAS || "-"}
+                  </span>
+                </div>
               )}
 
 {distrettoActiveTests(d).length > 0 && (
@@ -2425,7 +2570,7 @@ function KiviatComparison({ selected, tt }) {
               onChange={(v) => updateComparison(c.id, "valA", v)}
               options={valutazioni.map((v) => ({
                 value: v.id,
-                label: evaluationListHeadingParts(v, tt).join(" — "),
+                label: evaluationCardHeadingText(v, tt),
               }))}
             />
 
@@ -2435,7 +2580,7 @@ function KiviatComparison({ selected, tt }) {
               onChange={(v) => updateComparison(c.id, "valB", v)}
               options={valutazioni.map((v) => ({
                 value: v.id,
-                label: evaluationListHeadingParts(v, tt).join(" — "),
+                label: evaluationCardHeadingText(v, tt),
               }))}
             />
 
@@ -2503,13 +2648,13 @@ const hasPainB =
   const districtLabel =
     tt(`options.distretti.${comparison.distretto}`) || comparison.distretto;
 
-  const labelA = `${tt("evaluation.number")} ${
+  const labelA = `${tt("evaluation.number")}: ${
     evA.numeroValutazione || "-"
-  } — ${evA.data || "-"}`;
+  }   ${evA.data ? formatDateDMY(evA.data) : "—"}`;
 
-  const labelB = `${tt("evaluation.number")} ${
+  const labelB = `${tt("evaluation.number")}: ${
     evB.numeroValutazione || "-"
-  } — ${evB.data || "-"}`;
+  }   ${evB.data ? formatDateDMY(evB.data) : "—"}`;
 
   if (comparison.mode === "sessione") {
     return (
@@ -2661,22 +2806,35 @@ function RadarChart({ title, series, tt }) {
     tt("evaluation.function"),
     tt("evaluation.passiveMobilityShort"),
     tt("evaluation.activeMobilityShort"),
+    tt("evaluation.movementQualityShort"),
   ];
 
-  const keys = ["forza", "funzione", "mobilitaPassiva", "mobilitaAttiva"];
+  const keys = [
+    "forza",
+    "funzione",
+    "mobilitaPassiva",
+    "mobilitaAttiva",
+    "qualitaMovimento",
+  ];
 
   /** Canvas e raggio dati più grandi; margini generosi per le etichette. */
   const size = 500;
   const center = size / 2;
   const maxRadius = 128;
   const maxValue = KIVIAT_MAX_SCORE;
+  const axisCount = keys.length;
+  const stepDeg = 360 / axisCount;
+
+  function axisAngleRad(index) {
+    return ((-90 + index * stepDeg) * Math.PI) / 180;
+  }
 
   function scoreToRadius(value) {
     return (Number(value || 0) / maxValue) * maxRadius;
   }
 
   function point(index, value) {
-    const angle = (-90 + index * 90) * (Math.PI / 180);
+    const angle = axisAngleRad(index);
     const radius = scoreToRadius(value);
 
     return {
@@ -2686,7 +2844,7 @@ function RadarChart({ title, series, tt }) {
   }
 
   function axisPoint(index, radius = maxRadius) {
-    const angle = (-90 + index * 90) * (Math.PI / 180);
+    const angle = axisAngleRad(index);
 
     return {
       x: center + radius * Math.cos(angle),
@@ -2705,7 +2863,8 @@ function RadarChart({ title, series, tt }) {
 
   /** Nome voce lungo il raggio; i % subito oltre il punto dati più esterno. */
   function vertexLabelPositions(i) {
-    const angle = (-90 + i * 90) * (Math.PI / 180);
+    const angleDeg = -90 + i * stepDeg;
+    const angle = (angleDeg * Math.PI) / 180;
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     const radii = series.map((s) => scoreToRadius(s.data?.[keys[i]]));
@@ -2714,9 +2873,11 @@ function RadarChart({ title, series, tt }) {
     const pctAlong = rData + 12;
     const nameAlong = Math.max(maxRadius + 16, rData + 30);
 
+    const norm = ((angleDeg % 360) + 360) % 360;
     let anchor = "middle";
-    if (i === 1) anchor = "start";
-    if (i === 3) anchor = "end";
+    if (norm >= 25 && norm <= 155) anchor = "start";
+    else if (norm > 155 && norm < 205) anchor = "middle";
+    else if (norm >= 205 && norm <= 335) anchor = "end";
 
     return {
       lx: center + cos * nameAlong,
@@ -2729,20 +2890,7 @@ function RadarChart({ title, series, tt }) {
 
   return (
     <div style={kiviatCardStyleMerged} className="pdf-figure kiviat-chart">
-      <h4
-        style={{
-          margin: "0 0 10px",
-          fontFamily:
-            'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-          fontSize: 13,
-          fontWeight: 600,
-          color: "#0f172a",
-          letterSpacing: "-0.02em",
-          lineHeight: 1.3,
-        }}
-      >
-        {title}
-      </h4>
+      <h4 className="eval-section-heading-chart">{title}</h4>
 
       <div
         style={{
@@ -2997,7 +3145,7 @@ function PainBarChart({ title, series, tt }) {
 
   return (
     <div style={chartCardStyle} className="pdf-figure">
-      <h4 style={{ marginTop: 0, marginBottom: 8 }}>
+      <h4 className="eval-section-heading-chart" style={{ marginTop: 0, marginBottom: 8 }}>
         {title || tt("chart.painEvolution")}
       </h4>
       <p

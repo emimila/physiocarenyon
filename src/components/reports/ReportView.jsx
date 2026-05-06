@@ -28,6 +28,11 @@ export default function ReportView({ patient, evaluation }) {
                 <td>{d.destro?.funzione}</td>
               </tr>
               <tr>
+                <td>Qualità movimento</td>
+                <td>{d.sinistro?.qualitaMovimento}</td>
+                <td>{d.destro?.qualitaMovimento}</td>
+              </tr>
+              <tr>
                 <td>VAS</td>
                 <td>{d.dolore?.riposo}</td>
                 <td>{d.dolore?.mattino}</td>
