@@ -1933,6 +1933,7 @@ function PatientDetail({
     {distrettoActiveTests(d).map((test) => (
       <div
         key={test.id}
+        className="test-result-card"
         style={{
           marginTop: 8,
           padding: 10,
@@ -1948,7 +1949,7 @@ function PatientDetail({
             </strong>
 
             {test.noteAltro && String(test.noteAltro).trim() !== "" && (
-              <p style={{ marginTop: 6, fontSize: 13 }}>
+              <p style={{ marginTop: 6 }}>
                 <strong>{tt("evaluation.otherDetailsOptional")}:</strong>{" "}
                 {String(test.noteAltro).trim()}
               </p>
@@ -2066,7 +2067,7 @@ function PatientDetail({
             </strong>
 
             {test.noteAltro && String(test.noteAltro).trim() !== "" && (
-              <p style={{ marginTop: 6, fontSize: 13 }}>
+              <p style={{ marginTop: 6 }}>
                 <strong>{tt("evaluation.otherDetailsOptional")}:</strong>{" "}
                 {String(test.noteAltro).trim()}
               </p>
@@ -2088,7 +2089,7 @@ function PatientDetail({
             </strong>
 
             {test.noteAltro && String(test.noteAltro).trim() !== "" && (
-              <p style={{ marginTop: 6, fontSize: 13 }}>
+              <p style={{ marginTop: 6 }}>
                 <strong>{tt("evaluation.otherDetailsOptional")}:</strong>{" "}
                 {String(test.noteAltro).trim()}
               </p>
@@ -2105,7 +2106,6 @@ function PatientDetail({
                 borderCollapse: "collapse",
                 marginTop: 8,
                 width: "100%",
-                fontSize: 13,
               }}
             >
               <thead>
@@ -2581,8 +2581,8 @@ function RadarChart({ title, series, tt }) {
           margin: "0 0 10px",
           fontFamily:
             'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-          fontSize: 15,
-          fontWeight: 700,
+          fontSize: 13,
+          fontWeight: 600,
           color: "#0f172a",
           letterSpacing: "-0.02em",
           lineHeight: 1.3,

@@ -317,6 +317,53 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* Titoli sezioni (Section) e sottotitoli: stessa scala dei form */
+.app-content .section-card > h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--text-h);
+  line-height: 1.35;
+}
+
+.app-content h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0.55rem 0 0.35rem;
+  color: var(--text-h);
+  line-height: 1.35;
+}
+
+/* Etichette sopra select / input: allineate al corpo testo */
+.app-content label > strong {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* 16px evita zoom automatico iOS sui campi; uniforme tra select e input */
+.app-content select,
+.app-content textarea,
+.app-content input:not([type="checkbox"]):not([type="radio"]) {
+  font-size: 16px;
+}
+
+.app-content .evaluation-form > h2 {
+  font-size: 1.15rem;
+  line-height: 1.25;
+  margin: 0 0 10px;
+}
+
+/* Riepilogo test in scheda paziente: come .pdf-root table (12px) */
+.pdf-root .test-result-card {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.pdf-root .test-result-card strong {
+  font-weight: 600;
+}
+
 /* Valutazione per distretto: blocchi in colonna; ogni card è un blocco chiuso (tipo → note → celle). */
 .evaluation-blocks-stack {
   display: flex;

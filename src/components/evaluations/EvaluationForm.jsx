@@ -577,7 +577,7 @@ export default function EvaluationForm({
   }
 
   return (
-    <div>
+    <div className="evaluation-form">
       <h2>{tt("evaluation.title")}</h2>
 
       <Section title={tt("evaluation.title")}>
@@ -823,7 +823,7 @@ export default function EvaluationForm({
                 />
 
                 {test.type && (
-                  <div style={{ marginTop: 8, color: "#555", fontSize: 13 }}>
+                  <div style={{ marginTop: 8, color: "#555", fontSize: 12 }}>
                     <strong>
                       {tt("evaluation.selectedTest") ?? "Test selezionato"}:
                     </strong>{" "}

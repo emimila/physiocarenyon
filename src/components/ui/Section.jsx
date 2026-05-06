@@ -1,6 +1,7 @@
 export default function Section({ title, children }) {
   return (
     <div
+      className="section-card"
       style={{
         border: "1px solid #ddd",
         borderRadius: 10,
