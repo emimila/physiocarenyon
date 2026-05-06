@@ -73,7 +73,7 @@ function StrengthMaximalsEvaluationFields({
 
   return (
     <div style={{ marginTop: 12 }}>
-      <p style={{ fontSize: 12, color: "#555", marginBottom: 10 }}>
+      <p className="evaluation-help-text">
         {tt("tests.strengthMaximals.epleyFootnote")}
       </p>
 
@@ -82,24 +82,8 @@ function StrengthMaximalsEvaluationFields({
         const oneRmLabel = formatOneRmKg(oneRm) ?? "—";
 
         return (
-          <div
-            key={line.id}
-            style={{
-              marginTop: 10,
-              padding: 10,
-              border: "1px solid #e0e0e0",
-              borderRadius: 8,
-              background: "#fff",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                alignItems: "start",
-              }}
-            >
+          <div key={line.id} className="evaluation-lift-card">
+            <div className="evaluation-lift-inner-grid">
               <Select
                 label={tt("tests.strengthMaximals.exercise")}
                 value={line.exercise || ""}
@@ -128,14 +112,7 @@ function StrengthMaximalsEvaluationFields({
               />
             )}
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                marginTop: 8,
-              }}
-            >
+            <div className="evaluation-lift-inner-grid evaluation-lift-inner-grid--spaced">
               <Input
                 label={tt("tests.strengthMaximals.reps")}
                 type="number"
@@ -150,8 +127,10 @@ function StrengthMaximalsEvaluationFields({
               />
             </div>
 
-            <p style={{ marginTop: 10, fontSize: 13 }}>
-              <strong>{tt("tests.strengthMaximals.theor1RM")}:</strong>{" "}
+            <p style={{ marginTop: 10, fontSize: "0.875rem", color: "var(--text)" }}>
+              <strong style={{ color: "var(--text-h)", fontWeight: 600 }}>
+                {tt("tests.strengthMaximals.theor1RM")}:
+              </strong>{" "}
               {oneRmLabel}
             </p>
           </div>
@@ -219,15 +198,6 @@ function GripStrengthEvaluationFields({
 
   const grip = assessGrip(gripPatient, assessmentDate);
 
-  const gripHintStyle = {
-    display: "block",
-    fontSize: 12,
-    color: "#555",
-    marginTop: 4,
-    lineHeight: 1.35,
-    maxWidth: 560,
-  };
-
   return (
     <div style={{ marginTop: 10 }}>
       <Select
@@ -251,7 +221,7 @@ function GripStrengthEvaluationFields({
         }}
       >
         <div>
-          <strong>{tt("evaluation.left")}</strong>
+          <div className="evaluation-side-heading">{tt("evaluation.left")}</div>
           <Input
             label={`${tt("patient.trial1") ?? "Prova 1"} (kg)`}
             type="number"
@@ -273,7 +243,7 @@ function GripStrengthEvaluationFields({
         </div>
 
         <div>
-          <strong>{tt("evaluation.right")}</strong>
+          <div className="evaluation-side-heading">{tt("evaluation.right")}</div>
           <Input
             label={`${tt("patient.trial1") ?? "Prova 1"} (kg)`}
             type="number"
@@ -295,10 +265,12 @@ function GripStrengthEvaluationFields({
         </div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <strong>{tt("tests.gripStrength.summary") ?? "Risultato"}</strong>
+      <div className="evaluation-grip-summary">
+        <div className="evaluation-side-heading" style={{ marginBottom: 4 }}>
+          {tt("tests.gripStrength.summary") ?? "Risultato"}
+        </div>
 
-        <p style={{ marginTop: 8 }}>
+        <p style={{ marginTop: 4 }}>
           <strong>{tt("patient.dominantHand")}:</strong>{" "}
           {tt(`dominantHand.${gripPatient.manoDominante}`) ||
             gripPatient.manoDominante ||
@@ -315,7 +287,7 @@ function GripStrengthEvaluationFields({
           </strong>{" "}
           {grip?.absolutePercentile ? `P${grip.absolutePercentile}` : "-"}
           {grip?.ready && grip?.absolutePercentile != null && (
-            <span style={gripHintStyle}>
+            <span className="evaluation-grip-hint">
               {tt("grip.clinicalHint.percentileKg")}
             </span>
           )}
@@ -327,7 +299,7 @@ function GripStrengthEvaluationFields({
           </strong>{" "}
           {grip?.normalizedPercentile ? `P${grip.normalizedPercentile}` : "-"}
           {grip?.ready && grip?.normalizedPercentile != null && (
-            <span style={gripHintStyle}>
+            <span className="evaluation-grip-hint">
               {tt("grip.clinicalHint.percentileKgM2")}
             </span>
           )}
@@ -340,7 +312,7 @@ function GripStrengthEvaluationFields({
               grip.absoluteInterpretationKey
             : "-"}
           {grip?.ready && grip?.absoluteInterpretationKey && (
-            <span style={gripHintStyle}>
+            <span className="evaluation-grip-hint">
               {tt(`grip.clinicalHint.${grip.absoluteInterpretationKey}`)}
             </span>
           )}
@@ -353,7 +325,7 @@ function GripStrengthEvaluationFields({
         </p>
 
         {grip?.ready && (
-          <p style={{ ...gripHintStyle, marginTop: 10, fontSize: 11, color: "#777" }}>
+          <p className="evaluation-grip-hint evaluation-grip-hint--footer">
             {tt("grip.referenceShort")}
           </p>
         )}
@@ -703,16 +675,7 @@ export default function EvaluationForm({
   </button>
 
             {(d.tests || []).map((test) => (
-              <div
-                key={test.id}
-                style={{
-                  marginTop: 12,
-                  padding: 10,
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  background: "#fafafa",
-                }}
-              >
+              <div key={test.id} className="evaluation-test-card">
                 <Select
                   label={tt("evaluation.test")}
                   value={test.type}
@@ -829,7 +792,7 @@ export default function EvaluationForm({
                 />
 
                 {test.type && (
-                  <div style={{ marginTop: 8, color: "#555", fontSize: 12 }}>
+                  <div className="evaluation-test-meta">
                     <strong>
                       {tt("evaluation.selectedTest") ?? "Test selezionato"}:
                     </strong>{" "}
@@ -845,21 +808,14 @@ export default function EvaluationForm({
                 )}
 
                 {test.type === "Y_BALANCE" && (
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: 20,
-                      marginTop: 10,
-                    }}
-                  >
+                  <div className="evaluation-y-sides-grid">
                     {["left", "right"].map((side) => (
                       <div key={side}>
-                        <h4>
+                        <div className="evaluation-side-heading">
                           {side === "left"
                             ? tt("evaluation.left")
                             : tt("evaluation.right")}
-                        </h4>
+                        </div>
 
                         <Input
   label="Leg length (cm)"
@@ -896,16 +852,12 @@ export default function EvaluationForm({
                           { key: "posteromedial", label: "Posteromedial" },
                           { key: "posterolateral", label: "Posterolateral" },
                         ].map((direction) => (
-                          <div key={direction.key} style={{ marginTop: 10 }}>
-                            <strong>{direction.label}</strong>
+                          <div key={direction.key} className="evaluation-y-direction">
+                            <span className="evaluation-y-direction__title">
+                              {direction.label}
+                            </span>
 
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr 1fr",
-                                gap: 8,
-                              }}
-                            >
+                            <div className="evaluation-y-trials-grid">
                               {[0, 1, 2].map((trialIndex) => (
                                 <Input
                                 key={trialIndex}

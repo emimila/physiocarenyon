@@ -457,6 +457,141 @@ body {
   box-sizing: border-box;
 }
 
+@media (prefers-color-scheme: dark) {
+  .evaluation-block-note-group {
+    background: rgba(248, 250, 252, 0.06);
+  }
+}
+
+/* Card test nel distretto (Y Balance, grip, massimali): colori e bordi allineati al theme */
+.evaluation-form .evaluation-test-card {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.evaluation-form .evaluation-test-meta {
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.evaluation-form .evaluation-test-meta strong {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.evaluation-form .evaluation-help-text {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  text-align: left;
+}
+
+/* Titoli Sinistro / Destro (stesso peso e dimensione ovunque nel form valutazione) */
+.evaluation-form .evaluation-side-heading {
+  margin: 0 0 10px;
+  font-family: var(--heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
+  text-align: left;
+}
+
+.evaluation-form .evaluation-y-sides-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(14px, 2.5vw, 22px);
+  margin-top: 10px;
+  align-items: start;
+}
+
+.evaluation-form .evaluation-y-direction {
+  margin-top: 10px;
+}
+
+.evaluation-form .evaluation-y-direction__title {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
+  text-align: left;
+}
+
+.evaluation-form .evaluation-y-trials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 10px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .evaluation-form .evaluation-y-trials-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.evaluation-form .evaluation-lift-card {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.evaluation-form .evaluation-lift-inner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.evaluation-form .evaluation-lift-inner-grid--spaced {
+  margin-top: 8px;
+}
+
+.evaluation-form .evaluation-grip-summary {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.evaluation-form .evaluation-grip-summary p {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.evaluation-form .evaluation-grip-summary strong {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.evaluation-form .evaluation-grip-hint {
+  display: block;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin-top: 4px;
+  max-width: 560px;
+}
+
+.evaluation-form .evaluation-grip-hint--footer {
+  margin-top: 10px;
+  font-size: 0.75rem;
+}
+
 /* Condizione base (Kiviat): una griglia come Dolore VAS (stesso .evaluation-pain-vas-grid). */
 .evaluation-block-kiviat {
   display: flex;
@@ -514,7 +649,7 @@ body {
 .evaluation-pain-vas-grid__rowlabel {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-h);
   line-height: 1.25;
   padding: 2px 0;
   border-top: 1px solid var(--border);
