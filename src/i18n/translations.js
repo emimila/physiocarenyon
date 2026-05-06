@@ -116,6 +116,11 @@ export const translations = {
       operatedLimb: "Arto operato / localizzazione",
       operatedLimbShort: "Arto operato",
       surgeryType: "Tipo operazione",
+      sheetEvaluations: "Valutazioni",
+      sheetNewTest: "+ Nuovo test",
+      sheetTests: "Test",
+      testsListTitle: "Elenco test",
+      testsListEmpty: "Nessuna sessione test registrata.",
     },
 
     evaluation: {
@@ -153,6 +158,7 @@ export const translations = {
       selectedTest: "Test selezionato",
       addEvaluationBlock: "Aggiungi blocco valutazione",
       addTest: "Aggiungi test",
+      districtDuplicate: "Questo distretto è già presente.",
       evaluationBlock: "Blocco",
       testsSection: "Test",
       blockType: {
@@ -164,6 +170,20 @@ export const translations = {
       otherExercise: "Altro esercizio",
       otherExerciseSpecify: "Specifica esercizio",
       generalPainVAS: "Dolore valutazione generale",
+    },
+
+    testSession: {
+      title: "Test",
+      sectionTitle: "Dati sessione test",
+      date: "Data test",
+      number: "Numero progressivo test",
+      notes: "Note test",
+      save: "Salva sessione test",
+      edit: "Modifica sessione test",
+      delete: "Elimina sessione test",
+      cardHeading: "Test n.",
+      needDistrict: "Aggiungi almeno un distretto.",
+      deleteConfirm: "Eliminare questa sessione test?",
     },
 
     options: {
@@ -410,14 +430,12 @@ export const translations = {
     },
 
     chart: {
-      title: "Condizione base",
+      title: "Grafici comparativi",
       painEvolution: "Evoluzione dolore",
       painScaleHint:
         "Scala VAS 0–10 (massimo = 10). Le linee orizzontali segnano i livelli 2, 4, 6 e 8.",
       needTwoEvaluations:
         "Servono almeno 2 valutazioni per confrontare i progressi.",
-      description:
-        "Puoi confrontare fino a 4 distretti o momenti diversi. Ogni grafico mostra al massimo 2 linee per restare leggibile.",
       comparison: "Comparazione",
       removeComparison: "Rimuovi comparazione",
       initialEvaluation: "Valutazione iniziale",
@@ -569,6 +587,11 @@ export const translations = {
       operatedLimb: "Membre opéré",
       operatedLimbShort: "Membre opéré",
       surgeryType: "Type d’intervention",
+      sheetEvaluations: "Évaluations",
+      sheetNewTest: "+ Nouveau test",
+      sheetTests: "Tests",
+      testsListTitle: "Liste des tests",
+      testsListEmpty: "Aucune séance de tests enregistrée.",
     },
 
     time: {
@@ -674,6 +697,7 @@ export const translations = {
       selectedTest: "Test sélectionné",
       addEvaluationBlock: "Ajouter un bloc d’évaluation",
       addTest: "Ajouter un test",
+      districtDuplicate: "Ce district est déjà présent.",
       evaluationBlock: "Bloc",
       testsSection: "Tests",
       blockType: {
@@ -685,6 +709,20 @@ export const translations = {
       otherExercise: "Autre exercice",
       otherExerciseSpecify: "Préciser l’exercice",
       generalPainVAS: "Douleur (évaluation générale)",
+    },
+
+    testSession: {
+      title: "Test",
+      sectionTitle: "Données de la séance de tests",
+      date: "Date du test",
+      number: "Numéro progressif du test",
+      notes: "Notes du test",
+      save: "Enregistrer la séance de tests",
+      edit: "Modifier la séance de tests",
+      delete: "Supprimer la séance de tests",
+      cardHeading: "Test n°",
+      needDistrict: "Ajoutez au moins un district.",
+      deleteConfirm: "Supprimer cette séance de tests ?",
     },
 
     options: {
@@ -873,14 +911,12 @@ tegner: {
     },
 
     chart: {
-      title: "Condition de base",
+      title: "Graphiques comparatifs",
       painEvolution: "Évolution de la douleur",
       painScaleHint:
         "Échelle EVA 0–10 (maximum = 10). Les lignes horizontales marquent 2, 4, 6 et 8.",
       needTwoEvaluations:
         "Il faut au moins 2 évaluations pour comparer les progrès.",
-      description:
-        "Vous pouvez comparer jusqu’à 4 régions ou moments différents. Chaque graphique affiche au maximum 2 lignes pour rester lisible.",
       comparison: "Comparaison",
       removeComparison: "Supprimer la comparaison",
       initialEvaluation: "Évaluation initiale",
@@ -1040,6 +1076,11 @@ tegner: {
       operatedLimb: "Operierte Extremität",
       operatedLimbShort: "Operierte Extremität",
       surgeryType: "Operationsart",
+      sheetEvaluations: "Beurteilungen",
+      sheetNewTest: "+ Neuer Test",
+      sheetTests: "Tests",
+      testsListTitle: "Testübersicht",
+      testsListEmpty: "Keine Test-Sitzung erfasst.",
     },
 
     time: {
@@ -1145,6 +1186,7 @@ tegner: {
       selectedTest: "Ausgewählter Test",
       addEvaluationBlock: "Bewertungsblock hinzufügen",
       addTest: "Test hinzufügen",
+      districtDuplicate: "Dieser Bezirk ist bereits vorhanden.",
       evaluationBlock: "Block",
       testsSection: "Tests",
       blockType: {
@@ -1156,6 +1198,20 @@ tegner: {
       otherExercise: "Andere Übung",
       otherExerciseSpecify: "Übung beschreiben",
       generalPainVAS: "Schmerz (allgemeine Bewertung)",
+    },
+
+    testSession: {
+      title: "Test",
+      sectionTitle: "Test-Sitzung",
+      date: "Testdatum",
+      number: "Fortlaufende Testnummer",
+      notes: "Testnotizen",
+      save: "Test-Sitzung speichern",
+      edit: "Test-Sitzung bearbeiten",
+      delete: "Test-Sitzung löschen",
+      cardHeading: "Test Nr.",
+      needDistrict: "Mindestens einen Bezirk hinzufügen.",
+      deleteConfirm: "Diese Test-Sitzung löschen?",
     },
 
     options: {
@@ -1344,14 +1400,12 @@ tegner: {
     },
 
     chart: {
-      title: "Basiszustand",
+      title: "Vergleichsdiagramme",
       painEvolution: "Schmerzverlauf",
       painScaleHint:
         "VAS-Skala 0–10 (Maximum = 10). Waagerechte Hilfslinien bei 2, 4, 6 und 8.",
       needTwoEvaluations:
         "Es werden mindestens 2 Bewertungen benötigt, um Fortschritte zu vergleichen.",
-      description:
-        "Sie können bis zu 4 Regionen oder Zeitpunkte vergleichen. Jedes Diagramm zeigt maximal 2 Linien, damit es lesbar bleibt.",
       comparison: "Vergleich",
       removeComparison: "Vergleich entfernen",
       initialEvaluation: "Anfangsbewertung",
@@ -1498,6 +1552,11 @@ tegner: {
   operatedLimb: "Miembro operado",
   operatedLimbShort: "Miembro operado",
   surgeryType: "Tipo de cirugía",
+  sheetEvaluations: "Evaluaciones",
+  sheetNewTest: "+ Nuevo test",
+  sheetTests: "Tests",
+  testsListTitle: "Listado de tests",
+  testsListEmpty: "No hay sesiones de test registradas.",
 },
 
 time: {
@@ -1549,6 +1608,7 @@ dominantHand: {
       selectedTest: "Test seleccionado",
       addEvaluationBlock: "Añadir bloque de evaluación",
       addTest: "Añadir test",
+      districtDuplicate: "Esta región ya está presente.",
       evaluationBlock: "Bloque",
       testsSection: "Tests",
       blockType: {
@@ -1560,6 +1620,20 @@ dominantHand: {
       otherExercise: "Otro ejercicio",
       otherExerciseSpecify: "Describir el ejercicio",
       generalPainVAS: "Dolor (evaluación general)",
+    },
+
+    testSession: {
+      title: "Test",
+      sectionTitle: "Datos de la sesión de tests",
+      date: "Fecha del test",
+      number: "Número progresivo del test",
+      notes: "Notas del test",
+      save: "Guardar sesión de tests",
+      edit: "Modificar sesión de tests",
+      delete: "Eliminar sesión de tests",
+      cardHeading: "Test n.",
+      needDistrict: "Añade al menos una región.",
+      deleteConfirm: "¿Eliminar esta sesión de tests?",
     },
 
     options: {
@@ -1808,14 +1882,12 @@ dominantHand: {
     },
 
     chart: {
-      title: "Condición base",
+      title: "Gráficos comparativos",
       painEvolution: "Evolución del dolor",
       painScaleHint:
         "Escala EVA 0–10 (máximo = 10). Líneas horizontales de referencia en 2, 4, 6 y 8.",
       needTwoEvaluations:
         "Se necesitan al menos 2 evaluaciones para comparar el progreso.",
-      description:
-        "Puedes comparar hasta 4 regiones o momentos diferentes. Cada gráfico muestra como máximo 2 líneas para mantener la legibilidad.",
       comparison: "Comparación",
       removeComparison: "Eliminar comparación",
       initialEvaluation: "Evaluación inicial",
@@ -1961,6 +2033,11 @@ dominantHand: {
       operatedLimb: "Operated limb",
       operatedLimbShort: "Operated limb",
       surgeryType: "Surgery type",
+      sheetEvaluations: "Evaluations",
+      sheetNewTest: "+ New test",
+      sheetTests: "Tests",
+      testsListTitle: "Tests performed",
+      testsListEmpty: "No test sessions recorded.",
     },
 
     time: {
@@ -2066,6 +2143,7 @@ dominantHand: {
       selectedTest: "Selected test",
       addEvaluationBlock: "Add evaluation block",
       addTest: "Add test",
+      districtDuplicate: "This region is already present.",
       evaluationBlock: "Block",
       testsSection: "Tests",
       blockType: {
@@ -2077,6 +2155,20 @@ dominantHand: {
       otherExercise: "Other exercise",
       otherExerciseSpecify: "Describe exercise",
       generalPainVAS: "General evaluation pain",
+    },
+
+    testSession: {
+      title: "Test",
+      sectionTitle: "Test session details",
+      date: "Test date",
+      number: "Progressive test number",
+      notes: "Test notes",
+      save: "Save test session",
+      edit: "Edit test session",
+      delete: "Delete test session",
+      cardHeading: "Test no.",
+      needDistrict: "Add at least one region.",
+      deleteConfirm: "Delete this test session?",
     },
 
     options: {
@@ -2264,14 +2356,12 @@ dominantHand: {
     },
 
     chart: {
-      title: "Baseline condition",
+      title: "Comparative charts",
       painEvolution: "Pain evolution",
       painScaleHint:
         "VAS scale 0–10 (maximum = 10). Horizontal guide lines at 2, 4, 6 and 8.",
       needTwoEvaluations:
         "At least 2 evaluations are needed to compare progress.",
-      description:
-        "You can compare up to 4 regions or different moments. Each chart shows a maximum of 2 lines to remain readable.",
       comparison: "Comparison",
       removeComparison: "Remove comparison",
       initialEvaluation: "Initial evaluation",

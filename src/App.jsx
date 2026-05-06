@@ -6,15 +6,20 @@ import ReportView from "./components/reports/ReportView";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import DataBackup from "./components/storage/DataBackup";
 import { getText } from "./i18n";
-import EvaluationForm, {
-  OTHER_EXERCISE,
-} from "./components/evaluations/EvaluationForm";
+import EvaluationForm from "./components/evaluations/EvaluationForm";
+import TestSessionForm from "./components/evaluations/TestSessionForm";
+import { OTHER_EXERCISE } from "./components/evaluations/evaluationTestFields";
 import Textarea from "./components/ui/Textarea";
 import Section from "./components/ui/Section";
 import SelectWithLabels from "./components/ui/SelectWithLabels";
 import Select from "./components/ui/Select";
 import Input from "./components/ui/Input";
-import { createEvaluation, createDistretto } from "./utils/factories";
+import {
+  createEvaluation,
+  createDistretto,
+  createDistrettoTestOnly,
+  createTestSession,
+} from "./utils/factories";
 import {
   uid,
   calcBMI,
@@ -33,28 +38,39 @@ import {
 } from "./utils/helpers";
 import {
   sanitizeEvaluationForSave,
+  sanitizeTestSessionForSave,
   distrettoHasKiviat,
-  distrettoHasPainVAS,
   distrettoHasSidePainTable,
   distrettoHasGeneralPainVAS,
   distrettoActiveTests,
 } from "./utils/sanitizeEvaluation";
+import { normalizePatientSessioniTest } from "./utils/patientNormalize";
 import { epleyOneRmKg, formatOneRmKg } from "./utils/epley1rm";
 import { sportOptions, tegnerInfo } from "./data/options";
 
-/** Numero incrementale per nome distretto (tra tutte le valutazioni del paziente). */
-function stampDistrictEvalNumbers(patient, evaluation, evaluationId) {
-  const others = (patient.valutazioni || []).filter((ev) => ev.id !== evaluationId);
+/**
+ * Numero incrementale per nome distretto tra valutazioni e sessioni test.
+ * `kind`: "valutazione" | "sessioneTest" — esclude l’entità corrente dal conteggio.
+ */
+function stampDistrictSlotNumbers(patient, entity, entityId, kind) {
   const maxByName = {};
-  for (const ev of others) {
+  for (const ev of patient.valutazioni || []) {
+    if (kind === "valutazione" && ev.id === entityId) continue;
     for (const dist of ev.distretti || []) {
       const n = Number(dist.numeroValutazioneDistretto || 0);
       maxByName[dist.nome] = Math.max(maxByName[dist.nome] || 0, n);
     }
   }
+  for (const st of patient.sessioniTest || []) {
+    if (kind === "sessioneTest" && st.id === entityId) continue;
+    for (const dist of st.distretti || []) {
+      const n = Number(dist.numeroValutazioneDistretto || 0);
+      maxByName[dist.nome] = Math.max(maxByName[dist.nome] || 0, n);
+    }
+  }
   return {
-    ...evaluation,
-    distretti: (evaluation.distretti || []).map((d) => {
+    ...entity,
+    distretti: (entity.distretti || []).map((d) => {
       const preserved = Number(d.numeroValutazioneDistretto || 0);
       if (preserved > 0) return d;
       const next = (maxByName[d.nome] || 0) + 1;
@@ -122,7 +138,7 @@ fitnessTipo: "",
   padelRacketChangedRecently: "",
   manoDominante: "",
   valutazioni: [],
-  
+  sessioniTest: [],
 };
 
 export default function App() {
@@ -132,10 +148,12 @@ export default function App() {
       if (!data) return [];
       const parsed = JSON.parse(data);
       const list = Array.isArray(parsed) ? parsed : [];
-      return list.map((p) => ({
-        ...p,
-        diagnosiRighe: migrateDiagnosiRighe(p),
-      }));
+      return list.map((p) =>
+        normalizePatientSessioniTest({
+          ...p,
+          diagnosiRighe: migrateDiagnosiRighe(p),
+        })
+      );
     } catch {
       return [];
     }
@@ -148,9 +166,12 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [editingPatient, setEditingPatient] = useState(false);
   const [editingEvaluation, setEditingEvaluation] = useState(false);
+  const [editingTestSession, setEditingTestSession] = useState(false);
   const [form, setForm] = useState(emptyPatient);
   const [evaluationForm, setEvaluationForm] = useState(createEvaluation());
   const [distrettoToAdd, setDistrettoToAdd] = useState("");
+  const [testSessionForm, setTestSessionForm] = useState(createTestSession());
+  const [distrettoToAddTest, setDistrettoToAddTest] = useState("");
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(patients));
@@ -183,6 +204,7 @@ export default function App() {
     setSelected(null);
     setEditingPatient(true);
     setEditingEvaluation(false);
+    setEditingTestSession(false);
   }
 
   function editPatient(p) {
@@ -191,11 +213,13 @@ export default function App() {
       ...p,
       sportMultipli: p.sportMultipli || [],
       valutazioni: p.valutazioni || [],
+      sessioniTest: p.sessioniTest || [],
       diagnosiRighe: migrateDiagnosiRighe(p),
     });
     setSelected(p);
     setEditingPatient(true);
     setEditingEvaluation(false);
+    setEditingTestSession(false);
   }
 
   function savePatient() {
@@ -213,6 +237,7 @@ export default function App() {
       ...emptyPatient,
       ...form,
       valutazioni: form.valutazioni || [],
+      sessioniTest: form.sessioniTest || [],
       sportMultipli: form.sportMultipli || [],
       diagnosiRighe: righe,
       diagnosi: first.diagnosi || "",
@@ -251,6 +276,35 @@ export default function App() {
     setDistrettoToAdd("");
     setEditingEvaluation(true);
     setEditingPatient(false);
+    setEditingTestSession(false);
+  }
+
+  function startNewTestSession() {
+    if (!selected) return;
+
+    const nextNum =
+      Math.max(
+        0,
+        ...(selected.sessioniTest || []).map((s) =>
+          Number(s.numeroTest || 0)
+        )
+      ) + 1;
+
+    setTestSessionForm(createTestSession(String(nextNum)));
+    setDistrettoToAddTest("");
+    setEditingTestSession(true);
+    setEditingPatient(false);
+    setEditingEvaluation(false);
+  }
+
+  function editTestSession(session) {
+    setTestSessionForm(
+      sanitizeTestSessionForSave(JSON.parse(JSON.stringify(session)))
+    );
+    setDistrettoToAddTest("");
+    setEditingTestSession(true);
+    setEditingPatient(false);
+    setEditingEvaluation(false);
   }
 
   function editEvaluation(ev) {
@@ -258,6 +312,7 @@ export default function App() {
     setDistrettoToAdd("");
     setEditingEvaluation(true);
     setEditingPatient(false);
+    setEditingTestSession(false);
   }
 
   function addDistretto() {
@@ -268,7 +323,7 @@ export default function App() {
     );
 
     if (alreadyExists) {
-      alert("Questo distretto è già presente nella valutazione.");
+      alert(tt("evaluation.districtDuplicate"));
       return;
     }
 
@@ -278,6 +333,36 @@ export default function App() {
     });
 
     setDistrettoToAdd("");
+  }
+
+  function addDistrettoTestSession() {
+    if (!distrettoToAddTest) return;
+
+    const alreadyExists = testSessionForm.distretti.some(
+      (d) => d.nome === distrettoToAddTest
+    );
+
+    if (alreadyExists) {
+      alert(tt("evaluation.districtDuplicate") ?? "Distretto già presente.");
+      return;
+    }
+
+    setTestSessionForm({
+      ...testSessionForm,
+      distretti: [
+        ...testSessionForm.distretti,
+        createDistrettoTestOnly(distrettoToAddTest),
+      ],
+    });
+
+    setDistrettoToAddTest("");
+  }
+
+  function removeDistrettoTestSession(id) {
+    setTestSessionForm({
+      ...testSessionForm,
+      distretti: testSessionForm.distretti.filter((d) => d.id !== id),
+    });
   }
 
   function removeDistretto(id) {
@@ -316,10 +401,54 @@ export default function App() {
       (v) => v.id === evaluationForm.id
     );
 
-    const withDistrictNumbers = stampDistrictEvalNumbers(
+    const withDistrictNumbers = stampDistrictSlotNumbers(
       selected,
       evaluationForm,
-      evaluationForm.id
+      evaluationForm.id,
+      "valutazione"
+    );
+
+    const cleaned = sanitizeEvaluationForSave(withDistrictNumbers);
+
+    const valutazioni = existing
+      ? selected.valutazioni.map((v) =>
+          v.id === evaluationForm.id ? cleaned : v
+        )
+      : [...(selected.valutazioni || []), cleaned];
+
+    const updatedPatient = { ...selected, valutazioni };
+    syncSelected(updatedPatient);
+    setEditingEvaluation(false);
+  }
+
+  function deleteEvaluation(id) {
+    if (!confirm("Eliminare valutazione?")) return;
+
+    const updatedPatient = {
+      ...selected,
+      valutazioni: (selected.valutazioni || []).filter((v) => v.id !== id),
+    };
+
+    syncSelected(updatedPatient);
+  }
+
+  function saveTestSession() {
+    if (!selected) return;
+
+    if (testSessionForm.distretti.length === 0) {
+      alert(tt("testSession.needDistrict"));
+      return;
+    }
+
+    const existing = (selected.sessioniTest || []).some(
+      (s) => s.id === testSessionForm.id
+    );
+
+    const withDistrictNumbers = stampDistrictSlotNumbers(
+      selected,
+      testSessionForm,
+      testSessionForm.id,
+      "sessioneTest"
     );
 
     const withGripDominant = {
@@ -344,28 +473,25 @@ export default function App() {
       })),
     };
 
-    const cleaned = sanitizeEvaluationForSave(withGripDominant);
+    const cleaned = sanitizeTestSessionForSave(withGripDominant);
 
-    const valutazioni = existing
-      ? selected.valutazioni.map((v) =>
-          v.id === evaluationForm.id ? cleaned : v
+    const sessioniTest = existing
+      ? selected.sessioniTest.map((s) =>
+          s.id === testSessionForm.id ? cleaned : s
         )
-      : [...(selected.valutazioni || []), cleaned];
+      : [...(selected.sessioniTest || []), cleaned];
 
-    const updatedPatient = { ...selected, valutazioni };
-    syncSelected(updatedPatient);
-    setEditingEvaluation(false);
+    syncSelected({ ...selected, sessioniTest });
+    setEditingTestSession(false);
   }
 
-  function deleteEvaluation(id) {
-    if (!confirm("Eliminare valutazione?")) return;
+  function deleteTestSession(id) {
+    if (!confirm(tt("testSession.deleteConfirm"))) return;
 
-    const updatedPatient = {
+    syncSelected({
       ...selected,
-      valutazioni: (selected.valutazioni || []).filter((v) => v.id !== id),
-    };
-
-    syncSelected(updatedPatient);
+      sessioniTest: (selected.sessioniTest || []).filter((s) => s.id !== id),
+    });
   }
 
   return (
@@ -486,6 +612,7 @@ export default function App() {
                 setSelected(p);
                 setEditingPatient(false);
                 setEditingEvaluation(false);
+                setEditingTestSession(false);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -493,6 +620,7 @@ export default function App() {
                   setSelected(p);
                   setEditingPatient(false);
                   setEditingEvaluation(false);
+                  setEditingTestSession(false);
                 }
               }}
             >
@@ -525,7 +653,6 @@ export default function App() {
           {editingEvaluation && selected && (
             <EvaluationForm
               tt={tt}
-              patient={selected}
               evaluationForm={evaluationForm}
               setEvaluationForm={setEvaluationForm}
               distrettoToAdd={distrettoToAdd}
@@ -538,19 +665,37 @@ export default function App() {
             />
           )}
 
-{selected && !editingPatient && !editingEvaluation && (
+          {editingTestSession && selected && (
+            <TestSessionForm
+              tt={tt}
+              patient={selected}
+              testSessionForm={testSessionForm}
+              setTestSessionForm={setTestSessionForm}
+              distrettoToAdd={distrettoToAddTest}
+              setDistrettoToAdd={setDistrettoToAddTest}
+              addDistretto={addDistrettoTestSession}
+              removeDistretto={removeDistrettoTestSession}
+              saveTestSession={saveTestSession}
+              cancel={() => setEditingTestSession(false)}
+            />
+          )}
+
+{selected && !editingPatient && !editingEvaluation && !editingTestSession && (
               <PatientDetail
               selected={selected}
               tt={tt}
               editPatient={editPatient}
               removePatient={removePatient}
               startNewEvaluation={startNewEvaluation}
+              startNewTestSession={startNewTestSession}
               editEvaluation={editEvaluation}
               deleteEvaluation={deleteEvaluation}
+              editTestSession={editTestSession}
+              deleteTestSession={deleteTestSession}
             />
           )}
 
-          {!selected && !editingPatient && !editingEvaluation && (
+          {!selected && !editingPatient && !editingEvaluation && !editingTestSession && (
             <p>{tt("app.noSelection")}</p>
           )}
         </div>
@@ -1479,6 +1624,12 @@ function evaluationCardHeadingText(v, tt) {
   return `${tt("evaluation.number")}: ${num}   ${tt("evaluation.district")}: ${districtSegment}    ${dateStr}`;
 }
 
+function testSessionCardHeadingText(s, tt) {
+  const num = s.numeroTest ?? "-";
+  const dateStr = s.data ? formatDateDMY(s.data) : "—";
+  return `${tt("testSession.cardHeading")} ${num} — ${dateStr}`;
+}
+
 /** Dati VAS per grafici: se c’è solo dolore generale, replica il valore sulle 5 voci. */
 function painDataForChart(sideDolore, distretto) {
   const base = { ...(sideDolore || {}) };
@@ -1502,11 +1653,18 @@ function PatientDetail({
   editPatient,
   removePatient,
   startNewEvaluation,
+  startNewTestSession,
   editEvaluation,
   deleteEvaluation,
+  editTestSession,
+  deleteTestSession,
 }) {
   const pdfRef = useRef(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [showEvaluationsList, setShowEvaluationsList] = useState(false);
+  const [showTestsList, setShowTestsList] = useState(false);
+  const revealEvaluations = showEvaluationsList || isExportingPdf;
+  const revealTests = showTestsList || isExportingPdf;
 
   async function exportPdf() {
     const element = pdfRef.current;
@@ -2038,35 +2196,331 @@ function PatientDetail({
             selected.tipoOperazione}
         </p>
       )}
-      <div className="no-pdf">
+      <div className="no-pdf patient-sheet-actions">
         <button type="button" onClick={() => editPatient(selected)}>
           {tt("common.edit")}
-        </button>{" "}
+        </button>
         <button type="button" onClick={() => removePatient(selected.id)}>
           {tt("common.delete")}
         </button>
       </div>
 
-      <hr />
+      <hr className="patient-sheet-divider" />
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-          marginBottom: 10,
-        }}
-      >
-        <h3 style={{ margin: 0 }}>{tt("evaluation.evaluations")}</h3>
-        <div className="no-pdf">
-          <button type="button" onClick={startNewEvaluation}>
-            {tt("common.newEvaluation")}
-          </button>
-        </div>
+      <div className="no-pdf patient-sheet-toolbar">
+        <button
+          type="button"
+          onClick={() => setShowEvaluationsList((x) => !x)}
+        >
+          {tt("patient.sheetEvaluations")}
+        </button>
+        <button type="button" onClick={startNewEvaluation}>
+          {tt("common.newEvaluation")}
+        </button>
+        <button type="button" onClick={startNewTestSession}>
+          {tt("patient.sheetNewTest")}
+        </button>
+        <button type="button" onClick={() => setShowTestsList((x) => !x)}>
+          {tt("patient.sheetTests")}
+        </button>
       </div>
 
+      {revealTests && (
+        <>
+          <h3 style={{ marginTop: 16, marginBottom: 10 }}>
+            {tt("patient.testsListTitle")}
+          </h3>
+          {(selected.sessioniTest || []).length === 0 ? (
+            <p>{tt("patient.testsListEmpty")}</p>
+          ) : (
+            (selected.sessioniTest || []).map((s) => (
+              <div
+                key={s.id}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: 10,
+                  padding: 12,
+                  marginBottom: 12,
+                }}
+              >
+                <h4 className="eval-evaluation-card-title eval-evaluation-card-title--centered">
+                  {testSessionCardHeadingText(s, tt)}
+                </h4>
+
+                <p style={{ marginTop: 4, textAlign: "left" }}>
+                  <strong>{tt("testSession.notes")}:</strong>{" "}
+                  {String(s.note ?? "").trim() || "—"}
+                </p>
+
+                {(s.distretti || []).map((d) => (
+                  <div key={d.id} style={{ marginBottom: 10 }}>
+                    {(s.distretti || []).length > 1 && (
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#666",
+                          marginBottom: 6,
+                        }}
+                      >
+                        {tt(`options.distretti.${d.nome.toLowerCase()}`) ||
+                          d.nome}
+                      </div>
+                    )}
+
+                    {distrettoActiveTests(d).length > 0 && (
+                      <div style={{ marginTop: 10 }}>
+                        {distrettoActiveTests(d).map((test) => (
+                          <div
+                            key={test.id}
+                            className="test-result-card"
+                            style={{
+                              marginTop: 8,
+                              padding: 10,
+                              border: "1px solid #ddd",
+                              borderRadius: 8,
+                              background: "#fafafa",
+                            }}
+                          >
+                            {test.type === "Y_BALANCE" && (
+                              <>
+                                <strong>
+                                  {tt("tests.yBalance.title") ?? "Y Balance Test"}
+                                </strong>
+
+                                {test.noteAltro &&
+                                  String(test.noteAltro).trim() !== "" && (
+                                    <p style={{ marginTop: 6 }}>
+                                      <strong>
+                                        {tt("evaluation.otherDetailsOptional")}:
+                                      </strong>{" "}
+                                      {String(test.noteAltro).trim()}
+                                    </p>
+                                  )}
+
+                                <div style={{ marginTop: 8 }}>
+                                  <strong>Composite score</strong>
+                                  <div>
+                                    {tt("evaluation.left")}:{" "}
+                                    {calculateYBalance(test).left.composite.toFixed(1)}%
+                                  </div>
+                                  <div>
+                                    {tt("evaluation.right")}:{" "}
+                                    {calculateYBalance(test).right.composite.toFixed(1)}%
+                                  </div>
+                                </div>
+
+                                <div style={{ marginTop: 8 }}>
+                                  <strong>Asymmetry</strong>
+                                  <div>
+                                    Anterior:{" "}
+                                    {calculateYBalance(test).asymmetry.anterior.toFixed(1)}{" "}
+                                    cm
+                                  </div>
+                                  <div>
+                                    Composite:{" "}
+                                    {calculateYBalance(test).asymmetry.composite.toFixed(1)}%
+                                  </div>
+                                </div>
+
+                                <div style={{ marginTop: 8 }}>
+                                  <strong>Clinical classification</strong>
+                                  <div>
+                                    {tt("evaluation.left")}:{" "}
+                                    <span
+                                      style={{
+                                        color: classifyYBalance(
+                                          calculateYBalance(test)
+                                        ).leftComposite.color,
+                                      }}
+                                    >
+                                      {
+                                        classifyYBalance(calculateYBalance(test))
+                                          .leftComposite.label
+                                      }
+                                    </span>
+                                  </div>
+                                  <div>
+                                    {tt("evaluation.right")}:{" "}
+                                    <span
+                                      style={{
+                                        color: classifyYBalance(
+                                          calculateYBalance(test)
+                                        ).rightComposite.color,
+                                      }}
+                                    >
+                                      {
+                                        classifyYBalance(calculateYBalance(test))
+                                          .rightComposite.label
+                                      }
+                                    </span>
+                                  </div>
+                                  <div>
+                                    Anterior asymmetry:{" "}
+                                    <span
+                                      style={{
+                                        color: classifyYBalance(
+                                          calculateYBalance(test)
+                                        ).anteriorAsymmetry.color,
+                                      }}
+                                    >
+                                      {
+                                        classifyYBalance(calculateYBalance(test))
+                                          .anteriorAsymmetry.label
+                                      }
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div
+                                  style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "1fr 1fr",
+                                    gap: 20,
+                                    marginTop: 8,
+                                  }}
+                                >
+                                  {["left", "right"].map((side) => (
+                                    <div key={side}>
+                                      <div style={{ fontWeight: "bold", marginBottom: 6 }}>
+                                        {side === "left"
+                                          ? tt("evaluation.left")
+                                          : tt("evaluation.right")}
+                                      </div>
+                                      <div>Leg length: {test[side]?.legLength || "-"}</div>
+                                      {[
+                                        { key: "anterior", label: "Anterior" },
+                                        {
+                                          key: "posteromedial",
+                                          label: "Posteromedial",
+                                        },
+                                        {
+                                          key: "posterolateral",
+                                          label: "Posterolateral",
+                                        },
+                                      ].map((direction) => (
+                                        <div key={direction.key} style={{ marginTop: 6 }}>
+                                          <strong>{direction.label}:</strong>{" "}
+                                          {(test[side]?.[direction.key] || []).join(" / ") ||
+                                            "-"}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+
+                            {test.type === "GRIP_STRENGTH" && (
+                              <>
+                                <strong>
+                                  {tt("tests.gripStrength.title") ?? "Grip test (Jamar)"}
+                                </strong>
+                                {test.noteAltro &&
+                                  String(test.noteAltro).trim() !== "" && (
+                                    <p style={{ marginTop: 6 }}>
+                                      <strong>
+                                        {tt("evaluation.otherDetailsOptional")}:
+                                      </strong>{" "}
+                                      {String(test.noteAltro).trim()}
+                                    </p>
+                                  )}
+                                <GripStrengthTestSummary
+                                  patient={selected}
+                                  evaluationDate={s.data}
+                                  test={test}
+                                  tt={tt}
+                                />
+                              </>
+                            )}
+
+                            {test.type === "STRENGTH_MAXIMALS" && (
+                              <>
+                                <strong>
+                                  {tt("tests.strengthMaximals.title") ??
+                                    "Massimali pesistica"}
+                                </strong>
+                                {test.noteAltro &&
+                                  String(test.noteAltro).trim() !== "" && (
+                                    <p style={{ marginTop: 6 }}>
+                                      <strong>
+                                        {tt("evaluation.otherDetailsOptional")}:
+                                      </strong>{" "}
+                                      {String(test.noteAltro).trim()}
+                                    </p>
+                                  )}
+                                <p style={{ fontSize: 11, color: "#666", marginTop: 6 }}>
+                                  {tt("tests.strengthMaximals.epleyFootnote")}
+                                </p>
+                                <table
+                                  border="1"
+                                  cellPadding="6"
+                                  style={{
+                                    borderCollapse: "collapse",
+                                    marginTop: 8,
+                                    width: "100%",
+                                  }}
+                                >
+                                  <thead>
+                                    <tr>
+                                      <th>{tt("tests.strengthMaximals.exercise")}</th>
+                                      <th>{tt("tests.strengthMaximals.reps")}</th>
+                                      <th>{tt("tests.strengthMaximals.weightKg")}</th>
+                                      <th>{tt("tests.strengthMaximals.theor1RM")}</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(test.lifts || []).map((line) => {
+                                      const ex =
+                                        line.exercise === OTHER_EXERCISE
+                                          ? line.exerciseOther ||
+                                            tt("evaluation.otherExercise") ||
+                                            "Altro"
+                                          : line.exercise
+                                            ? tt(
+                                                `tests.strengthMaximals.exercises.${line.exercise}`
+                                              ) || line.exercise
+                                            : "—";
+                                      const oneRm = epleyOneRmKg(
+                                        line.weightKg,
+                                        line.reps
+                                      );
+                                      const oneRmCell = formatOneRmKg(oneRm) ?? "—";
+                                      return (
+                                        <tr key={line.id}>
+                                          <td>{ex}</td>
+                                          <td>{line.reps ?? "-"}</td>
+                                          <td>{line.weightKg ?? "-"}</td>
+                                          <td>{oneRmCell}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <div className="no-pdf" style={{ marginTop: 10 }}>
+                  <button type="button" onClick={() => editTestSession(s)}>
+                    {tt("testSession.edit")}
+                  </button>{" "}
+                  <button type="button" onClick={() => deleteTestSession(s.id)}>
+                    {tt("testSession.delete")}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </>
+      )}
+
+      {revealEvaluations && (
+        <>
       {(selected.valutazioni || []).length === 0 && (
         <p>{tt("evaluation.noEvaluations")}</p>
       )}
@@ -2099,7 +2553,7 @@ function PatientDetail({
             })()}
           </p>
 
-          {(v.distretti || []).map((d, distIndex) => (
+          {(v.distretti || []).map((d) => (
             <div key={d.id} style={{ marginBottom: 10 }}>
               {(v.distretti || []).length > 1 && (
                 <div
@@ -2236,227 +2690,6 @@ function PatientDetail({
                 </div>
               )}
 
-{distrettoActiveTests(d).length > 0 && (
-  <div style={{ marginTop: 10 }}>
-    {distrettoActiveTests(d).map((test) => (
-      <div
-        key={test.id}
-        className="test-result-card"
-        style={{
-          marginTop: 8,
-          padding: 10,
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          background: "#fafafa",
-        }}
-      >
-        {test.type === "Y_BALANCE" && (
-          <>
-            <strong>
-              {tt("tests.yBalance.title") ?? "Y Balance Test"}
-            </strong>
-
-            {test.noteAltro && String(test.noteAltro).trim() !== "" && (
-              <p style={{ marginTop: 6 }}>
-                <strong>{tt("evaluation.otherDetailsOptional")}:</strong>{" "}
-                {String(test.noteAltro).trim()}
-              </p>
-            )}
-
-            <div style={{ marginTop: 8 }}>
-              <strong>Composite score</strong>
-
-              <div>
-                {tt("evaluation.left")}:{" "}
-                {calculateYBalance(test).left.composite.toFixed(1)}%
-              </div>
-
-              <div>
-                {tt("evaluation.right")}:{" "}
-                {calculateYBalance(test).right.composite.toFixed(1)}%
-              </div>
-            </div>
-
-            <div style={{ marginTop: 8 }}>
-              <strong>Asymmetry</strong>
-
-              <div>
-                Anterior:{" "}
-                {calculateYBalance(test).asymmetry.anterior.toFixed(1)} cm
-              </div>
-
-              <div>
-                Composite:{" "}
-                {calculateYBalance(test).asymmetry.composite.toFixed(1)}%
-              </div>
-            </div>
-
-            <div style={{ marginTop: 8 }}>
-              <strong>Clinical classification</strong>
-
-              <div>
-                {tt("evaluation.left")}:{" "}
-                <span
-                  style={{
-                    color: classifyYBalance(calculateYBalance(test))
-                      .leftComposite.color,
-                  }}
-                >
-                  {classifyYBalance(calculateYBalance(test)).leftComposite.label}
-                </span>
-              </div>
-
-              <div>
-                {tt("evaluation.right")}:{" "}
-                <span
-                  style={{
-                    color: classifyYBalance(calculateYBalance(test))
-                      .rightComposite.color,
-                  }}
-                >
-                  {classifyYBalance(calculateYBalance(test)).rightComposite.label}
-                </span>
-              </div>
-
-              <div>
-                Anterior asymmetry:{" "}
-                <span
-                  style={{
-                    color: classifyYBalance(calculateYBalance(test))
-                      .anteriorAsymmetry.color,
-                  }}
-                >
-                  {
-                    classifyYBalance(calculateYBalance(test))
-                      .anteriorAsymmetry.label
-                  }
-                </span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 20,
-                marginTop: 8,
-              }}
-            >
-              {["left", "right"].map((side) => (
-                <div key={side}>
-                  <div style={{ fontWeight: "bold", marginBottom: 6 }}>
-                    {side === "left"
-                      ? tt("evaluation.left")
-                      : tt("evaluation.right")}
-                  </div>
-
-                  <div>Leg length: {test[side]?.legLength || "-"}</div>
-
-                  {[
-                    { key: "anterior", label: "Anterior" },
-                    { key: "posteromedial", label: "Posteromedial" },
-                    { key: "posterolateral", label: "Posterolateral" },
-                  ].map((direction) => (
-                    <div key={direction.key} style={{ marginTop: 6 }}>
-                      <strong>{direction.label}:</strong>{" "}
-                      {(test[side]?.[direction.key] || []).join(" / ") || "-"}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {test.type === "GRIP_STRENGTH" && (
-          <>
-            <strong>
-              {tt("tests.gripStrength.title") ?? "Grip test (Jamar)"}
-            </strong>
-
-            {test.noteAltro && String(test.noteAltro).trim() !== "" && (
-              <p style={{ marginTop: 6 }}>
-                <strong>{tt("evaluation.otherDetailsOptional")}:</strong>{" "}
-                {String(test.noteAltro).trim()}
-              </p>
-            )}
-
-            <GripStrengthTestSummary
-              patient={selected}
-              evaluationDate={v.data}
-              test={test}
-              tt={tt}
-            />
-          </>
-        )}
-
-        {test.type === "STRENGTH_MAXIMALS" && (
-          <>
-            <strong>
-              {tt("tests.strengthMaximals.title") ?? "Massimali pesistica"}
-            </strong>
-
-            {test.noteAltro && String(test.noteAltro).trim() !== "" && (
-              <p style={{ marginTop: 6 }}>
-                <strong>{tt("evaluation.otherDetailsOptional")}:</strong>{" "}
-                {String(test.noteAltro).trim()}
-              </p>
-            )}
-
-            <p style={{ fontSize: 11, color: "#666", marginTop: 6 }}>
-              {tt("tests.strengthMaximals.epleyFootnote")}
-            </p>
-
-            <table
-              border="1"
-              cellPadding="6"
-              style={{
-                borderCollapse: "collapse",
-                marginTop: 8,
-                width: "100%",
-              }}
-            >
-              <thead>
-                <tr>
-                  <th>{tt("tests.strengthMaximals.exercise")}</th>
-                  <th>{tt("tests.strengthMaximals.reps")}</th>
-                  <th>{tt("tests.strengthMaximals.weightKg")}</th>
-                  <th>{tt("tests.strengthMaximals.theor1RM")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(test.lifts || []).map((line) => {
-                  const ex =
-                    line.exercise === OTHER_EXERCISE
-                      ? line.exerciseOther ||
-                        tt("evaluation.otherExercise") ||
-                        "Altro"
-                      : line.exercise
-                        ? tt(
-                            `tests.strengthMaximals.exercises.${line.exercise}`
-                          ) || line.exercise
-                        : "—";
-                  const oneRm = epleyOneRmKg(line.weightKg, line.reps);
-                  const oneRmCell = formatOneRmKg(oneRm) ?? "—";
-
-                  return (
-                    <tr key={line.id}>
-                      <td>{ex}</td>
-                      <td>{line.reps ?? "-"}</td>
-                      <td>{line.weightKg ?? "-"}</td>
-                      <td>{oneRmCell}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </>
-        )}
-      </div>
-    ))}
-  </div>
-)}
-
             </div>
           ))}
 
@@ -2473,6 +2706,8 @@ function PatientDetail({
 
       <hr style={{ marginTop: 24 }} />
       <KiviatComparison selected={selected} tt={tt} />
+        </>
+      )}
     </div>
   );
 
@@ -2574,7 +2809,6 @@ function KiviatComparison({ selected, tt }) {
     <div style={comparisonBoxStyle} className="kiviat-comparison-wrap">
       <div className="no-pdf">
         <h3 style={{ marginTop: 0 }}>{tt("chart.title")}</h3>
-        <p>{tt("chart.description")}</p>
       </div>
 
       {comparisons.map((c, index) => (

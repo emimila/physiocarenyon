@@ -291,6 +291,38 @@ body {
   margin: 0 0 10px;
 }
 
+/* Scheda paziente: prima riga Modifica | Elimina, poi linea, poi una riga con i 4 tasti (no wrap; scroll orizzontale se stretto). */
+.patient-sheet-actions,
+.patient-sheet-toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.patient-sheet-actions {
+  margin-top: 12px;
+}
+
+.patient-sheet-toolbar {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.patient-sheet-actions button,
+.patient-sheet-toolbar button {
+  flex-shrink: 0;
+}
+
+hr.patient-sheet-divider {
+  margin: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--border-strong);
+}
+
 /* Scheda paziente: diagnosi e diagnostica affiancate, stesso corpo del testo dei <p>. */
 .pdf-root .patient-sheet-dx-img-row {
   display: flex;

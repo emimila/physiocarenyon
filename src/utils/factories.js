@@ -37,3 +37,23 @@ export function createDistretto(nome) {
     },
   };
 }
+
+/** Distretto usato solo in `sessioniTest` (solo elenco test, niente Kiviat/VAS). */
+export function createDistrettoTestOnly(nome) {
+  return {
+    id: uid(),
+    nome,
+    numeroValutazioneDistretto: "",
+    tests: [],
+  };
+}
+
+export function createTestSession(numeroTest = "") {
+  return {
+    id: uid(),
+    data: new Date().toISOString().split("T")[0],
+    numeroTest,
+    note: "",
+    distretti: [],
+  };
+}

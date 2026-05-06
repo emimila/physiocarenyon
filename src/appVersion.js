@@ -1,6 +1,6 @@
 /**
  * Versione visibile in app (barra in alto) e in meta `physiocare-version` (vite).
  * Allineare sempre a `package.json` (semver).
- * Fino al salto a 1.2: solo terza cifra (1.1.1, 1.1.2, …); il minor 1.2 quando lo decidi tu.
+ * Minor 1.2.x: seconda cifra fissa a 2 (es. 1.2.0, 1.2.1, …).
  */
-export const APP_VERSION = "1.1.20";
+export const APP_VERSION = "1.2.0";

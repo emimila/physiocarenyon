@@ -145,9 +145,11 @@ export function sanitizeEvaluationForSave(evaluation) {
     const destro = pruneSide(d.destro, { keepScores, keepDolore });
     const sinistro = pruneSide(d.sinistro, { keepScores, keepDolore });
 
-    const tests = (d.tests || []).map(pruneTest).filter(Boolean);
+    /* I test clinici vivono solo in `patient.sessioniTest`, non nelle valutazioni. */
+    const tests = [];
 
-    const { dolore: _legacyDolore, ...rest } = d;
+    const rest = { ...(d || {}) };
+    delete rest.dolore;
     const out = {
       ...rest,
       blocks,
@@ -160,6 +162,23 @@ export function sanitizeEvaluationForSave(evaluation) {
     }
     return out;
   });
+
+  return raw;
+}
+
+/** Sessione test: solo distretti con array `tests` tipizzati. */
+export function sanitizeTestSessionForSave(session) {
+  const raw =
+    typeof structuredClone === "function"
+      ? structuredClone(session)
+      : JSON.parse(JSON.stringify(session));
+
+  raw.distretti = (raw.distretti || []).map((d) => ({
+    id: d.id,
+    nome: d.nome,
+    numeroValutazioneDistretto: d.numeroValutazioneDistretto ?? "",
+    tests: (d.tests || []).map(pruneTest).filter(Boolean),
+  }));
 
   return raw;
 }
