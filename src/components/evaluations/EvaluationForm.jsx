@@ -473,7 +473,16 @@ export default function EvaluationForm({
             </button>
 
             {(d.blocks || []).map((block) => (
-              <div key={block.id} style={{ marginTop: 10 }}>
+              <div
+                key={block.id}
+                style={{
+                  marginTop: 12,
+                  padding: 12,
+                  border: "1px solid #e2e2e2",
+                  borderRadius: 10,
+                  background: "#fafafa",
+                }}
+              >
                 <Select
                   label={tt("evaluation.evaluationBlock")}
                   value={block.type}
@@ -528,83 +537,96 @@ export default function EvaluationForm({
                     })
                   }
                 />
+
+                {block.type === "KIVIAT" && (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 20,
+                      marginTop: 12,
+                    }}
+                  >
+                    <SideScores
+                      tt={tt}
+                      title={tt("evaluation.right")}
+                      scores={d.destro}
+                      onChange={(key, value) =>
+                        updateScore(d.id, "destro", key, value)
+                      }
+                    />
+                    <SideScores
+                      tt={tt}
+                      title={tt("evaluation.left")}
+                      scores={d.sinistro}
+                      onChange={(key, value) =>
+                        updateScore(d.id, "sinistro", key, value)
+                      }
+                    />
+                  </div>
+                )}
+
+                {block.type === "PAIN_VAS" && (
+                  <div style={{ marginTop: 12 }}>
+                    <strong>{tt("evaluation.painVAS")}</strong>
+                    {[
+                      { key: "riposo", label: tt("evaluation.rest") },
+                      { key: "mattino", label: tt("evaluation.morning") },
+                      { key: "sera", label: tt("evaluation.evening") },
+                      {
+                        key: "duranteAttivita",
+                        label: tt("evaluation.duringActivity"),
+                      },
+                      {
+                        key: "dopoAttivita",
+                        label: tt("evaluation.afterActivity"),
+                      },
+                    ].map(({ key, label }) => (
+                      <div
+                        key={key}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: 20,
+                          marginTop: 10,
+                        }}
+                      >
+                        <Score10
+                          label={`${label} — ${tt("evaluation.right")}`}
+                          value={d.destro?.dolore?.[key]}
+                          onChange={(v) =>
+                            updateDolore(d.id, "destro", key, v)
+                          }
+                        />
+                        <Score10
+                          label={`${label} — ${tt("evaluation.left")}`}
+                          value={d.sinistro?.dolore?.[key]}
+                          onChange={(v) =>
+                            updateDolore(d.id, "sinistro", key, v)
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {block.type === "GENERAL_PAIN" && (
+                  <div style={{ marginTop: 12 }}>
+                    <strong>{tt("evaluation.generalPainVAS")}</strong>
+                    <Score10
+                      min={1}
+                      max={10}
+                      label={tt("evaluation.painVAS")}
+                      value={d.doloreGeneraleVAS || ""}
+                      onChange={(v) =>
+                        patchDistretto(d.id, { doloreGeneraleVAS: v })
+                      }
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
-
-          {(d.blocks || []).some((b) => b.type === "KIVIAT") && (
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 20,
-      marginTop: 15,
-    }}
-  >
-    <SideScores
-      tt={tt}
-      title={tt("evaluation.right")}
-      scores={d.destro}
-      onChange={(key, value) => updateScore(d.id, "destro", key, value)}
-    />
-
-    <SideScores
-      tt={tt}
-      title={tt("evaluation.left")}
-      scores={d.sinistro}
-      onChange={(key, value) => updateScore(d.id, "sinistro", key, value)}
-    />
-  </div>
-)}
-
-{(d.blocks || []).some((b) => b.type === "PAIN_VAS") && (
-  <div style={{ marginTop: 15 }}>
-    <strong>{tt("evaluation.painVAS")}</strong>
-
-    {[
-      { key: "riposo", label: tt("evaluation.rest") },
-      { key: "mattino", label: tt("evaluation.morning") },
-      { key: "sera", label: tt("evaluation.evening") },
-      { key: "duranteAttivita", label: tt("evaluation.duringActivity") },
-      { key: "dopoAttivita", label: tt("evaluation.afterActivity") },
-    ].map(({ key, label }) => (
-      <div
-        key={key}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 20,
-          marginTop: 10,
-        }}
-      >
-        <Score10
-          label={`${label} — ${tt("evaluation.right")}`}
-          value={d.destro?.dolore?.[key]}
-          onChange={(v) => updateDolore(d.id, "destro", key, v)}
-        />
-
-        <Score10
-          label={`${label} — ${tt("evaluation.left")}`}
-          value={d.sinistro?.dolore?.[key]}
-          onChange={(v) => updateDolore(d.id, "sinistro", key, v)}
-        />
-      </div>
-    ))}
-  </div>
-)}
-
-{(d.blocks || []).some((b) => b.type === "GENERAL_PAIN") && (
-  <div style={{ marginTop: 15 }}>
-    <strong>{tt("evaluation.generalPainVAS")}</strong>
-    <Score10
-      min={1}
-      max={10}
-      label={tt("evaluation.painVAS")}
-      value={d.doloreGeneraleVAS || ""}
-      onChange={(v) => patchDistretto(d.id, { doloreGeneraleVAS: v })}
-    />
-  </div>
-)}
 
 <div style={{ marginTop: 15 }}>
   <button

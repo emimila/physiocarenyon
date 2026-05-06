@@ -86,6 +86,8 @@ const emptyPatient = {
   diagnosiDettagli: "",
   diagnostica: "",
   diagnosticaDettagli: "",
+  diagnostica2: "",
+  diagnosticaDettagli2: "",
   dataInfortunio: "",
   dataOperazione: "",
   artoOperato: "",
@@ -360,9 +362,7 @@ export default function App() {
           <option value="en">English</option>
         </select>
       </div>
-  
-      
-  
+
       {selected && selected.valutazioni?.[0] && (
         <div>
           <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
@@ -1151,6 +1151,19 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
           onChange={(v) => update("diagnosticaDettagli", v)}
         />
 
+        <Select
+          label={t("patient.imaging2", "Diagnostica (2ª, se necessaria)")}
+          value={form.diagnostica2 || ""}
+          onChange={(v) => update("diagnostica2", v)}
+          options={imagingOptions}
+        />
+
+        <Textarea
+          label={t("patient.imagingDetails2", "Dettagli / commenti 2ª diagnostica")}
+          value={form.diagnosticaDettagli2 || ""}
+          onChange={(v) => update("diagnosticaDettagli2", v)}
+        />
+
         <Input
           label={t("patient.injuryDate", "Data infortunio")}
           type="date"
@@ -1697,6 +1710,21 @@ function PatientDetail({
   <strong>{tt("patient.imagingDetails")}:</strong>{" "}
   {manualTextLower(selected.diagnosticaDettagli) || "-"}
 </p>
+
+{(selected.diagnostica2 || selected.diagnosticaDettagli2) && (
+  <>
+    <p>
+      <strong>{tt("patient.imaging2")}:</strong>{" "}
+      {tt(`options.imaging.${selected.diagnostica2}`) ||
+        selected.diagnostica2 ||
+        "—"}
+    </p>
+    <p>
+      <strong>{tt("patient.imagingDetails2")}:</strong>{" "}
+      {manualTextLower(selected.diagnosticaDettagli2) || "-"}
+    </p>
+  </>
+)}
 
       <p>
         <strong>{tt("patient.injuryDate")}:</strong>{" "}
