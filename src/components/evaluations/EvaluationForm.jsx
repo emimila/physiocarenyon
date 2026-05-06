@@ -483,17 +483,7 @@ function EvaluationBlockCard({
               label: tt("evaluation.afterActivity"),
             },
           ].map(({ key, label }) => (
-            <div
-              key={key}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                marginTop: 4,
-                paddingTop: 8,
-                borderTop: key === "riposo" ? "none" : "1px solid #e8e8e8",
-              }}
-            >
+            <div key={key} className="evaluation-pain-vas-row">
               <span
                 style={{
                   fontSize: 12,
@@ -503,16 +493,18 @@ function EvaluationBlockCard({
               >
                 {label}
               </span>
-              <Score10
-                label={tt("evaluation.right")}
-                value={d.destro?.dolore?.[key]}
-                onChange={(v) => updateDolore(d.id, "destro", key, v)}
-              />
-              <Score10
-                label={tt("evaluation.left")}
-                value={d.sinistro?.dolore?.[key]}
-                onChange={(v) => updateDolore(d.id, "sinistro", key, v)}
-              />
+              <div className="evaluation-pain-vas-sides">
+                <Score10
+                  label={tt("evaluation.right")}
+                  value={d.destro?.dolore?.[key]}
+                  onChange={(v) => updateDolore(d.id, "destro", key, v)}
+                />
+                <Score10
+                  label={tt("evaluation.left")}
+                  value={d.sinistro?.dolore?.[key]}
+                  onChange={(v) => updateDolore(d.id, "sinistro", key, v)}
+                />
+              </div>
             </div>
           ))}
         </div>

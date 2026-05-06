@@ -3,6 +3,7 @@ import ScoreSelect from "../ui/ScoreSelect";
 export default function SideScores({ title, scores, onChange, tt }) {
   return (
     <div
+      className="evaluation-side-scores"
       style={{
         border: "1px solid #eee",
         padding: 10,

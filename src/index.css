@@ -457,7 +457,26 @@ body {
   box-sizing: border-box;
 }
 
-.evaluation-block-kiviat,
+/* Kiviat: destro e sinistro affiancati (una colonna su schermi stretti). */
+.evaluation-block-kiviat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+  width: 100%;
+  align-items: start;
+}
+
+.evaluation-block-kiviat > .evaluation-side-scores {
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .evaluation-block-kiviat {
+    grid-template-columns: 1fr;
+  }
+}
+
 .evaluation-block-pain-vas,
 .evaluation-block-general-pain {
   display: flex;
@@ -465,6 +484,37 @@ body {
   gap: 12px;
   margin-top: 12px;
   width: 100%;
+}
+
+/* Dolore VAS: per ogni fascia oraria, destro e sinistro affiancati. */
+.evaluation-pain-vas-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.evaluation-pain-vas-row:not(:first-of-type) {
+  border-top: 1px solid var(--border);
+}
+
+.evaluation-pain-vas-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  align-items: start;
+  width: 100%;
+}
+
+.evaluation-pain-vas-sides select {
+  max-width: 100%;
+}
+
+@media (max-width: 720px) {
+  .evaluation-pain-vas-sides {
+    grid-template-columns: 1fr;
+  }
 }
 
 .patient-card {
