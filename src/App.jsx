@@ -1,3 +1,4 @@
+import { APP_VERSION } from "./appVersion";
 import { assessGrip } from "./utils/gripAssessment";
 import html2pdf from "html2pdf.js";
 import ReportView from "./components/reports/ReportView";
@@ -347,7 +348,12 @@ export default function App() {
   return (
     <div className="app-shell">
       <div className="app-topbar">
-        <h1>{tt("app.title")}</h1>
+        <div className="app-title-wrap">
+          <h1 className="app-title">{tt("app.title")}</h1>
+          <span className="app-version-badge" title={`Physiocare Nyon · v${APP_VERSION}`}>
+            v{APP_VERSION}
+          </span>
+        </div>
 
         <select
           className="app-lang-select"

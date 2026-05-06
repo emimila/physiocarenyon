@@ -235,9 +235,31 @@ body {
   margin-bottom: 8px;
 }
 
-.app-topbar h1 {
+.app-title-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  text-align: left;
+}
+
+.app-title {
   margin: 0;
   text-align: left;
+}
+
+.app-version-badge {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  line-height: 1.2;
 }
 
 .app-lang-select {

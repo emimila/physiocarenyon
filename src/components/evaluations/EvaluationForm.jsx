@@ -579,16 +579,6 @@ export default function EvaluationForm({
   return (
     <div>
       <h2>{tt("evaluation.title")}</h2>
-      <p
-        className="no-pdf app-build-fingerprint"
-        style={{
-          fontSize: 11,
-          color: "var(--text-muted)",
-          margin: "0 0 10px",
-        }}
-      >
-        Build: {__GIT_SHORT__}
-      </p>
 
       <Section title={tt("evaluation.title")}>
         <Input
