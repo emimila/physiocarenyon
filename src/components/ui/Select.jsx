@@ -1,4 +1,10 @@
-export default function Select({ label, value, onChange, options }) {
+export default function Select({
+  label,
+  value,
+  onChange,
+  options,
+  fullWidth = false,
+}) {
   const hasEmptyChoice = (options || []).some((opt) => {
     const v = typeof opt === "object" ? opt.value : opt;
     return v === "" || v == null;
@@ -12,7 +18,11 @@ export default function Select({ label, value, onChange, options }) {
       <select
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        style={{ padding: 8, width: "100%", maxWidth: 420 }}
+        style={{
+          padding: 8,
+          width: "100%",
+          maxWidth: fullWidth ? "100%" : 420,
+        }}
       >
         {!hasEmptyChoice ? (
           <option value="">--</option>

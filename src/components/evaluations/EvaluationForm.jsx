@@ -449,102 +449,104 @@ export default function EvaluationForm({
             {tt("evaluation.removeDistrict")}
           </button>
 
-          <div style={{ marginTop: 15 }}>
-            <button
-              type="button"
-              onClick={() =>
-                setEvaluationForm({
-                  ...evaluationForm,
-                  distretti: evaluationForm.distretti.map((dist) =>
-                    dist.id === d.id
-                      ? {
-                          ...dist,
-                          blocks: [
-                            ...(dist.blocks || []),
-                            { id: uid(), type: "", noteAltro: "" },
-                          ],
-                        }
-                      : dist
-                  ),
-                })
-              }
-            >
-              {tt("evaluation.addEvaluationBlock")}
-            </button>
-
+          <div
+            style={{
+              marginTop: 15,
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              width: "100%",
+            }}
+          >
             {(d.blocks || []).map((block) => (
               <div
                 key={block.id}
                 style={{
-                  marginTop: 12,
-                  padding: 12,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0,
+                  padding: 14,
                   border: "1px solid #e2e2e2",
                   borderRadius: 10,
                   background: "#fafafa",
+                  width: "100%",
+                  boxSizing: "border-box",
                 }}
               >
-                <Select
-                  label={tt("evaluation.evaluationBlock")}
-                  value={block.type}
-                  onChange={(value) =>
-                    setEvaluationForm({
-                      ...evaluationForm,
-                      distretti: evaluationForm.distretti.map((dist) =>
-                        dist.id === d.id
-                          ? {
-                              ...dist,
-                              blocks: (dist.blocks || []).map((b) =>
-                                b.id === block.id ? { ...b, type: value } : b
-                              ),
-                            }
-                          : dist
-                      ),
-                    })
-                  }
-                  options={[
-                    {
-                      value: "KIVIAT",
-                      label: tt("evaluation.blockType.KIVIAT"),
-                    },
-                    {
-                      value: "PAIN_VAS",
-                      label: tt("evaluation.blockType.PAIN_VAS"),
-                    },
-                    {
-                      value: "GENERAL_PAIN",
-                      label: tt("evaluation.blockType.GENERAL_PAIN"),
-                    },
-                  ]}
-                />
-                <Textarea
-                  label={tt("evaluation.otherDetailsOptional")}
-                  value={block.noteAltro || ""}
-                  onChange={(value) =>
-                    setEvaluationForm({
-                      ...evaluationForm,
-                      distretti: evaluationForm.distretti.map((dist) =>
-                        dist.id === d.id
-                          ? {
-                              ...dist,
-                              blocks: (dist.blocks || []).map((b) =>
-                                b.id === block.id
-                                  ? { ...b, noteAltro: value }
-                                  : b
-                              ),
-                            }
-                          : dist
-                      ),
-                    })
-                  }
-                />
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                    width: "100%",
+                  }}
+                >
+                  <Select
+                    fullWidth
+                    label={tt("evaluation.evaluationBlock")}
+                    value={block.type}
+                    onChange={(value) =>
+                      setEvaluationForm({
+                        ...evaluationForm,
+                        distretti: evaluationForm.distretti.map((dist) =>
+                          dist.id === d.id
+                            ? {
+                                ...dist,
+                                blocks: (dist.blocks || []).map((b) =>
+                                  b.id === block.id ? { ...b, type: value } : b
+                                ),
+                              }
+                            : dist
+                        ),
+                      })
+                    }
+                    options={[
+                      {
+                        value: "KIVIAT",
+                        label: tt("evaluation.blockType.KIVIAT"),
+                      },
+                      {
+                        value: "PAIN_VAS",
+                        label: tt("evaluation.blockType.PAIN_VAS"),
+                      },
+                      {
+                        value: "GENERAL_PAIN",
+                        label: tt("evaluation.blockType.GENERAL_PAIN"),
+                      },
+                    ]}
+                  />
+                  <Textarea
+                    fullWidth
+                    label={tt("evaluation.otherDetailsOptional")}
+                    value={block.noteAltro || ""}
+                    onChange={(value) =>
+                      setEvaluationForm({
+                        ...evaluationForm,
+                        distretti: evaluationForm.distretti.map((dist) =>
+                          dist.id === d.id
+                            ? {
+                                ...dist,
+                                blocks: (dist.blocks || []).map((b) =>
+                                  b.id === block.id
+                                    ? { ...b, noteAltro: value }
+                                    : b
+                                ),
+                              }
+                            : dist
+                        ),
+                      })
+                    }
+                  />
+                </div>
 
                 {block.type === "KIVIAT" && (
                   <div
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: 20,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 14,
                       marginTop: 12,
+                      width: "100%",
                     }}
                   >
                     <SideScores
@@ -567,8 +569,18 @@ export default function EvaluationForm({
                 )}
 
                 {block.type === "PAIN_VAS" && (
-                  <div style={{ marginTop: 12 }}>
-                    <strong>{tt("evaluation.painVAS")}</strong>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                      marginTop: 12,
+                      width: "100%",
+                    }}
+                  >
+                    <strong style={{ fontSize: 14 }}>
+                      {tt("evaluation.painVAS")}
+                    </strong>
                     {[
                       { key: "riposo", label: tt("evaluation.rest") },
                       { key: "mattino", label: tt("evaluation.morning") },
@@ -585,21 +597,33 @@ export default function EvaluationForm({
                       <div
                         key={key}
                         style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: 20,
-                          marginTop: 10,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 8,
+                          marginTop: 4,
+                          paddingTop: 8,
+                          borderTop:
+                            key === "riposo" ? "none" : "1px solid #e8e8e8",
                         }}
                       >
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "#555",
+                          }}
+                        >
+                          {label}
+                        </span>
                         <Score10
-                          label={`${label} — ${tt("evaluation.right")}`}
+                          label={tt("evaluation.right")}
                           value={d.destro?.dolore?.[key]}
                           onChange={(v) =>
                             updateDolore(d.id, "destro", key, v)
                           }
                         />
                         <Score10
-                          label={`${label} — ${tt("evaluation.left")}`}
+                          label={tt("evaluation.left")}
                           value={d.sinistro?.dolore?.[key]}
                           onChange={(v) =>
                             updateDolore(d.id, "sinistro", key, v)
@@ -611,7 +635,15 @@ export default function EvaluationForm({
                 )}
 
                 {block.type === "GENERAL_PAIN" && (
-                  <div style={{ marginTop: 12 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                      marginTop: 12,
+                      width: "100%",
+                    }}
+                  >
                     <strong>{tt("evaluation.generalPainVAS")}</strong>
                     <Score10
                       min={1}
@@ -626,6 +658,29 @@ export default function EvaluationForm({
                 )}
               </div>
             ))}
+
+            <button
+              type="button"
+              style={{ alignSelf: "flex-start" }}
+              onClick={() =>
+                setEvaluationForm({
+                  ...evaluationForm,
+                  distretti: evaluationForm.distretti.map((dist) =>
+                    dist.id === d.id
+                      ? {
+                          ...dist,
+                          blocks: [
+                            ...(dist.blocks || []),
+                            { id: uid(), type: "", noteAltro: "" },
+                          ],
+                        }
+                      : dist
+                  ),
+                })
+              }
+            >
+              {tt("evaluation.addEvaluationBlock")}
+            </button>
           </div>
 
 <div style={{ marginTop: 15 }}>

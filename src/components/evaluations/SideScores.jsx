@@ -2,7 +2,15 @@ import ScoreSelect from "../ui/ScoreSelect";
 
 export default function SideScores({ title, scores, onChange, tt }) {
   return (
-    <div style={{ border: "1px solid #eee", padding: 10, borderRadius: 8 }}>
+    <div
+      style={{
+        border: "1px solid #eee",
+        padding: 10,
+        borderRadius: 8,
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
       <h4>{title}</h4>
 
       <ScoreSelect
