@@ -472,11 +472,25 @@ body {
 }
 
 .evaluation-side-scores h4 {
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--text-h);
-  line-height: 1.35;
+  line-height: 1.3;
+}
+
+.evaluation-block-kiviat .evaluation-side-scores {
+  padding: 8px;
+}
+
+.evaluation-block-kiviat .evaluation-side-scores label > strong {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.evaluation-block-kiviat .evaluation-side-scores select {
+  min-height: 38px;
+  padding: 6px 8px;
 }
 
 @media (max-width: 720px) {
@@ -489,54 +503,64 @@ body {
 .evaluation-block-general-pain {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 10px;
   width: 100%;
 }
 
 .evaluation-pain-vas-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-h);
-  line-height: 1.35;
-}
-
-/* Dolore VAS: per ogni fascia oraria, destro e sinistro affiancati. */
-.evaluation-pain-vas-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-  padding-top: 8px;
-}
-
-/* Come etichette .app-content label > strong (blocco tipo / note). */
-.evaluation-pain-vas-row__label {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-h);
   line-height: 1.35;
+  margin-bottom: 2px;
 }
 
-.evaluation-pain-vas-row:not(:first-of-type) {
+/* Dolore VAS: griglia compatta; header Sinistro | Destro solo in cima (sinistro a sinistra dello schermo). */
+.evaluation-pain-vas-grid {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 1fr) minmax(0, 5.5rem) minmax(0, 5.5rem);
+  gap: 4px 8px;
+  align-items: center;
+  width: 100%;
+  max-width: 22rem;
+  font-size: 0.8125rem;
+  margin-top: 2px;
+  padding-top: 6px;
   border-top: 1px solid var(--border);
 }
 
-.evaluation-pain-vas-sides {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 14px;
-  align-items: start;
-  width: 100%;
+.evaluation-pain-vas-grid__corner {
+  min-height: 0;
 }
 
-.evaluation-pain-vas-sides select {
-  max-width: 100%;
+.evaluation-pain-vas-grid__colhead {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.25;
+  text-align: center;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border);
 }
 
-@media (max-width: 720px) {
-  .evaluation-pain-vas-sides {
-    grid-template-columns: 1fr;
+.evaluation-pain-vas-grid__rowlabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.25;
+  padding: 2px 0;
+  border-top: 1px solid var(--border);
+}
+
+.evaluation-pain-vas-grid__rowlabel--first {
+  border-top: none;
+}
+
+@media (max-width: 520px) {
+  .evaluation-pain-vas-grid {
+    max-width: 100%;
+    grid-template-columns: minmax(4rem, 1fr) minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 
@@ -553,6 +577,16 @@ body {
   font-weight: 600;
   color: var(--text-h);
   line-height: 1.35;
+}
+
+.score10.score10--compact.score10--hide-label {
+  min-width: 0;
+}
+
+.score10.score10--compact.score10--hide-label select {
+  min-height: 38px;
+  padding: 6px 8px;
+  max-width: 100%;
 }
 
 .patient-card {

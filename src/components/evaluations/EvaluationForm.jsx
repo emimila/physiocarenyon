@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Section from "../ui/Section";
 import { uid } from "../../utils/helpers";
 import Input from "../ui/Input";
@@ -250,28 +251,6 @@ function GripStrengthEvaluationFields({
         }}
       >
         <div>
-          <strong>{tt("evaluation.right")}</strong>
-          <Input
-            label={`${tt("patient.trial1") ?? "Prova 1"} (kg)`}
-            type="number"
-            value={test.grip?.manoDestraForza1 || ""}
-            onChange={(v) => updateGrip({ manoDestraForza1: v })}
-          />
-          <Input
-            label={`${tt("patient.trial2") ?? "Prova 2"} (kg)`}
-            type="number"
-            value={test.grip?.manoDestraForza2 || ""}
-            onChange={(v) => updateGrip({ manoDestraForza2: v })}
-          />
-          <Input
-            label={`${tt("patient.trial3") ?? "Prova 3"} (kg)`}
-            type="number"
-            value={test.grip?.manoDestraForza3 || ""}
-            onChange={(v) => updateGrip({ manoDestraForza3: v })}
-          />
-        </div>
-
-        <div>
           <strong>{tt("evaluation.left")}</strong>
           <Input
             label={`${tt("patient.trial1") ?? "Prova 1"} (kg)`}
@@ -290,6 +269,28 @@ function GripStrengthEvaluationFields({
             type="number"
             value={test.grip?.manoSinistraForza3 || ""}
             onChange={(v) => updateGrip({ manoSinistraForza3: v })}
+          />
+        </div>
+
+        <div>
+          <strong>{tt("evaluation.right")}</strong>
+          <Input
+            label={`${tt("patient.trial1") ?? "Prova 1"} (kg)`}
+            type="number"
+            value={test.grip?.manoDestraForza1 || ""}
+            onChange={(v) => updateGrip({ manoDestraForza1: v })}
+          />
+          <Input
+            label={`${tt("patient.trial2") ?? "Prova 2"} (kg)`}
+            type="number"
+            value={test.grip?.manoDestraForza2 || ""}
+            onChange={(v) => updateGrip({ manoDestraForza2: v })}
+          />
+          <Input
+            label={`${tt("patient.trial3") ?? "Prova 3"} (kg)`}
+            type="number"
+            value={test.grip?.manoDestraForza3 || ""}
+            onChange={(v) => updateGrip({ manoDestraForza3: v })}
           />
         </div>
       </div>
@@ -452,17 +453,17 @@ function EvaluationBlockCard({
         <div className="evaluation-block-kiviat">
           <SideScores
             tt={tt}
-            title={tt("evaluation.right")}
-            scores={d.destro}
-            onChange={(key, value) => updateScore(d.id, "destro", key, value)}
-          />
-          <SideScores
-            tt={tt}
             title={tt("evaluation.left")}
             scores={d.sinistro}
             onChange={(key, value) =>
               updateScore(d.id, "sinistro", key, value)
             }
+          />
+          <SideScores
+            tt={tt}
+            title={tt("evaluation.right")}
+            scores={d.destro}
+            onChange={(key, value) => updateScore(d.id, "destro", key, value)}
           />
         </div>
       )}
@@ -472,37 +473,52 @@ function EvaluationBlockCard({
           <strong className="evaluation-pain-vas-title">
             {tt("evaluation.painVAS")}
           </strong>
-          {[
-            { key: "riposo", label: tt("evaluation.rest") },
-            { key: "mattino", label: tt("evaluation.morning") },
-            { key: "sera", label: tt("evaluation.evening") },
-            {
-              key: "duranteAttivita",
-              label: tt("evaluation.duringActivity"),
-            },
-            {
-              key: "dopoAttivita",
-              label: tt("evaluation.afterActivity"),
-            },
-          ].map(({ key, label }) => (
-            <div key={key} className="evaluation-pain-vas-row">
-              <span className="evaluation-pain-vas-row__label">{label}</span>
-              <div className="evaluation-pain-vas-sides">
+          <div className="evaluation-pain-vas-grid" role="group" aria-label={tt("evaluation.painVAS")}>
+            <span className="evaluation-pain-vas-grid__corner" aria-hidden />
+            <span className="evaluation-pain-vas-grid__colhead">
+              {tt("evaluation.left")}
+            </span>
+            <span className="evaluation-pain-vas-grid__colhead">
+              {tt("evaluation.right")}
+            </span>
+            {[
+              { key: "riposo", label: tt("evaluation.rest") },
+              { key: "mattino", label: tt("evaluation.morning") },
+              { key: "sera", label: tt("evaluation.evening") },
+              {
+                key: "duranteAttivita",
+                label: tt("evaluation.duringActivity"),
+              },
+              {
+                key: "dopoAttivita",
+                label: tt("evaluation.afterActivity"),
+              },
+            ].map(({ key, label }, idx) => (
+              <Fragment key={key}>
+                <span
+                  className={`evaluation-pain-vas-grid__rowlabel${
+                    idx === 0 ? " evaluation-pain-vas-grid__rowlabel--first" : ""
+                  }`}
+                >
+                  {label}
+                </span>
                 <Score10
                   compact
-                  label={tt("evaluation.right")}
-                  value={d.destro?.dolore?.[key]}
-                  onChange={(v) => updateDolore(d.id, "destro", key, v)}
-                />
-                <Score10
-                  compact
-                  label={tt("evaluation.left")}
+                  hideLabel
+                  label={`${label} — ${tt("evaluation.left")}`}
                   value={d.sinistro?.dolore?.[key]}
                   onChange={(v) => updateDolore(d.id, "sinistro", key, v)}
                 />
-              </div>
-            </div>
-          ))}
+                <Score10
+                  compact
+                  hideLabel
+                  label={`${label} — ${tt("evaluation.right")}`}
+                  value={d.destro?.dolore?.[key]}
+                  onChange={(v) => updateDolore(d.id, "destro", key, v)}
+                />
+              </Fragment>
+            ))}
+          </div>
         </div>
       )}
 
@@ -836,12 +852,12 @@ export default function EvaluationForm({
                       marginTop: 10,
                     }}
                   >
-                    {["right", "left"].map((side) => (
+                    {["left", "right"].map((side) => (
                       <div key={side}>
                         <h4>
-                          {side === "right"
-                            ? tt("evaluation.right")
-                            : tt("evaluation.left")}
+                          {side === "left"
+                            ? tt("evaluation.left")
+                            : tt("evaluation.right")}
                         </h4>
 
                         <Input

@@ -1851,18 +1851,18 @@ function PatientDetail({
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{tt("evaluation.right")}</td>
-                    <td>{d.destro?.forza || "-"}</td>
-                    <td>{d.destro?.funzione || "-"}</td>
-                    <td>{d.destro?.mobilitaPassiva || "-"}</td>
-                    <td>{d.destro?.mobilitaAttiva || "-"}</td>
-                  </tr>
-                  <tr>
                     <td>{tt("evaluation.left")}</td>
                     <td>{d.sinistro?.forza || "-"}</td>
                     <td>{d.sinistro?.funzione || "-"}</td>
                     <td>{d.sinistro?.mobilitaPassiva || "-"}</td>
                     <td>{d.sinistro?.mobilitaAttiva || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td>{tt("evaluation.right")}</td>
+                    <td>{d.destro?.forza || "-"}</td>
+                    <td>{d.destro?.funzione || "-"}</td>
+                    <td>{d.destro?.mobilitaPassiva || "-"}</td>
+                    <td>{d.destro?.mobilitaAttiva || "-"}</td>
                   </tr>
                 </tbody>
               </table>
@@ -1890,6 +1890,7 @@ function PatientDetail({
                 >
                   <thead>
                     <tr>
+                      <th></th>
                       <th>{tt("evaluation.rest")}</th>
                       <th>{tt("evaluation.morning")}</th>
                       <th>{tt("evaluation.evening")}</th>
@@ -1898,32 +1899,23 @@ function PatientDetail({
                     </tr>
                   </thead>
                   <tbody>
-  <tr>
-    <td colSpan="5">
-      <strong>{tt("evaluation.right")}</strong>
-    </td>
-  </tr>
-  <tr>
-    <td>{d.destro?.dolore?.riposo ?? d.dolore?.riposo ?? "-"}</td>
-    <td>{d.destro?.dolore?.mattino ?? d.dolore?.mattino ?? "-"}</td>
-    <td>{d.destro?.dolore?.sera ?? d.dolore?.sera ?? "-"}</td>
-    <td>{d.destro?.dolore?.duranteAttivita ?? d.dolore?.duranteAttivita ?? "-"}</td>
-    <td>{d.destro?.dolore?.dopoAttivita ?? d.dolore?.dopoAttivita ?? "-"}</td>
-  </tr>
-
-  <tr>
-    <td colSpan="5">
-      <strong>{tt("evaluation.left")}</strong>
-    </td>
-  </tr>
-  <tr>
-    <td>{d.sinistro?.dolore?.riposo ?? d.dolore?.riposo ?? "-"}</td>
-    <td>{d.sinistro?.dolore?.mattino ?? d.dolore?.mattino ?? "-"}</td>
-    <td>{d.sinistro?.dolore?.sera ?? d.dolore?.sera ?? "-"}</td>
-    <td>{d.sinistro?.dolore?.duranteAttivita ?? d.dolore?.duranteAttivita ?? "-"}</td>
-    <td>{d.sinistro?.dolore?.dopoAttivita ?? d.dolore?.dopoAttivita ?? "-"}</td>
-  </tr>
-  </tbody>
+                  <tr>
+                    <th scope="row">{tt("evaluation.left")}</th>
+                    <td>{d.sinistro?.dolore?.riposo ?? d.dolore?.riposo ?? "-"}</td>
+                    <td>{d.sinistro?.dolore?.mattino ?? d.dolore?.mattino ?? "-"}</td>
+                    <td>{d.sinistro?.dolore?.sera ?? d.dolore?.sera ?? "-"}</td>
+                    <td>{d.sinistro?.dolore?.duranteAttivita ?? d.dolore?.duranteAttivita ?? "-"}</td>
+                    <td>{d.sinistro?.dolore?.dopoAttivita ?? d.dolore?.dopoAttivita ?? "-"}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{tt("evaluation.right")}</th>
+                    <td>{d.destro?.dolore?.riposo ?? d.dolore?.riposo ?? "-"}</td>
+                    <td>{d.destro?.dolore?.mattino ?? d.dolore?.mattino ?? "-"}</td>
+                    <td>{d.destro?.dolore?.sera ?? d.dolore?.sera ?? "-"}</td>
+                    <td>{d.destro?.dolore?.duranteAttivita ?? d.dolore?.duranteAttivita ?? "-"}</td>
+                    <td>{d.destro?.dolore?.dopoAttivita ?? d.dolore?.dopoAttivita ?? "-"}</td>
+                  </tr>
+                  </tbody>
 </table>
 </div>
               )}
@@ -1959,13 +1951,13 @@ function PatientDetail({
               <strong>Composite score</strong>
 
               <div>
-                {tt("evaluation.right")}:{" "}
-                {calculateYBalance(test).right.composite.toFixed(1)}%
+                {tt("evaluation.left")}:{" "}
+                {calculateYBalance(test).left.composite.toFixed(1)}%
               </div>
 
               <div>
-                {tt("evaluation.left")}:{" "}
-                {calculateYBalance(test).left.composite.toFixed(1)}%
+                {tt("evaluation.right")}:{" "}
+                {calculateYBalance(test).right.composite.toFixed(1)}%
               </div>
             </div>
 
@@ -1987,18 +1979,6 @@ function PatientDetail({
               <strong>Clinical classification</strong>
 
               <div>
-                {tt("evaluation.right")}:{" "}
-                <span
-                  style={{
-                    color: classifyYBalance(calculateYBalance(test))
-                      .rightComposite.color,
-                  }}
-                >
-                  {classifyYBalance(calculateYBalance(test)).rightComposite.label}
-                </span>
-              </div>
-
-              <div>
                 {tt("evaluation.left")}:{" "}
                 <span
                   style={{
@@ -2007,6 +1987,18 @@ function PatientDetail({
                   }}
                 >
                   {classifyYBalance(calculateYBalance(test)).leftComposite.label}
+                </span>
+              </div>
+
+              <div>
+                {tt("evaluation.right")}:{" "}
+                <span
+                  style={{
+                    color: classifyYBalance(calculateYBalance(test))
+                      .rightComposite.color,
+                  }}
+                >
+                  {classifyYBalance(calculateYBalance(test)).rightComposite.label}
                 </span>
               </div>
 
@@ -2034,12 +2026,12 @@ function PatientDetail({
                 marginTop: 8,
               }}
             >
-              {["right", "left"].map((side) => (
+              {["left", "right"].map((side) => (
                 <div key={side}>
                   <div style={{ fontWeight: "bold", marginBottom: 6 }}>
-                    {side === "right"
-                      ? tt("evaluation.right")
-                      : tt("evaluation.left")}
+                    {side === "left"
+                      ? tt("evaluation.left")
+                      : tt("evaluation.right")}
                   </div>
 
                   <div>Leg length: {test[side]?.legLength || "-"}</div>
@@ -2364,8 +2356,8 @@ const hasPainB =
           <RadarChart
             title={`${districtLabel} — ${labelA}`}
             series={[
-              { name: tt("evaluation.right"), data: distA.destro },
               { name: tt("evaluation.left"), data: distA.sinistro },
+              { name: tt("evaluation.right"), data: distA.destro },
             ]}
             tt={tt}
           />
@@ -2375,8 +2367,8 @@ const hasPainB =
           <RadarChart
             title={`${districtLabel} — ${labelB}`}
             series={[
-              { name: tt("evaluation.right"), data: distB.destro },
               { name: tt("evaluation.left"), data: distB.sinistro },
+              { name: tt("evaluation.right"), data: distB.destro },
             ]}
             tt={tt}
           />
@@ -2385,21 +2377,6 @@ const hasPainB =
         {hasPainA && hasPainB && (
           <>
             <PainBarChart
-  title={`${districtLabel} — ${tt("evaluation.right")} — ${tt("chart.painEvolution") || tt("evaluation.painVAS")}`}
-  series={[
-    {
-      name: labelA,
-      data: painDataForChart(distA.destro?.dolore, distA),
-    },
-    {
-      name: labelB,
-      data: painDataForChart(distB.destro?.dolore, distB),
-    },
-  ]}
-  tt={tt}
-/>
-
-<PainBarChart
   title={`${districtLabel} — ${tt("evaluation.left")} — ${tt("chart.painEvolution") || tt("evaluation.painVAS")}`}
   series={[
     {
@@ -2413,24 +2390,9 @@ const hasPainB =
   ]}
   tt={tt}
 />
-          </>
-        )}
-      </div>
-    );
-  } 
 
-  return (
-    <div style={gridStyle} className="pdf-kiviat-grid">
-      <RadarChart
-        title={`${districtLabel} — ${tt("chart.rightSide") || ""}`}
-        series={[
-          { name: labelA, data: distA.destro },
-          { name: labelB, data: distB.destro },
-        ]}
-        tt={tt}
-      />
-      <PainBarChart
-  title={`${districtLabel} — ${tt("chart.painEvolution") || tt("evaluation.painVAS") || ""} — ${tt("evaluation.right")}`}
+<PainBarChart
+  title={`${districtLabel} — ${tt("evaluation.right")} — ${tt("chart.painEvolution") || tt("evaluation.painVAS")}`}
   series={[
     {
       name: labelA,
@@ -2443,8 +2405,14 @@ const hasPainB =
   ]}
   tt={tt}
 />
+          </>
+        )}
+      </div>
+    );
+  } 
 
-
+  return (
+    <div style={gridStyle} className="pdf-kiviat-grid">
       <RadarChart
         title={`${districtLabel} — ${tt("chart.leftSide") || ""}`}
         series={[
@@ -2453,8 +2421,7 @@ const hasPainB =
         ]}
         tt={tt}
       />
-
-<PainBarChart
+      <PainBarChart
   title={`${districtLabel} — ${tt("chart.painEvolution") || tt("evaluation.painVAS") || ""} — ${tt("evaluation.left")}`}
   series={[
     {
@@ -2464,6 +2431,30 @@ const hasPainB =
     {
       name: labelB,
       data: painDataForChart(distB.sinistro?.dolore, distB),
+    },
+  ]}
+  tt={tt}
+/>
+
+      <RadarChart
+        title={`${districtLabel} — ${tt("chart.rightSide") || ""}`}
+        series={[
+          { name: labelA, data: distA.destro },
+          { name: labelB, data: distB.destro },
+        ]}
+        tt={tt}
+      />
+
+<PainBarChart
+  title={`${districtLabel} — ${tt("chart.painEvolution") || tt("evaluation.painVAS") || ""} — ${tt("evaluation.right")}`}
+  series={[
+    {
+      name: labelA,
+      data: painDataForChart(distA.destro?.dolore, distA),
+    },
+    {
+      name: labelB,
+      data: painDataForChart(distB.destro?.dolore, distB),
     },
   ]}
   tt={tt}

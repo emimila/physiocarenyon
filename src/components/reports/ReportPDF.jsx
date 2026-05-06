@@ -25,11 +25,11 @@ export default function ReportPDF({ patient, evaluation }) {
             <Text>{d.nome}</Text>
 
             <Text>
-              Forza DX: {d.destro.forza} | SX: {d.sinistro.forza}
+              Forza SX: {d.sinistro?.forza} | DX: {d.destro?.forza}
             </Text>
 
             <Text>
-              Funzione DX: {d.destro.funzione} | SX: {d.sinistro.funzione}
+              Funzione SX: {d.sinistro?.funzione} | DX: {d.destro?.funzione}
             </Text>
 
             <Text>

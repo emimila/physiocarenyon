@@ -19,13 +19,13 @@ export default function ReportView({ patient, evaluation }) {
             <tbody>
               <tr>
                 <td>Forza</td>
-                <td>{d.destro.forza}</td>
-                <td>{d.sinistro.forza}</td>
+                <td>{d.sinistro?.forza}</td>
+                <td>{d.destro?.forza}</td>
               </tr>
               <tr>
                 <td>Funzione</td>
-                <td>{d.destro.funzione}</td>
-                <td>{d.sinistro.funzione}</td>
+                <td>{d.sinistro?.funzione}</td>
+                <td>{d.destro?.funzione}</td>
               </tr>
               <tr>
                 <td>VAS</td>

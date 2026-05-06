@@ -3,4 +3,4 @@
  * Allineare sempre a `package.json` (semver).
  * Fino al salto a 1.2: solo terza cifra (1.1.1, 1.1.2, …); il minor 1.2 quando lo decidi tu.
  */
-export const APP_VERSION = "1.1.5";
+export const APP_VERSION = "1.1.6";
