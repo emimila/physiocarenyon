@@ -457,46 +457,13 @@ body {
   box-sizing: border-box;
 }
 
-/* Kiviat: destro e sinistro affiancati (una colonna su schermi stretti). */
+/* Condizione base (Kiviat): una griglia come Dolore VAS (stesso .evaluation-pain-vas-grid). */
 .evaluation-block-kiviat {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
   width: 100%;
-  align-items: start;
-}
-
-.evaluation-block-kiviat > .evaluation-side-scores {
-  min-width: 0;
-}
-
-.evaluation-side-scores h4 {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  margin: 0 0 6px;
-  color: var(--text-h);
-  line-height: 1.3;
-}
-
-.evaluation-block-kiviat .evaluation-side-scores {
-  padding: 8px;
-}
-
-.evaluation-block-kiviat .evaluation-side-scores label > strong {
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.evaluation-block-kiviat .evaluation-side-scores select {
-  min-height: 38px;
-  padding: 6px 8px;
-}
-
-@media (max-width: 720px) {
-  .evaluation-block-kiviat {
-    grid-template-columns: 1fr;
-  }
+  max-width: 22rem;
 }
 
 .evaluation-block-pain-vas,
@@ -587,6 +554,16 @@ body {
   min-height: 38px;
   padding: 6px 8px;
   max-width: 100%;
+}
+
+.evaluation-pain-vas-grid .score-select--hide-label select {
+  min-height: 38px;
+  padding: 6px 8px;
+  max-width: 100%;
+}
+
+.evaluation-pain-vas-grid .score-select--hide-label {
+  min-width: 0;
 }
 
 .patient-card {

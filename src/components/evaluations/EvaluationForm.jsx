@@ -453,17 +453,18 @@ function EvaluationBlockCard({
         <div className="evaluation-block-kiviat">
           <SideScores
             tt={tt}
-            title={tt("evaluation.left")}
-            scores={d.sinistro}
-            onChange={(key, value) =>
+            ariaGroupLabel={
+              tt(`evaluation.blockType.${block.type}`) ||
+              tt("evaluation.blockType.KIVIAT")
+            }
+            sinistro={d.sinistro}
+            destro={d.destro}
+            onSinistroChange={(key, value) =>
               updateScore(d.id, "sinistro", key, value)
             }
-          />
-          <SideScores
-            tt={tt}
-            title={tt("evaluation.right")}
-            scores={d.destro}
-            onChange={(key, value) => updateScore(d.id, "destro", key, value)}
+            onDestroChange={(key, value) =>
+              updateScore(d.id, "destro", key, value)
+            }
           />
         </div>
       )}

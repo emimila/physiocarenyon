@@ -1,42 +1,66 @@
+import { Fragment } from "react";
 import ScoreSelect from "../ui/ScoreSelect";
 
-export default function SideScores({ title, scores, onChange, tt }) {
+/**
+ * Condizione base (Kiviat): stessa griglia compatta del Dolore VAS —
+ * Sinistro | Destro solo in cima, righe = voci (Forza, …).
+ */
+export default function SideScores({
+  tt,
+  sinistro,
+  destro,
+  onSinistroChange,
+  onDestroChange,
+  /** Etichetta accessibile del gruppo (es. tipo blocco KIVIAT / KIVIAT_PAIN). */
+  ariaGroupLabel,
+}) {
+  const rows = [
+    { key: "forza", label: tt("evaluation.strength") },
+    { key: "funzione", label: tt("evaluation.function") },
+    { key: "mobilitaPassiva", label: tt("evaluation.passiveMobility") },
+    { key: "mobilitaAttiva", label: tt("evaluation.activeMobility") },
+  ];
+
   return (
     <div
-      className="evaluation-side-scores"
-      style={{
-        border: "1px solid #eee",
-        padding: 10,
-        borderRadius: 8,
-        width: "100%",
-        boxSizing: "border-box",
-      }}
+      className="evaluation-pain-vas-grid"
+      role="group"
+      aria-label={
+        ariaGroupLabel || tt("evaluation.blockType.KIVIAT")
+      }
     >
-      <h4>{title}</h4>
-
-      <ScoreSelect
-        label={tt("evaluation.strength")}
-        value={scores.forza}
-        onChange={(v) => onChange("forza", v)}
-      />
-
-      <ScoreSelect
-        label={tt("evaluation.function")}
-        value={scores.funzione}
-        onChange={(v) => onChange("funzione", v)}
-      />
-
-      <ScoreSelect
-        label={tt("evaluation.passiveMobility")}
-        value={scores.mobilitaPassiva}
-        onChange={(v) => onChange("mobilitaPassiva", v)}
-      />
-
-      <ScoreSelect
-        label={tt("evaluation.activeMobility")}
-        value={scores.mobilitaAttiva}
-        onChange={(v) => onChange("mobilitaAttiva", v)}
-      />
+      <span className="evaluation-pain-vas-grid__corner" aria-hidden />
+      <span className="evaluation-pain-vas-grid__colhead">
+        {tt("evaluation.left")}
+      </span>
+      <span className="evaluation-pain-vas-grid__colhead">
+        {tt("evaluation.right")}
+      </span>
+      {rows.map(({ key, label }, idx) => (
+        <Fragment key={key}>
+          <span
+            className={`evaluation-pain-vas-grid__rowlabel${
+              idx === 0 ? " evaluation-pain-vas-grid__rowlabel--first" : ""
+            }`}
+          >
+            {label}
+          </span>
+          <ScoreSelect
+            hideLabel
+            ariaLabel={`${label} — ${tt("evaluation.left")}`}
+            label={label}
+            value={sinistro?.[key]}
+            onChange={(v) => onSinistroChange(key, v)}
+          />
+          <ScoreSelect
+            hideLabel
+            ariaLabel={`${label} — ${tt("evaluation.right")}`}
+            label={label}
+            value={destro?.[key]}
+            onChange={(v) => onDestroChange(key, v)}
+          />
+        </Fragment>
+      ))}
     </div>
   );
 }
