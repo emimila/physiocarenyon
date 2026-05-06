@@ -841,15 +841,12 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
         </label>
 
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: 6,
-            marginBottom: 10,
-          }}
+          className="choice-chip-grid"
+          role="group"
+          aria-label={t("patient.sports", "Sport praticati")}
         >
           {sportOptionsTranslated.map((sport) => (
-            <label key={sport.value}>
+            <label key={sport.value} className="choice-chip">
               <input
                 type="checkbox"
                 checked={(form.sportMultipli || []).includes(sport.value)}
@@ -862,8 +859,8 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
                       : current.filter((s) => s !== sport.value),
                   });
                 }}
-              />{" "}
-              {sport.label}
+              />
+              <span className="choice-chip__text">{sport.label}</span>
             </label>
           ))}
         </div>

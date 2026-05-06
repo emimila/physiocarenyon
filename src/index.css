@@ -24,6 +24,10 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --tap-min: 44px;
+  /* Controlli form: più compatti su mouse/trackpad; touch usa --tap-min sotto */
+  --control-min-h: 40px;
+  --control-radius: 10px;
+  --btn-pill-radius: 9999px;
 
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     sans-serif;
@@ -263,14 +267,30 @@ body {
 }
 
 .app-lang-select {
-  min-height: var(--tap-min);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
+  min-height: var(--control-min-h);
+  padding: 8px 14px;
+  border-radius: var(--control-radius);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-h);
   font: inherit;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.app-lang-select:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+@media (pointer: coarse) {
+  .app-lang-select {
+    min-height: var(--tap-min);
+  }
 }
 
 .app-divider {
@@ -584,20 +604,21 @@ body {
   }
 }
 
-/* Touch / iPad: bersagli comodi */
+/* Bottoni: pill leggera, bordo soft; touch mantiene altezza minima 44px */
 button,
 input[type="button"],
 input[type="submit"] {
-  min-height: var(--tap-min);
-  padding: 0 16px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
+  min-height: var(--control-min-h);
+  padding: 0 18px;
+  border-radius: var(--btn-pill-radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
   color: var(--text-h);
   font: inherit;
-  font-weight: 500;
+  font-weight: 525;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   touch-action: manipulation;
   transition:
     background 0.15s ease,
@@ -608,10 +629,43 @@ input[type="submit"] {
 button:hover {
   border-color: var(--accent-border);
   background: var(--accent-bg);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(13, 110, 253, 0.06);
 }
 
 button:active {
-  transform: scale(0.98);
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+}
+
+button:focus-visible,
+input[type="button"]:focus-visible,
+input[type="submit"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (pointer: coarse) {
+  button,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: var(--tap-min);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  button:hover {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(96, 165, 250, 0.12);
+  }
 }
 
 input:not([type]),
@@ -623,19 +677,141 @@ input[type="date"],
 input[type="password"],
 select,
 textarea {
-  min-height: var(--tap-min);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
+  min-height: var(--control-min-h);
+  border-radius: var(--control-radius);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-h);
   font: inherit;
   box-sizing: border-box;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+input:not([type]):hover,
+input[type="text"]:hover,
+input[type="search"]:hover,
+input[type="email"]:hover,
+input[type="number"]:hover,
+input[type="date"]:hover,
+input[type="password"]:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--border-strong);
+}
+
+input:not([type]):focus-visible,
+input[type="text"]:focus-visible,
+input[type="search"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="number"]:focus-visible,
+input[type="date"]:focus-visible,
+input[type="password"]:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+@media (pointer: coarse) {
+  input:not([type]),
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="number"],
+  input[type="date"],
+  input[type="password"],
+  select,
+  textarea {
+    min-height: var(--tap-min);
+  }
 }
 
 input,
 select,
 textarea {
   padding: 8px 12px;
+}
+
+/* Scelte multiple tipo “chip” (es. sport) */
+.choice-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.choice-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 450;
+  line-height: 1.25;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.choice-chip:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.choice-chip:has(input:checked) {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.1);
+}
+
+.choice-chip:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.choice-chip input[type="checkbox"] {
+  width: 1.05rem;
+  height: 1.05rem;
+  min-height: unset;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.choice-chip__text {
+  user-select: none;
+  text-align: left;
+}
+
+@media (pointer: coarse) {
+  .choice-chip {
+    min-height: var(--tap-min);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .choice-chip:has(input:checked) {
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.18);
+  }
 }
 
 h1,
