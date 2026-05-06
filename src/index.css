@@ -614,9 +614,8 @@ input[type="submit"] {
   border: 1px solid var(--border);
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
   color: var(--text-h);
-  font: inherit;
-  font-weight: 525;
-  letter-spacing: 0.01em;
+  font: 400 0.8125rem/1.35 var(--sans);
+  letter-spacing: 0.04em;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   touch-action: manipulation;
