@@ -388,7 +388,9 @@ function EvaluationBlockCard({
       }}
     >
       <div className="evaluation-block-fields">
+        <div className="evaluation-block-note-group">
         <Select
+          compact
           fullWidth
           label={tt("evaluation.evaluationBlock")}
           value={block.type}
@@ -423,6 +425,7 @@ function EvaluationBlockCard({
           ]}
         />
         <Textarea
+          compact
           fullWidth
           label={tt("evaluation.otherDetailsOptional")}
           value={block.noteAltro || ""}
@@ -442,6 +445,7 @@ function EvaluationBlockCard({
             })
           }
         />
+        </div>
       </div>
 
       {showKiviat && (
@@ -575,6 +579,16 @@ export default function EvaluationForm({
   return (
     <div>
       <h2>{tt("evaluation.title")}</h2>
+      <p
+        className="no-pdf app-build-fingerprint"
+        style={{
+          fontSize: 11,
+          color: "var(--text-muted)",
+          margin: "0 0 10px",
+        }}
+      >
+        Build: {__GIT_SHORT__}
+      </p>
 
       <Section title={tt("evaluation.title")}>
         <Input
@@ -618,7 +632,11 @@ export default function EvaluationForm({
             {tt("evaluation.removeDistrict")}
           </button>
 
-          <div className="evaluation-blocks-stack" style={{ marginTop: 15 }}>
+          <div
+            className="evaluation-blocks-stack"
+            style={{ marginTop: 15 }}
+            data-eval-ui="blocks-v2"
+          >
             {(d.blocks || []).map((block) => (
               <EvaluationBlockCard
                 key={block.id}

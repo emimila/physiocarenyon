@@ -4,6 +4,8 @@ export default function Select({
   onChange,
   options,
   fullWidth = false,
+  /** Meno spazio sotto l’etichetta (es. blocco valutazione affiancato alle note). */
+  compact = false,
 }) {
   const hasEmptyChoice = (options || []).some((opt) => {
     const v = typeof opt === "object" ? opt.value : opt;
@@ -11,7 +13,12 @@ export default function Select({
   });
 
   return (
-    <label style={{ display: "block", marginBottom: 10 }}>
+    <label
+      style={{
+        display: "block",
+        marginBottom: compact ? 4 : 10,
+      }}
+    >
       <strong>{label}</strong>
       <br />
 

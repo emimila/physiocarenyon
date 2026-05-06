@@ -319,8 +319,21 @@ body {
 .evaluation-block-fields {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
   width: 100%;
+}
+
+/* Tipo blocco + note nello stesso riquadro, in verticale e attaccati. */
+.evaluation-block-note-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--border);
+  box-sizing: border-box;
 }
 
 .evaluation-block-kiviat,
