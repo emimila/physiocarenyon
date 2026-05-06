@@ -12,6 +12,9 @@
   --accent-hover: #0b5ed7;
   --accent-bg: rgba(13, 110, 253, 0.08);
   --accent-border: rgba(13, 110, 253, 0.35);
+  /* Alone su bottoni / chip (sostituisce rgba blu hardcoded) */
+  --accent-glow-btn: rgba(13, 110, 253, 0.06);
+  --accent-glow-chip: rgba(13, 110, 253, 0.1);
   --social-bg: rgba(241, 245, 249, 0.9);
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --shadow:
@@ -64,6 +67,8 @@
     --accent-hover: #93c5fd;
     --accent-bg: rgba(96, 165, 250, 0.12);
     --accent-border: rgba(96, 165, 250, 0.45);
+    --accent-glow-btn: rgba(96, 165, 250, 0.12);
+    --accent-glow-chip: rgba(96, 165, 250, 0.18);
     --social-bg: rgba(30, 41, 59, 0.6);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
     --shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.45);
@@ -72,6 +77,33 @@
 
   #social .button-icon {
     filter: invert(1) brightness(2);
+  }
+}
+
+/**
+ * Prova palette PhysioCare Nyon (sito physiocarenyon.ch, tema WP physiocare-two):
+ * - primario .btn-primary / .text-primary: #1CBFD9
+ * - hover/active più scuri: #127b8c, bordo #0d5c68
+ * - link / bordi UI: #00BADA; accento verde marketing: #00AB5B
+ * Revert: in main.jsx rimuovere theme-pcn-try su document.documentElement.
+ */
+html.theme-pcn-try {
+  --accent: #1cbfd9;
+  --accent-hover: #127b8c;
+  --accent-bg: rgba(28, 191, 217, 0.1);
+  --accent-border: rgba(13, 92, 104, 0.38);
+  --accent-glow-btn: rgba(28, 191, 217, 0.12);
+  --accent-glow-chip: rgba(13, 92, 104, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  html.theme-pcn-try {
+    --accent: #5eead4;
+    --accent-hover: #99f6e4;
+    --accent-bg: rgba(45, 212, 191, 0.14);
+    --accent-border: rgba(94, 234, 212, 0.42);
+    --accent-glow-btn: rgba(94, 234, 212, 0.16);
+    --accent-glow-chip: rgba(94, 234, 212, 0.26);
   }
 }
 
@@ -436,17 +468,50 @@ body {
 }
 
 .patient-card {
-  padding: 12px 14px;
+  padding: 10px 12px;
   margin-bottom: 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface-2);
   cursor: pointer;
+  font-size: 0.8125rem;
+  line-height: 1.3;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease,
     transform 0.12s ease;
   -webkit-tap-highlight-color: transparent;
+}
+
+.patient-card__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.patient-card__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.patient-card__dob {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.patient-card__meta {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .patient-card:hover {
@@ -463,11 +528,6 @@ body {
   border-color: var(--accent);
   background: var(--accent-bg);
   box-shadow: var(--shadow-sm);
-}
-
-.patient-card small {
-  color: var(--text-muted);
-  font-size: 0.85em;
 }
 
 @media (max-width: 900px) {
@@ -630,7 +690,7 @@ button:hover {
   background: var(--accent-bg);
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.06),
-    0 0 0 1px rgba(13, 110, 253, 0.06);
+    0 0 0 1px var(--accent-glow-btn);
 }
 
 button:active {
@@ -663,7 +723,7 @@ input[type="submit"]:disabled {
   button:hover {
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.25),
-      0 0 0 1px rgba(96, 165, 250, 0.12);
+      0 0 0 1px var(--accent-glow-btn);
   }
 }
 
@@ -775,7 +835,7 @@ textarea {
 .choice-chip:has(input:checked) {
   border-color: var(--accent-border);
   background: var(--accent-bg);
-  box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.1);
+  box-shadow: 0 0 0 1px var(--accent-glow-chip);
 }
 
 .choice-chip:focus-within {
@@ -804,12 +864,6 @@ textarea {
 @media (pointer: coarse) {
   .choice-chip {
     min-height: var(--tap-min);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .choice-chip:has(input:checked) {
-    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.18);
   }
 }
 

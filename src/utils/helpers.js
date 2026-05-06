@@ -26,6 +26,32 @@ export function formatDateDMY(dateString) {
   return `${m[3]}-${m[2]}-${m[1]}`;
 }
 
+/** Filtro elenco pazienti: nome, cognome, sport (come prima) + data di nascita (ISO o DD-MM-YYYY, anche solo cifre). */
+export function patientMatchesSearchQuery(p, queryRaw) {
+  const q = String(queryRaw ?? "").trim().toLowerCase();
+  if (!q) return true;
+
+  const nome = String(p.nome ?? "").toLowerCase();
+  const cognome = String(p.cognome ?? "").toLowerCase();
+  const sports = (p.sportMultipli ?? []).join(" ").toLowerCase();
+  const base = `${nome} ${cognome} ${sports}`;
+  if (base.includes(q)) return true;
+
+  const dn = String(p.dataNascita ?? "").trim();
+  if (!dn) return false;
+
+  const iso = dn.toLowerCase();
+  const dmy = formatDateDMY(dn).toLowerCase();
+  if (iso.includes(q) || dmy.includes(q)) return true;
+
+  const qDigits = q.replace(/\D/g, "");
+  if (qDigits.length < 2) return false;
+
+  const isoCompact = iso.replace(/\D/g, "");
+  const dmyCompact = dmy.replace(/\D/g, "");
+  return isoCompact.includes(qDigits) || dmyCompact.includes(qDigits);
+}
+
 function startOfLocalDay(d) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }

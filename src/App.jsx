@@ -20,6 +20,7 @@ import {
   bmiCategory,
   timeSinceYWD,
   formatDateDMY,
+  patientMatchesSearchQuery,
   calculateYBalance,
   classifyYBalance,
   translatedPatientDiagnosis,
@@ -145,14 +146,10 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(patients));
   }, [patients]);
 
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-    return patients.filter((p) =>
-      `${p.nome} ${p.cognome} ${(p.sportMultipli || []).join(" ")}`
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [patients, query]);
+  const filtered = useMemo(
+    () => patients.filter((p) => patientMatchesSearchQuery(p, query)),
+    [patients, query]
+  );
 
   function syncSelected(updatedPatient) {
     setPatients((prev) =>
@@ -473,11 +470,17 @@ export default function App() {
                 }
               }}
             >
-              <strong>
-                {p.cognome} {p.nome}
-              </strong>
-              <br />
-              <small>
+              <div className="patient-card__row">
+                <strong className="patient-card__name">
+                  {p.cognome} {p.nome}
+                </strong>
+                {p.dataNascita ? (
+                  <span className="patient-card__dob" title={tt("patient.birthDate")}>
+                    {formatDateDMY(p.dataNascita)}
+                  </span>
+                ) : null}
+              </div>
+              <small className="patient-card__meta">
                 {(p.valutazioni || []).length} {tt("evaluation.evaluations")}
               </small>
             </div>
