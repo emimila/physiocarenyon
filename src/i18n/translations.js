@@ -426,6 +426,8 @@ export const translations = {
       modeSession: "A — Destro/Sinistro nella stessa sessione",
       modeSide: "B — Evoluzione lato per lato",
       addComparison: "+ Aggiungi altra comparazione",
+      saveComparisonPng: "Salva grafico confronto",
+      saveComparisonError: "Impossibile salvare il grafico. Riprova.",
       selectDistrictAndEvaluations: "Seleziona distretto e due valutazioni.",
       districtMissing:
         "Questo distretto non è presente in entrambe le valutazioni selezionate.",
@@ -887,6 +889,8 @@ tegner: {
       modeSession: "A — Droit/Gauche dans la même séance",
       modeSide: "B — Évolution côté par côté",
       addComparison: "+ Ajouter une comparaison",
+      saveComparisonPng: "Enregistrer le graphique de comparaison",
+      saveComparisonError: "Impossible d’enregistrer le graphique.",
       selectDistrictAndEvaluations:
         "Sélectionnez une région et deux évaluations.",
       districtMissing:
@@ -1356,6 +1360,8 @@ tegner: {
       modeSession: "A — Rechts/Links in derselben Sitzung",
       modeSide: "B — Entwicklung Seite für Seite",
       addComparison: "+ Weiteren Vergleich hinzufügen",
+      saveComparisonPng: "Vergleichsdiagramm speichern",
+      saveComparisonError: "Diagramm konnte nicht gespeichert werden.",
       selectDistrictAndEvaluations:
         "Wählen Sie eine Region und zwei Bewertungen.",
       districtMissing:
@@ -1818,6 +1824,8 @@ dominantHand: {
       modeSession: "A — Derecho/Izquierdo en la misma sesión",
       modeSide: "B — Evolución lado por lado",
       addComparison: "+ Añadir otra comparación",
+      saveComparisonPng: "Guardar gráfico de comparación",
+      saveComparisonError: "No se pudo guardar el gráfico.",
       selectDistrictAndEvaluations:
         "Selecciona una región y dos evaluaciones.",
       districtMissing:
@@ -2272,6 +2280,8 @@ dominantHand: {
       modeSession: "A — Right/Left in the same session",
       modeSide: "B — Side-by-side evolution",
       addComparison: "+ Add another comparison",
+      saveComparisonPng: "Save comparison chart",
+      saveComparisonError: "Could not save the chart.",
       selectDistrictAndEvaluations: "Select a region and two evaluations.",
       districtMissing:
         "This region is not present in both selected evaluations.",

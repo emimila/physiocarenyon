@@ -1,6 +1,7 @@
 import { APP_VERSION } from "./appVersion";
 import { assessGrip } from "./utils/gripAssessment";
 import html2pdf from "html2pdf.js";
+import html2canvas from "html2canvas";
 import ReportView from "./components/reports/ReportView";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import DataBackup from "./components/storage/DataBackup";
@@ -2084,11 +2085,19 @@ function PatientDetail({
             {evaluationCardHeadingText(v, tt)}
           </h4>
 
-          {v.note && (
-            <p>
-              <strong>{tt("evaluation.notes")}:</strong> {v.note}
-            </p>
-          )}
+          <p style={{ marginTop: 4, textAlign: "left" }}>
+            <strong>{tt("evaluation.notes")}:</strong>{" "}
+            {(() => {
+              const raw =
+                v?.note != null
+                  ? String(v.note)
+                  : v?.notes != null && typeof v.notes === "string"
+                    ? String(v.notes)
+                    : "";
+              const t = raw.trim();
+              return t || "—";
+            })()}
+          </p>
 
           {(v.distretti || []).map((d, distIndex) => (
             <div key={d.id} style={{ marginBottom: 10 }}>
@@ -2481,16 +2490,43 @@ function KiviatComparison({ selected, tt }) {
       )
     )
   );
+  const chartExportRoots = useRef({});
+
   const [comparisons, setComparisons] = useState(() => [
     {
       id: uid(),
       distretto: "",
       valA: "",
       valB: "",
-      mode: "sessione",
+      mode: "lato",
     },
   ]);
 
+  async function exportComparisonPng(comp) {
+    const el = chartExportRoots.current[comp.id];
+    if (!el) return;
+    const evA = valutazioni.find((x) => x.id === comp.valA);
+    const evB = valutazioni.find((x) => x.id === comp.valB);
+    const nA = evA?.numeroValutazione ?? "?";
+    const nB = evB?.numeroValutazione ?? "?";
+    const safe = (n) => String(n).replace(/[^\w.-]+/g, "_");
+    const fname = `comparazione valutazione ${safe(nA)} - ${safe(nB)}.png`;
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = fname;
+      a.click();
+    } catch (e) {
+      console.error(e);
+      alert(tt("chart.saveComparisonError"));
+    }
+  }
 
   function addComparison() {
     if (comparisons.length >= 4) return;
@@ -2502,7 +2538,7 @@ function KiviatComparison({ selected, tt }) {
         distretto: "",
         valA: "",
         valB: "",
-        mode: "sessione",
+        mode: "lato",
       },
     ]);
   }
@@ -2583,24 +2619,31 @@ function KiviatComparison({ selected, tt }) {
                 label: evaluationCardHeadingText(v, tt),
               }))}
             />
-
-            <Select
-              label={tt("chart.mode")}
-              value={c.mode}
-              onChange={(v) => updateComparison(c.id, "mode", v)}
-              options={[
-                { value: "sessione", label: tt("chart.modeSession") },
-                { value: "lato", label: tt("chart.modeSide") },
-              ]}
-            />
           </div>
 
           {c.distretto && c.valA && c.valB && (
-            <KiviatResult
-              comparison={c}
-              valutazioni={valutazioni}
-              tt={tt}
-            />
+            <>
+              <div className="no-pdf" style={{ marginTop: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => exportComparisonPng(c)}
+                >
+                  {tt("chart.saveComparisonPng")}
+                </button>
+              </div>
+              <div
+                ref={(node) => {
+                  chartExportRoots.current[c.id] = node;
+                }}
+                className="kiviat-comparison-export-root"
+              >
+                <KiviatResult
+                  comparison={{ ...c, mode: "lato" }}
+                  valutazioni={valutazioni}
+                  tt={tt}
+                />
+              </div>
+            </>
           )}
         </div>
       ))}
@@ -2613,6 +2656,9 @@ function KiviatComparison({ selected, tt }) {
     </div>
   );
 }
+
+/** Grafici «stessa sessione»: logica conservata, non mostrata finché resta `false`. */
+const SHOW_KIVIAT_SESSIONE_GRAPHS = false;
 
 function KiviatResult({ comparison, valutazioni, tt }) {
   const evA = valutazioni.find((v) => v.id === comparison.valA);
@@ -2656,7 +2702,12 @@ const hasPainB =
     evB.numeroValutazione || "-"
   }   ${evB.data ? formatDateDMY(evB.data) : "—"}`;
 
-  if (comparison.mode === "sessione") {
+  const radarTitleLeft = `${districtLabel} ${tt("chart.leftSide")}`;
+  const radarTitleRight = `${districtLabel} ${tt("chart.rightSide")}`;
+  const painTitleLeft = `${tt("chart.painEvolution")} ${tt("chart.leftSide")}`;
+  const painTitleRight = `${tt("chart.painEvolution")} ${tt("chart.rightSide")}`;
+
+  if (SHOW_KIVIAT_SESSIONE_GRAPHS && comparison.mode === "sessione") {
     return (
       <div style={gridStyle} className="pdf-kiviat-grid">
         {hasKiviatA && (
@@ -2721,7 +2772,7 @@ const hasPainB =
   return (
     <div style={gridStyle} className="pdf-kiviat-grid">
       <RadarChart
-        title={`${districtLabel} — ${tt("chart.leftSide") || ""}`}
+        title={radarTitleLeft}
         series={[
           { name: labelA, data: distA.sinistro },
           { name: labelB, data: distB.sinistro },
@@ -2729,22 +2780,22 @@ const hasPainB =
         tt={tt}
       />
       <PainBarChart
-  title={`${districtLabel} — ${tt("chart.painEvolution") || tt("evaluation.painVAS") || ""} — ${tt("evaluation.left")}`}
-  series={[
-    {
-      name: labelA,
-      data: painDataForChart(distA.sinistro?.dolore, distA),
-    },
-    {
-      name: labelB,
-      data: painDataForChart(distB.sinistro?.dolore, distB),
-    },
-  ]}
-  tt={tt}
-/>
+        title={painTitleLeft}
+        series={[
+          {
+            name: labelA,
+            data: painDataForChart(distA.sinistro?.dolore, distA),
+          },
+          {
+            name: labelB,
+            data: painDataForChart(distB.sinistro?.dolore, distB),
+          },
+        ]}
+        tt={tt}
+      />
 
       <RadarChart
-        title={`${districtLabel} — ${tt("chart.rightSide") || ""}`}
+        title={radarTitleRight}
         series={[
           { name: labelA, data: distA.destro },
           { name: labelB, data: distB.destro },
@@ -2752,21 +2803,20 @@ const hasPainB =
         tt={tt}
       />
 
-<PainBarChart
-  title={`${districtLabel} — ${tt("chart.painEvolution") || tt("evaluation.painVAS") || ""} — ${tt("evaluation.right")}`}
-  series={[
-    {
-      name: labelA,
-      data: painDataForChart(distA.destro?.dolore, distA),
-    },
-    {
-      name: labelB,
-      data: painDataForChart(distB.destro?.dolore, distB),
-    },
-  ]}
-  tt={tt}
-/>
-
+      <PainBarChart
+        title={painTitleRight}
+        series={[
+          {
+            name: labelA,
+            data: painDataForChart(distA.destro?.dolore, distA),
+          },
+          {
+            name: labelB,
+            data: painDataForChart(distB.destro?.dolore, distB),
+          },
+        ]}
+        tt={tt}
+      />
     </div>
   );
 }
@@ -2818,9 +2868,9 @@ function RadarChart({ title, series, tt }) {
   ];
 
   /** Canvas e raggio dati più grandi; margini generosi per le etichette. */
-  const size = 500;
+  const size = 640;
   const center = size / 2;
-  const maxRadius = 128;
+  const maxRadius = 164;
   const maxValue = KIVIAT_MAX_SCORE;
   const axisCount = keys.length;
   const stepDeg = 360 / axisCount;
@@ -2870,8 +2920,8 @@ function RadarChart({ title, series, tt }) {
     const radii = series.map((s) => scoreToRadius(s.data?.[keys[i]]));
     const rOuter = Math.max(0, ...radii);
     const rData = Math.max(rOuter, 10);
-    const pctAlong = rData + 12;
-    const nameAlong = Math.max(maxRadius + 16, rData + 30);
+    const pctAlong = rData + 16;
+    const nameAlong = Math.max(maxRadius + 22, rData + 38);
 
     const norm = ((angleDeg % 360) + 360) % 360;
     let anchor = "middle";
@@ -3012,7 +3062,7 @@ function RadarChart({ title, series, tt }) {
                 key={`${s.name}-${key}`}
                 cx={p.x}
                 cy={p.y}
-                r={5}
+                r={6.5}
                 fill="#ffffff"
                 stroke={kiviatStrokeColors[index % kiviatStrokeColors.length]}
                 strokeWidth={2.25}
@@ -3028,7 +3078,7 @@ function RadarChart({ title, series, tt }) {
           );
           const raw = String(label || "");
           const short =
-            raw.length > 18 ? `${raw.slice(0, 16)}…` : label;
+            raw.length > 24 ? `${raw.slice(0, 22)}…` : label;
 
           return (
             <g key={keys[i]}>
@@ -3037,8 +3087,8 @@ function RadarChart({ title, series, tt }) {
                 y={vc.ly}
                 textAnchor={vc.anchor}
                 dominantBaseline="middle"
-                fill="#475569"
-                fontSize={7.5}
+                fill="#1e293b"
+                fontSize={11}
                 fontWeight={700}
                 fontFamily='system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
               >
@@ -3049,7 +3099,7 @@ function RadarChart({ title, series, tt }) {
                 y={vc.py}
                 textAnchor={vc.anchor}
                 dominantBaseline="middle"
-                fontSize={7.5}
+                fontSize={11}
                 fontWeight={800}
                 fontFamily='system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
               >
@@ -3058,7 +3108,7 @@ function RadarChart({ title, series, tt }) {
                       <tspan
                         key={si}
                         x={vc.px}
-                        dy={si === 0 ? 0 : 10}
+                        dy={si === 0 ? 0 : 13}
                         fill={
                           si === 0
                             ? kiviatStrokeColors[0]
@@ -3084,8 +3134,8 @@ function RadarChart({ title, series, tt }) {
       <p
         style={{
           margin: "10px 0 0",
-          fontSize: 10,
-          color: "#94a3b8",
+          fontSize: 12,
+          color: "#64748b",
           textAlign: "center",
           fontFamily:
             'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
@@ -3103,8 +3153,9 @@ function RadarChart({ title, series, tt }) {
           gap: "12px 20px",
           fontFamily:
             'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-          fontSize: 11,
-          color: "#475569",
+          fontSize: 13,
+          fontWeight: 600,
+          color: "#334155",
         }}
       >
         {series.map((s, index) => (
@@ -3112,7 +3163,7 @@ function RadarChart({ title, series, tt }) {
             <span
               style={{
                 color: kiviatStrokeColors[index % kiviatStrokeColors.length],
-                fontSize: 13,
+                fontSize: 15,
               }}
             >
               ■
@@ -3135,7 +3186,7 @@ function PainBarChart({ title, series, tt }) {
   ];
 
   const painScaleMax = 10;
-  const painChartHeight = 108;
+  const painChartHeight = 140;
   const gridLevels = [2, 4, 6, 8];
 
   function barHeightPx(value) {
@@ -3151,8 +3202,8 @@ function PainBarChart({ title, series, tt }) {
       <p
         style={{
           margin: "0 0 12px",
-          fontSize: 10,
-          color: "#64748b",
+          fontSize: 12,
+          color: "#475569",
           fontFamily:
             'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
         }}
@@ -3185,9 +3236,9 @@ function PainBarChart({ title, series, tt }) {
                 position: "absolute",
                 right: 2,
                 bottom: `${(n / painScaleMax) * painChartHeight - 4}px`,
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: 600,
-                color: "#94a3b8",
+                color: "#64748b",
                 lineHeight: 1,
                 transform: n === 10 ? "translateY(6px)" : n === 0 ? "translateY(0)" : "translateY(4px)",
               }}
@@ -3213,7 +3264,7 @@ function PainBarChart({ title, series, tt }) {
 
             return (
               <div key={key} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 11, marginBottom: 6 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
                   {valueA} → {valueB}
                 </div>
 
@@ -3222,7 +3273,7 @@ function PainBarChart({ title, series, tt }) {
                     position: "relative",
                     height: painChartHeight,
                     margin: "0 auto",
-                    maxWidth: 72,
+                    maxWidth: 88,
                   }}
                 >
                   {gridLevels.map((lvl) => (
@@ -3272,7 +3323,7 @@ function PainBarChart({ title, series, tt }) {
                   </div>
                 </div>
 
-                <div style={{ fontSize: 10, marginTop: 6, minHeight: 28 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6, minHeight: 30, color: "#334155" }}>
                   {label}
                 </div>
               </div>
@@ -3283,7 +3334,7 @@ function PainBarChart({ title, series, tt }) {
 
       <div style={{ marginTop: 12 }}>
         {series.map((s, index) => (
-          <div key={s.name} style={{ fontSize: 13, marginTop: 4 }}>
+          <div key={s.name} style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>
             <span style={{ color: index === 0 ? "#0064ff" : "#ff8c00" }}>
               ■
             </span>{" "}
@@ -3306,7 +3357,7 @@ const chartCardStyle = {
 
 const gridStyle = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))",
-  gap: 20,
+  gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
+  gap: 24,
   marginTop: 20,
 };

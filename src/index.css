@@ -321,6 +321,11 @@ body {
   margin-bottom: 4px;
 }
 
+/* Area catturata da html2canvas per «Salva grafico confronto». */
+.kiviat-comparison-export-root {
+  overflow: visible;
+}
+
 .pdf-root th,
 .pdf-root td {
   border: 1px solid var(--border);
