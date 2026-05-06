@@ -279,6 +279,44 @@ const PATIENT_DIAGNOSIS_CANON = [
 /**
  * Traduce la diagnosi salvata: chiave esatta, poi match case-insensitive con il catalogo, altrimenti testo manuale in minuscolo.
  */
+/** Riga diagnosi incrementale (scheda paziente). */
+export function migrateDiagnosiRighe(patient) {
+  const p = patient || {};
+  if (Array.isArray(p.diagnosiRighe) && p.diagnosiRighe.length > 0) {
+    return p.diagnosiRighe.map((row, i) => ({
+      id:
+        row.id ||
+        `dx-${i}-${Math.random().toString(36).slice(2, 11)}`,
+      diagnosi: row.diagnosi != null ? String(row.diagnosi) : "",
+      distrettoDiagnosi:
+        row.distrettoDiagnosi != null ? String(row.distrettoDiagnosi) : "",
+      dettagli: row.dettagli != null ? String(row.dettagli) : "",
+    }));
+  }
+  const hasLegacy =
+    (p.diagnosi && String(p.diagnosi).trim()) ||
+    (p.distrettoDiagnosi && String(p.distrettoDiagnosi).trim()) ||
+    (p.diagnosiDettagli && String(p.diagnosiDettagli).trim());
+  if (hasLegacy) {
+    return [
+      {
+        id: uid(),
+        diagnosi: String(p.diagnosi || "").trim(),
+        distrettoDiagnosi: String(p.distrettoDiagnosi || "").trim(),
+        dettagli: String(p.diagnosiDettagli || "").trim(),
+      },
+    ];
+  }
+  return [
+    {
+      id: uid(),
+      diagnosi: "",
+      distrettoDiagnosi: "",
+      dettagli: "",
+    },
+  ];
+}
+
 export function translatedPatientDiagnosis(diagnosi, tt) {
   if (diagnosi == null || String(diagnosi).trim() === "") return "";
   const raw = String(diagnosi).trim();

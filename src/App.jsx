@@ -26,6 +26,7 @@ import {
   translatedPatientDiagnosis,
   translatedDistrettoDiagnosi,
   manualTextLower,
+  migrateDiagnosiRighe,
 } from "./utils/helpers";
 import {
   sanitizeEvaluationForSave,
@@ -86,6 +87,8 @@ const emptyPatient = {
   diagnosi: "",
   distrettoDiagnosi: "",
   diagnosiDettagli: "",
+  /** Diagnosi multiple (incrementale); i campi sopra restano sincronizzati dalla prima riga per compatibilità. */
+  diagnosiRighe: [],
   diagnostica: "",
   diagnosticaDettagli: "",
   diagnostica2: "",
@@ -125,7 +128,11 @@ export default function App() {
       const data = localStorage.getItem(STORAGE_KEY);
       if (!data) return [];
       const parsed = JSON.parse(data);
-      return Array.isArray(parsed) ? parsed : [];
+      const list = Array.isArray(parsed) ? parsed : [];
+      return list.map((p) => ({
+        ...p,
+        diagnosiRighe: migrateDiagnosiRighe(p),
+      }));
     } catch {
       return [];
     }
@@ -163,7 +170,13 @@ export default function App() {
   }
 
   function newPatient() {
-    setForm({ ...emptyPatient, id: uid() });
+    setForm({
+      ...emptyPatient,
+      id: uid(),
+      diagnosiRighe: [
+        { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+      ],
+    });
     setSelected(null);
     setEditingPatient(true);
     setEditingEvaluation(false);
@@ -175,6 +188,7 @@ export default function App() {
       ...p,
       sportMultipli: p.sportMultipli || [],
       valutazioni: p.valutazioni || [],
+      diagnosiRighe: migrateDiagnosiRighe(p),
     });
     setSelected(p);
     setEditingPatient(true);
@@ -187,11 +201,20 @@ export default function App() {
       return;
     }
 
+    const righe = migrateDiagnosiRighe(form).map((r) => ({
+      ...r,
+      id: r.id || uid(),
+    }));
+    const first = righe[0] || {};
     const cleanForm = {
       ...emptyPatient,
       ...form,
       valutazioni: form.valutazioni || [],
       sportMultipli: form.sportMultipli || [],
+      diagnosiRighe: righe,
+      diagnosi: first.diagnosi || "",
+      distrettoDiagnosi: first.distrettoDiagnosi || "",
+      diagnosiDettagli: first.dettagli || "",
     };
 
     const exists = patients.some((p) => p.id === cleanForm.id);
@@ -604,6 +627,108 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
     "Protesi ginocchio",
     "Altro",
   ].map((v) => option("options.diagnosis", v));
+
+  const distrettoDiagnosiOptions = useMemo(
+    () => [
+      { value: "", label: "--" },
+      {
+        value: "anca_destra",
+        label: `${tt("options.distretti.anca")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "anca_sinistra",
+        label: `${tt("options.distretti.anca")} ${tt("evaluation.left")}`,
+      },
+      {
+        value: "ginocchio_destro",
+        label: `${tt("options.distretti.ginocchio")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "ginocchio_sinistro",
+        label: `${tt("options.distretti.ginocchio")} ${tt("evaluation.left")}`,
+      },
+      {
+        value: "caviglia_destra",
+        label: `${tt("options.distretti.caviglia")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "caviglia_sinistra",
+        label: `${tt("options.distretti.caviglia")} ${tt("evaluation.left")}`,
+      },
+      {
+        value: "piede_destro",
+        label: `${tt("options.distretti.piede")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "piede_sinistro",
+        label: `${tt("options.distretti.piede")} ${tt("evaluation.left")}`,
+      },
+      {
+        value: "spalla_destra",
+        label: `${tt("options.distretti.spalla")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "spalla_sinistra",
+        label: `${tt("options.distretti.spalla")} ${tt("evaluation.left")}`,
+      },
+      {
+        value: "gomito_destro",
+        label: `${tt("options.distretti.gomito")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "gomito_sinistro",
+        label: `${tt("options.distretti.gomito")} ${tt("evaluation.left")}`,
+      },
+      {
+        value: "polso_destro",
+        label: `${tt("options.distretti.polso")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "polso_sinistro",
+        label: `${tt("options.distretti.polso")} ${tt("evaluation.left")}`,
+      },
+      {
+        value: "mano_destra",
+        label: `${tt("options.distretti.mano")} ${tt("evaluation.right")}`,
+      },
+      {
+        value: "mano_sinistra",
+        label: `${tt("options.distretti.mano")} ${tt("evaluation.left")}`,
+      },
+      { value: "cervicale", label: tt("options.distretti.cervicale") },
+      { value: "toracica", label: tt("options.distretti.toracica") },
+      { value: "lombare", label: tt("options.distretti.lombare") },
+    ],
+    [tt]
+  );
+
+  const diagnosiRighe = migrateDiagnosiRighe(form);
+
+  function setDiagnosiRighe(nextRows) {
+    setForm({ ...form, diagnosiRighe: nextRows });
+  }
+
+  function updateDiagnosiRiga(rowId, partial) {
+    setDiagnosiRighe(
+      diagnosiRighe.map((r) => (r.id === rowId ? { ...r, ...partial } : r))
+    );
+  }
+
+  function addDiagnosiRiga() {
+    setDiagnosiRighe([
+      ...diagnosiRighe,
+      { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+    ]);
+  }
+
+  function removeDiagnosiRiga(rowId) {
+    const next = diagnosiRighe.filter((r) => r.id !== rowId);
+    setDiagnosiRighe(
+      next.length
+        ? next
+        : [{ id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" }]
+    );
+  }
 
   const imagingOptions = [
     "Nessuna",
@@ -1096,53 +1221,79 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
       </Section>
 
       <Section title={t("patient.clinicalFrame", "Quadro clinico")}>
-        <Select
-          label={t("patient.diagnosis", "Diagnosi / problema principale")}
-          value={form.diagnosi}
-          onChange={(v) => update("diagnosi", v)}
-          options={diagnosisOptions}
-        />
+        <p
+          style={{
+            margin: "0 0 10px",
+            fontSize: "0.9rem",
+            color: "var(--text-muted)",
+            textAlign: "left",
+          }}
+        >
+          {t(
+            "patient.diagnosesIntro",
+            "Puoi aggiungere più diagnosi: ogni riga è indipendente (testo e distretto)."
+          )}
+        </p>
 
-<Select
-  label={tt("evaluation.district")}
-  value={form.distrettoDiagnosi}
-  onChange={(v) => update("distrettoDiagnosi", v)}
-  options={[
-    { value: "anca_destra", label: `${tt("options.distretti.anca")} ${tt("evaluation.right")}` },
-    { value: "anca_sinistra", label: `${tt("options.distretti.anca")} ${tt("evaluation.left")}` },
+        <div className="patient-diagnosi-righe">
+          {diagnosiRighe.map((row, idx) => (
+            <div
+              key={row.id}
+              className="patient-diagnosi-riga"
+              style={{
+                marginBottom: 12,
+                paddingBottom: 12,
+                borderBottom:
+                  idx < diagnosiRighe.length - 1 ? "1px solid var(--border)" : "none",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 6,
+                }}
+              >
+                <strong style={{ fontSize: "0.9375rem" }}>
+                  {t("patient.diagnosis", "Diagnosi / problema principale")}{" "}
+                  {idx + 1}
+                </strong>
+                {diagnosiRighe.length > 1 ? (
+                  <button type="button" onClick={() => removeDiagnosiRiga(row.id)}>
+                    {t("patient.removeDiagnosis", "Rimuovi")}
+                  </button>
+                ) : null}
+              </div>
+              <Select
+                label={t("patient.diagnosis", "Diagnosi / problema principale")}
+                value={row.diagnosi || ""}
+                onChange={(v) => updateDiagnosiRiga(row.id, { diagnosi: v })}
+                options={diagnosisOptions}
+              />
+              <Select
+                label={tt("evaluation.district")}
+                value={row.distrettoDiagnosi || ""}
+                onChange={(v) =>
+                  updateDiagnosiRiga(row.id, { distrettoDiagnosi: v })
+                }
+                options={distrettoDiagnosiOptions}
+              />
+              <Textarea
+                compact
+                fullWidth
+                label={t("patient.diagnosisDetails", "Dettagli diagnosi")}
+                value={row.dettagli || ""}
+                onChange={(v) => updateDiagnosiRiga(row.id, { dettagli: v })}
+              />
+            </div>
+          ))}
+        </div>
 
-    { value: "ginocchio_destro", label: `${tt("options.distretti.ginocchio")} ${tt("evaluation.right")}` },
-    { value: "ginocchio_sinistro", label: `${tt("options.distretti.ginocchio")} ${tt("evaluation.left")}` },
-
-    { value: "caviglia_destra", label: `${tt("options.distretti.caviglia")} ${tt("evaluation.right")}` },
-    { value: "caviglia_sinistra", label: `${tt("options.distretti.caviglia")} ${tt("evaluation.left")}` },
-
-    { value: "piede_destro", label: `${tt("options.distretti.piede")} ${tt("evaluation.right")}` },
-    { value: "piede_sinistro", label: `${tt("options.distretti.piede")} ${tt("evaluation.left")}` },
-
-    { value: "spalla_destra", label: `${tt("options.distretti.spalla")} ${tt("evaluation.right")}` },
-    { value: "spalla_sinistra", label: `${tt("options.distretti.spalla")} ${tt("evaluation.left")}` },
-
-    { value: "gomito_destro", label: `${tt("options.distretti.gomito")} ${tt("evaluation.right")}` },
-    { value: "gomito_sinistro", label: `${tt("options.distretti.gomito")} ${tt("evaluation.left")}` },
-
-    { value: "polso_destro", label: `${tt("options.distretti.polso")} ${tt("evaluation.right")}` },
-    { value: "polso_sinistro", label: `${tt("options.distretti.polso")} ${tt("evaluation.left")}` },
-
-    { value: "mano_destra", label: `${tt("options.distretti.mano")} ${tt("evaluation.right")}` },
-    { value: "mano_sinistra", label: `${tt("options.distretti.mano")} ${tt("evaluation.left")}` },
-
-    { value: "cervicale", label: tt("options.distretti.cervicale") },
-    { value: "toracica", label: tt("options.distretti.toracica") },
-    { value: "lombare", label: tt("options.distretti.lombare") },
-  ]}
-/>
-
-        <Textarea
-          label={t("patient.diagnosisDetails", "Dettagli diagnosi")}
-          value={form.diagnosiDettagli}
-          onChange={(v) => update("diagnosiDettagli", v)}
-        />
+        <button type="button" onClick={addDiagnosiRiga} style={{ marginBottom: 14 }}>
+          {t("patient.addDiagnosis", "+ Aggiungi diagnosi")}
+        </button>
 
         <Select
           label={t("patient.imaging", "Diagnostica")}
@@ -1688,22 +1839,33 @@ function PatientDetail({
     "-"}
 </p>
 
-<p>
-  <strong>{tt("patient.diagnosisShort")}:</strong>{" "}
-  {(() => {
-    const dx = translatedPatientDiagnosis(selected.diagnosi, tt);
-    const dist = selected.distrettoDiagnosi
-      ? translatedDistrettoDiagnosi(selected.distrettoDiagnosi, tt)
-      : "";
-    const parts = [dx, dist].filter(Boolean);
-    return parts.length ? parts.join(" — ") : "-";
-  })()}
-</p>
-
-<p>
-  <strong>{tt("patient.diagnosisDetails")}:</strong>{" "}
-  {manualTextLower(selected.diagnosiDettagli) || "-"}
-</p>
+<div style={{ marginBottom: 6 }}>
+  <strong>{tt("patient.diagnosisShort")}:</strong>
+  <ul
+    style={{
+      margin: "6px 0 0",
+      paddingLeft: "1.25rem",
+      textAlign: "left",
+    }}
+  >
+    {migrateDiagnosiRighe(selected).map((row) => {
+      const dx = translatedPatientDiagnosis(row.diagnosi, tt);
+      const dist = row.distrettoDiagnosi
+        ? translatedDistrettoDiagnosi(row.distrettoDiagnosi, tt)
+        : "";
+      const det = manualTextLower(row.dettagli);
+      const main = [dx, dist].filter(Boolean).join(" — ");
+      return (
+        <li key={row.id} style={{ marginBottom: 6 }}>
+          {main || "—"}
+          {det ? (
+            <span style={{ color: "var(--text-muted)" }}> — {det}</span>
+          ) : null}
+        </li>
+      );
+    })}
+  </ul>
+</div>
 
 <p>
   <strong>{tt("patient.imaging")}:</strong>{" "}
