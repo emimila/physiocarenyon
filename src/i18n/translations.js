@@ -16,6 +16,7 @@ export const translations = {
       days: "giorni",
       weeks: "settimane",
       months: "mesi",
+      years: "anni",
       future: "Data futura"
     },
 
@@ -67,6 +68,23 @@ export const translations = {
       weightChangeReason: "Perché?",
       height: "Altezza (cm)",
       bmi: "BMI",
+      medicalHistory: "Informazioni mediche",
+      medications: "Farmaci",
+      pathologies: "Patologie",
+      epilepsy: "Epilessia",
+      relevantSurgeryHistory:
+        "Antecedenti e operazioni chirurgiche rilevanti",
+      femaleHealth: "Salute femminile",
+      children: "Figli",
+      childrenCount: "Quanti",
+      birthMode: "Tipo di parto",
+      perinealRehab: "Riabilitazione perineale",
+      urinaryIncontinence: "Problemi di incontinenza",
+      boardStance: "Goofy o regular?",
+      tennisBackhand: "Rovescio",
+      tennisStringTension: "Tensione corde",
+      tennisRacketChangedRecently: "Racchetta cambiata di recente?",
+      padelRacketChangedRecently: "Racchetta cambiata di recente?",
       dominantHand: "Mano dominante",
       rightHandDynamometer: "Dinamometro mano destra",
       leftHandDynamometer: "Dinamometro mano sinistra",
@@ -123,6 +141,21 @@ export const translations = {
       saveEvaluation: "Salva valutazione",
       editEvaluation: "Modifica valutazione",
       deleteEvaluation: "Elimina valutazione",
+      test: "Test",
+      selectedTest: "Test selezionato",
+      addEvaluationBlock: "Aggiungi blocco valutazione",
+      addTest: "Aggiungi test",
+      evaluationBlock: "Blocco",
+      testsSection: "Test",
+      blockType: {
+        KIVIAT: "Condizione base",
+        PAIN_VAS: "Dolore VAS",
+        GENERAL_PAIN: "Dolore generale",
+      },
+      otherDetailsOptional: "Altro / note (opzionale)",
+      otherExercise: "Altro esercizio",
+      otherExerciseSpecify: "Specifica esercizio",
+      generalPainVAS: "Dolore generale (VAS 1–10)",
     },
 
     options: {
@@ -177,11 +210,17 @@ export const translations = {
       },
 
       sport: {
+        calcio: "Calcio",
         Calcio: "Calcio",
+        running: "Running",
         Running: "Running",
+        ciclismo: "Ciclismo",
         Ciclismo: "Ciclismo",
+        fitness: "Fitness",
         Fitness: "Fitness",
+        tennis: "Tennis",
         Tennis: "Tennis",
+        padel: "Padel",
         Padel: "Padel",
         Sci: "Sci",
         Nuoto: "Nuoto",
@@ -192,6 +231,19 @@ export const translations = {
         Escalade: "Escalade",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        surf: "Surf",
+        snowboard: "Snowboard",
+        skateboard: "Skateboard",
+      },
+
+      boardStance: {
+        Regular: "Regular",
+        Goofy: "Goofy",
+      },
+
+      tennisBackhand: {
+        "1 mano": "Rovescio a una mano",
+        "2 mani": "Rovescio a due mani",
       },
 
       weeklySportHours: {
@@ -266,6 +318,27 @@ export const translations = {
         "Riparazione meniscale": "Riparazione meniscale",
         Altro: "Altro",
       },
+
+      sportLevel: {
+        Amatoriale: "Amatoriale",
+        Professionale: "Professionale",
+      },
+
+      fitnessType: {
+        Macchine: "Macchine",
+        "Pesi liberi": "Pesi liberi",
+        Corsi: "Corsi",
+      },
+
+      yesNo: {
+        No: "No",
+        Sì: "Sì",
+      },
+
+      birthType: {
+        Naturale: "Naturale",
+        "Taglio cesareo": "Taglio cesareo",
+      },
     },
 
     grip: {
@@ -275,16 +348,64 @@ export const translations = {
       mean: "Media",
       percentile: "Percentile",
       interpretation: "Interpretazione",
-    
-      low: "Molto basso",
-      below_average: "Sotto la media",
+      very_low: "Molto bassa",
+      low: "Bassa",
       average: "Nella media",
+      good: "Buona",
+      excellent: "Eccellente",
+      below_average: "Sotto la media",
       above_average: "Sopra la media",
       high: "Alto",
+      clinicalHint: {
+        percentileKg:
+          "Percentile internazionale per sesso ed età sulla forza massima in kg.",
+        percentileKgM2:
+          "Stessa coorte: forza divisa per statura², meno legata alla corporatura.",
+        very_low:
+          "Sotto la maggior parte dei coetanei: valutare ipostenia e contesto clinico.",
+        low: "Tra circa il 20° e il 40° percentile: valore basso, utile monitorare.",
+        average: "Vicino alla mediana di riferimento: esito nella norma demografica.",
+        good: "Sopra la mediana: forza medio-alta, profilo favorevole in screening.",
+        excellent:
+          "Tra i quartili superiori: forza elevata rispetto alla popolazione di riferimento.",
+      },
+      referenceShort: "Norme iGRIPS (Tomkinson et al., JSHS 2025).",
+    },
+
+    tests: {
+      gripStrength: {
+        title: "Test di prensione (Jamar)",
+        summary: "Risultato",
+      },
+      yBalance: {
+        title: "Y Balance Test",
+      },
+      strengthMaximals: {
+        title: "Massimali pesistica",
+        exercise: "Esercizio",
+        sets: "Serie",
+        reps: "Ripetizioni",
+        weightKg: "Peso (kg)",
+        theor1RM: "1RM teorica (Epley)",
+        addLift: "Aggiungi esercizio",
+        removeLift: "Rimuovi riga",
+        epleyFootnote:
+          "1RM stimata: peso × (1 + 0,0333 × ripetizioni) — formula di Epley.",
+        useInEvaluation:
+          "Per serie, ripetizioni, carico e 1RM stimata (Epley) usa il test «Massimali pesistica» nella valutazione (per distretto).",
+        exercises: {
+          backSquat: "Back squat",
+          benchPress: "Panca piana",
+          deadlift: "Deadlift",
+        },
+      },
     },
 
     chart: {
-      title: "Visualizzazione Kiviat",
+      title: "Condizione base",
+      painEvolution: "Evoluzione dolore",
+      painScaleHint:
+        "Scala VAS 0–10 (massimo = 10). Le linee orizzontali segnano i livelli 2, 4, 6 e 8.",
       needTwoEvaluations:
         "Servono almeno 2 valutazioni per confrontare i progressi.",
       description:
@@ -302,6 +423,18 @@ export const translations = {
         "Questo distretto non è presente in entrambe le valutazioni selezionate.",
       rightSide: "Lato destro",
       leftSide: "Lato sinistro",
+      kiviatMean: "Media generale",
+      kiviatLegendTitle: "Legenda",
+      kiviatMetricsTitle: "Valori per voce",
+      kiviatSeriesTitle: "Serie confrontate",
+      kiviatLegend: {
+        optimal: "≥ 80% Ottimale",
+        adequate: "60–79% Adeguato",
+        moderate: "40–59% Deficit moderato",
+        severe: "< 40% Deficit importante",
+      },
+      kiviatScaleNote:
+        "Percentuale rispetto al valore atteso (scala 0–5). I punteggi % sono indicati ai vertici.",
     },
 
     dominantHand: {
@@ -383,6 +516,24 @@ export const translations = {
       trial1: "Essai 1",
       trial2: "Essai 2",
       trial3: "Essai 3",
+
+      medicalHistory: "Informations médicales",
+      medications: "Médicaments",
+      pathologies: "Pathologies",
+      epilepsy: "Épilepsie",
+      relevantSurgeryHistory:
+        "Antécédents et chirurgies pertinentes",
+      femaleHealth: "Santé féminine",
+      children: "Enfants",
+      childrenCount: "Combien",
+      birthMode: "Type d’accouchement",
+      perinealRehab: "Rééducation périnéale",
+      urinaryIncontinence: "Troubles de l’incontinence",
+      boardStance: "Goofy ou regular ?",
+      tennisBackhand: "Revers",
+      tennisStringTension: "Tension des cordes",
+      tennisRacketChangedRecently: "Raquette changée récemment ?",
+      padelRacketChangedRecently: "Raquette changée récemment ?",
     
       workEducation: "Domaine de travail / formation",
       professionalRiskNotes: "Notes sur les risques professionnels",
@@ -408,9 +559,9 @@ export const translations = {
       days: "jours",
       weeks: "semaines",
       months: "mois",
+      years: "ans",
       future: "Date future"
     },
-    
 
     grip: {
       right: "Main droite",
@@ -419,12 +570,57 @@ export const translations = {
       mean: "Moyenne",
       percentile: "Percentile",
       interpretation: "Interprétation",
-    
-      low: "Très faible",
-      below_average: "Sous la moyenne",
+      very_low: "Très faible",
+      low: "Faible",
       average: "Dans la moyenne",
+      good: "Bonne",
+      excellent: "Excellente",
+      below_average: "Sous la moyenne",
       above_average: "Au-dessus de la moyenne",
       high: "Élevé",
+      clinicalHint: {
+        percentileKg:
+          "Percentile international selon sexe et âge pour la force maximale en kg.",
+        percentileKgM2:
+          "Même référence, force ajustée à la taille², moins liée à la corpulence.",
+        very_low:
+          "Sous la plupart des pairs : faiblesse musculaire possible à explorer.",
+        low: "Entre ~P20 et P40 : niveau bas, surveillance des tendances utile.",
+        average: "Proche de la médiane de référence : résultat dans la norme.",
+        good: "Au-dessus de la médiane : profil musculaire favorable au dépistage.",
+        excellent:
+          "Hauts quartiles : force élevée versus la population internationale de référence.",
+      },
+      referenceShort: "Normes iGRIPS (Tomkinson et al., JSHS 2025).",
+    },
+
+    tests: {
+      gripStrength: {
+        title: "Test de préhension (Jamar)",
+        summary: "Résultat",
+      },
+      yBalance: {
+        title: "Y Balance Test",
+      },
+      strengthMaximals: {
+        title: "Maximaux haltérophilie",
+        exercise: "Exercice",
+        sets: "Séries",
+        reps: "Répétitions",
+        weightKg: "Charge (kg)",
+        theor1RM: "1RM estimée (Epley)",
+        addLift: "Ajouter un exercice",
+        removeLift: "Supprimer la ligne",
+        epleyFootnote:
+          "1RM estimée : charge × (1 + 0,0333 × répétitions) — formule d’Epley.",
+        useInEvaluation:
+          "Pour séries, répétitions, charge et 1RM estimée (Epley), utilisez le test « Maximaux haltérophilie » dans l’évaluation (par région).",
+        exercises: {
+          backSquat: "Back squat",
+          benchPress: "Développé couché",
+          deadlift: "Soulevé de terre",
+        },
+      },
     },
 
     evaluation: {
@@ -456,6 +652,21 @@ export const translations = {
       saveEvaluation: "Enregistrer l’évaluation",
       editEvaluation: "Modifier l’évaluation",
       deleteEvaluation: "Supprimer l’évaluation",
+      test: "Test",
+      selectedTest: "Test sélectionné",
+      addEvaluationBlock: "Ajouter un bloc d’évaluation",
+      addTest: "Ajouter un test",
+      evaluationBlock: "Bloc",
+      testsSection: "Tests",
+      blockType: {
+        KIVIAT: "Condition de base",
+        PAIN_VAS: "Douleur EVA",
+        GENERAL_PAIN: "Douleur générale",
+      },
+      otherDetailsOptional: "Autre / notes (facultatif)",
+      otherExercise: "Autre exercice",
+      otherExerciseSpecify: "Préciser l’exercice",
+      generalPainVAS: "Douleur générale (EVA 1–10)",
     },
 
     options: {
@@ -535,6 +746,19 @@ tegner: {
         Escalade: "Escalade",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        surf: "Surf",
+        snowboard: "Snowboard",
+        skateboard: "Skateboard",
+      },
+
+      boardStance: {
+        Regular: "Regular",
+        Goofy: "Goofy",
+      },
+
+      tennisBackhand: {
+        "1 mano": "Revers à une main",
+        "2 mani": "Revers à deux mains",
       },
 
       weeklySportHours: {
@@ -607,10 +831,34 @@ tegner: {
         "Riparazione meniscale": "Réparation méniscale",
         Altro: "Autre",
       },
+
+      sportLevel: {
+        Amatoriale: "Amateur",
+        Professionale: "Professionnel",
+      },
+
+      fitnessType: {
+        Macchine: "Machines",
+        "Pesi liberi": "Haltérophilie libre",
+        Corsi: "Cours",
+      },
+
+      yesNo: {
+        No: "Non",
+        Sì: "Oui",
+      },
+
+      birthType: {
+        Naturale: "Naturel",
+        "Taglio cesareo": "Césarienne",
+      },
     },
 
     chart: {
-      title: "Visualisation Kiviat",
+      title: "Condition de base",
+      painEvolution: "Évolution de la douleur",
+      painScaleHint:
+        "Échelle EVA 0–10 (maximum = 10). Les lignes horizontales marquent 2, 4, 6 et 8.",
       needTwoEvaluations:
         "Il faut au moins 2 évaluations pour comparer les progrès.",
       description:
@@ -629,6 +877,24 @@ tegner: {
         "Cette région n’est pas présente dans les deux évaluations sélectionnées.",
       rightSide: "Côté droit",
       leftSide: "Côté gauche",
+      kiviatMean: "Moyenne générale",
+      kiviatLegendTitle: "Légende",
+      kiviatMetricsTitle: "Valeurs par critère",
+      kiviatSeriesTitle: "Séries comparées",
+      kiviatLegend: {
+        optimal: "≥ 80 % Optimal",
+        adequate: "60–79 % Adéquat",
+        moderate: "40–59 % Déficit modéré",
+        severe: "< 40 % Déficit important",
+      },
+      kiviatScaleNote:
+        "Pourcentage vs valeur attendue (échelle 0–5). Les scores % sont indiqués aux sommets.",
+    },
+
+    dominantHand: {
+      Destra: "Droite",
+      Sinistra: "Gauche",
+      Ambidestro: "Ambidextre",
     },
 
     report: {
@@ -711,6 +977,24 @@ tegner: {
       trial1: "Versuch 1",
       trial2: "Versuch 2",
       trial3: "Versuch 3",
+
+      medicalHistory: "Medizinische Angaben",
+      medications: "Medikamente",
+      pathologies: "Vorerkrankungen / Begleiterkrankungen",
+      epilepsy: "Epilepsie",
+      relevantSurgeryHistory:
+        "Relevante Vorgeschichte / Operationen",
+      femaleHealth: "Frauengesundheit",
+      children: "Kinder",
+      childrenCount: "Wie viele",
+      birthMode: "Geburtsmodus",
+      perinealRehab: "Beckenbodentraining / perineale Reha",
+      urinaryIncontinence: "Harninkontinenz",
+      boardStance: "Goofy oder Regular?",
+      tennisBackhand: "Rückhand",
+      tennisStringTension: "Saitenhärte / Besaitung",
+      tennisRacketChangedRecently: "Schläger kürzlich gewechselt?",
+      padelRacketChangedRecently: "Schläger kürzlich gewechselt?",
     
       workEducation: "Beruf / Ausbildung",
       professionalRiskNotes: "Berufsbedingte Risiken",
@@ -736,6 +1020,7 @@ tegner: {
       days: "Tage",
       weeks: "Wochen",
       months: "Monate",
+      years: "Jahre",
       future: "Zukünftiges Datum"
     },
 
@@ -746,12 +1031,57 @@ tegner: {
       mean: "Durchschnitt",
       percentile: "Perzentil",
       interpretation: "Interpretation",
-    
-      low: "Sehr niedrig",
+      very_low: "Sehr niedrig",
+      low: "Niedrig",
+      average: "Im Mittel",
+      good: "Gut",
+      excellent: "Sehr hoch",
       below_average: "Unter dem Durchschnitt",
-      average: "Im Durchschnitt",
       above_average: "Über dem Durchschnitt",
       high: "Hoch",
+      clinicalHint: {
+        percentileKg:
+          "Internationaler Perzentilrang nach Alter und Geschlecht für Kraft in kg.",
+        percentileKgM2:
+          "Größenadjustiert (Kraft/Körpergröße²): vergleichbar unabhängig von der Statur.",
+        very_low:
+          "Unter den meisten Altersgleichen: geringe Kraft, klinische Einordnung sinnvoll.",
+        low: "Zwischen etwa P20 und P40: niedriger Wert, Verlauf beobachten.",
+        average: "Nahe dem Referenzmedian: typische absolute Kraft für Profil.",
+        good: "Über dem Median: mittel-hohe Kraft, günstig im Screening-Kontext.",
+        excellent:
+          "Obere Quartile: hohe Kraft versus internationale Referenzpopulation.",
+      },
+      referenceShort: "Normen iGRIPS (Tomkinson et al., JSHS 2025).",
+    },
+
+    tests: {
+      gripStrength: {
+        title: "Greifkrafttest (Jamar)",
+        summary: "Ergebnis",
+      },
+      yBalance: {
+        title: "Y-Balance-Test",
+      },
+      strengthMaximals: {
+        title: "Kraftmaxima (Hantel)",
+        exercise: "Übung",
+        sets: "Sätze",
+        reps: "Wiederholungen",
+        weightKg: "Gewicht (kg)",
+        theor1RM: "Theoretisches 1RM (Epley)",
+        addLift: "Übung hinzufügen",
+        removeLift: "Zeile entfernen",
+        epleyFootnote:
+          "Geschätztes 1RM: Gewicht × (1 + 0,0333 × Wiederholungen) — Epley-Formel.",
+        useInEvaluation:
+          "Für Sätze, Wiederholungen, Gewicht und geschätztes 1RM (Epley) nutzen Sie den Test « Kraftmaxima (Hantel) » in der Bewertung (pro Region).",
+        exercises: {
+          backSquat: "Back Squat",
+          benchPress: "Bankdrücken",
+          deadlift: "Kreuzheben",
+        },
+      },
     },
 
     evaluation: {
@@ -783,6 +1113,21 @@ tegner: {
       saveEvaluation: "Bewertung speichern",
       editEvaluation: "Bewertung bearbeiten",
       deleteEvaluation: "Bewertung löschen",
+      test: "Test",
+      selectedTest: "Ausgewählter Test",
+      addEvaluationBlock: "Bewertungsblock hinzufügen",
+      addTest: "Test hinzufügen",
+      evaluationBlock: "Block",
+      testsSection: "Tests",
+      blockType: {
+        KIVIAT: "Basiszustand",
+        PAIN_VAS: "Schmerz VAS",
+        GENERAL_PAIN: "Allgemeiner Schmerz",
+      },
+      otherDetailsOptional: "Sonstiges / Notizen (optional)",
+      otherExercise: "Andere Übung",
+      otherExerciseSpecify: "Übung beschreiben",
+      generalPainVAS: "Allgemeiner Schmerz (VAS 1–10)",
     },
 
     options: {
@@ -862,6 +1207,19 @@ tegner: {
         Escalade: "Klettern",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        surf: "Surf",
+        snowboard: "Snowboard",
+        skateboard: "Skateboard",
+      },
+
+      boardStance: {
+        Regular: "Regular",
+        Goofy: "Goofy",
+      },
+
+      tennisBackhand: {
+        "1 mano": "Einhand-Rückhand",
+        "2 mani": "Zweihand-Rückhand",
       },
 
       weeklySportHours: {
@@ -934,10 +1292,34 @@ tegner: {
         "Riparazione meniscale": "Meniskusnaht",
         Altro: "Andere",
       },
+
+      sportLevel: {
+        Amatoriale: "Amateur",
+        Professionale: "Profisport",
+      },
+
+      fitnessType: {
+        Macchine: "Geräte",
+        "Pesi liberi": "Freihanteln",
+        Corsi: "Kurse",
+      },
+
+      yesNo: {
+        No: "Nein",
+        Sì: "Ja",
+      },
+
+      birthType: {
+        Naturale: "Spontangeburt",
+        "Taglio cesareo": "Kaiserschnitt",
+      },
     },
 
     chart: {
-      title: "Kiviat-Darstellung",
+      title: "Basiszustand",
+      painEvolution: "Schmerzverlauf",
+      painScaleHint:
+        "VAS-Skala 0–10 (Maximum = 10). Waagerechte Hilfslinien bei 2, 4, 6 und 8.",
       needTwoEvaluations:
         "Es werden mindestens 2 Bewertungen benötigt, um Fortschritte zu vergleichen.",
       description:
@@ -956,6 +1338,18 @@ tegner: {
         "Diese Region ist nicht in beiden ausgewählten Bewertungen vorhanden.",
       rightSide: "Rechte Seite",
       leftSide: "Linke Seite",
+      kiviatMean: "Durchschnitt",
+      kiviatLegendTitle: "Legende",
+      kiviatMetricsTitle: "Werte pro Kriterium",
+      kiviatSeriesTitle: "Verglichene Serien",
+      kiviatLegend: {
+        optimal: "≥ 80 % Optimal",
+        adequate: "60–79 % Angemessen",
+        moderate: "40–59 % Moderates Defizit",
+        severe: "< 40 % Deutliches Defizit",
+      },
+      kiviatScaleNote:
+        "Prozent vom Soll (Skala 0–5). Die %-Werte stehen an den Eckpunkten.",
     },
 
     report: {
@@ -1032,6 +1426,24 @@ tegner: {
   trial2: "Intento 2",
   trial3: "Intento 3",
 
+  medicalHistory: "Información médica",
+  medications: "Medicación",
+  pathologies: "Patologías",
+  epilepsy: "Epilepsia",
+  relevantSurgeryHistory:
+    "Antecedentes y cirugías relevantes",
+  femaleHealth: "Salud femenina",
+  children: "Hijos",
+  childrenCount: "Cuántos",
+  birthMode: "Tipo de parto",
+  perinealRehab: "Rehabilitación perineal",
+  urinaryIncontinence: "Problemas de incontinencia",
+  boardStance: "¿Goofy o regular?",
+  tennisBackhand: "Revés",
+  tennisStringTension: "Tensión de cuerdas",
+  tennisRacketChangedRecently: "¿Raqueta cambiada recientemente?",
+  padelRacketChangedRecently: "¿Pala cambiada recientemente?",
+
   workEducation: "Trabajo / formación",
   professionalRiskNotes: "Riesgos profesionales",
   accessReason: "¿Por qué estás con nosotros?",
@@ -1056,6 +1468,7 @@ time: {
   days: "días",
   weeks: "semanas",
   months: "meses",
+  years: "años",
   future: "Fecha futura"
 },
 
@@ -1094,6 +1507,21 @@ dominantHand: {
       saveEvaluation: "Guardar evaluación",
       editEvaluation: "Modificar evaluación",
       deleteEvaluation: "Eliminar evaluación",
+      test: "Test",
+      selectedTest: "Test seleccionado",
+      addEvaluationBlock: "Añadir bloque de evaluación",
+      addTest: "Añadir test",
+      evaluationBlock: "Bloque",
+      testsSection: "Tests",
+      blockType: {
+        KIVIAT: "Condición base",
+        PAIN_VAS: "Dolor EVA",
+        GENERAL_PAIN: "Dolor general",
+      },
+      otherDetailsOptional: "Otro / notas (opcional)",
+      otherExercise: "Otro ejercicio",
+      otherExerciseSpecify: "Describir el ejercicio",
+      generalPainVAS: "Dolor general (EVA 1–10)",
     },
 
     options: {
@@ -1173,6 +1601,19 @@ dominantHand: {
         Escalade: "Escalada",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        surf: "Surf",
+        snowboard: "Snowboard",
+        skateboard: "Skateboard",
+      },
+
+      boardStance: {
+        Regular: "Regular",
+        Goofy: "Goofy",
+      },
+
+      tennisBackhand: {
+        "1 mano": "Revés a una mano",
+        "2 mani": "Revés a dos manos",
       },
 
       weeklySportHours: {
@@ -1245,6 +1686,27 @@ dominantHand: {
         "Riparazione meniscale": "Reparación meniscal",
         Altro: "Otro",
       },
+
+      sportLevel: {
+        Amatoriale: "Aficionado",
+        Professionale: "Profesional",
+      },
+
+      fitnessType: {
+        Macchine: "Máquinas",
+        "Pesi liberi": "Pesas libres",
+        Corsi: "Clases",
+      },
+
+      yesNo: {
+        No: "No",
+        Sì: "Sí",
+      },
+
+      birthType: {
+        Naturale: "Parto natural",
+        "Taglio cesareo": "Cesárea",
+      },
     },
 
     grip: {
@@ -1254,16 +1716,64 @@ dominantHand: {
       mean: "Promedio",
       percentile: "Percentil",
       interpretation: "Interpretación",
-    
-      low: "Muy bajo",
-      below_average: "Por debajo de la media",
+      very_low: "Muy baja",
+      low: "Baja",
       average: "En la media",
+      good: "Buena",
+      excellent: "Excelente",
+      below_average: "Por debajo de la media",
       above_average: "Por encima de la media",
       high: "Alto",
+      clinicalHint: {
+        percentileKg:
+          "Percentil internacional por sexo y edad sobre la fuerza máxima en kg.",
+        percentileKgM2:
+          "Misma referencia, fuerza ajustada a talla², menos dependiente del tamaño.",
+        very_low:
+          "Por debajo de la mayoría de iguales: posible hipotonía, valorar contexto.",
+        low: "Entre ~P20 y P40: valor bajo, conviene monitorizar la evolución.",
+        average: "Cerca de la mediana de referencia: resultado normativo poblacional.",
+        good: "Por encima de la mediana: fuerza medio-alta, perfil favorable en cribado.",
+        excellent:
+          "Cuartiles altos: fuerza elevada frente a la población internacional de referencia.",
+      },
+      referenceShort: "Normas iGRIPS (Tomkinson et al., JSHS 2025).",
+    },
+
+    tests: {
+      gripStrength: {
+        title: "Test de prensión (Jamar)",
+        summary: "Resultado",
+      },
+      yBalance: {
+        title: "Y Balance Test",
+      },
+      strengthMaximals: {
+        title: "Máximos de fuerza (halterofilia)",
+        exercise: "Ejercicio",
+        sets: "Series",
+        reps: "Repeticiones",
+        weightKg: "Peso (kg)",
+        theor1RM: "1RM teórico (Epley)",
+        addLift: "Añadir ejercicio",
+        removeLift: "Eliminar fila",
+        epleyFootnote:
+          "1RM estimado: peso × (1 + 0,0333 × repeticiones) — fórmula de Epley.",
+        useInEvaluation:
+          "Para series, repeticiones, carga y 1RM estimado (Epley), use el test « Máximos de fuerza (halterofilia) » en la evaluación (por región).",
+        exercises: {
+          backSquat: "Back squat",
+          benchPress: "Press banca",
+          deadlift: "Peso muerto",
+        },
+      },
     },
 
     chart: {
-      title: "Visualización Kiviat",
+      title: "Condición base",
+      painEvolution: "Evolución del dolor",
+      painScaleHint:
+        "Escala EVA 0–10 (máximo = 10). Líneas horizontales de referencia en 2, 4, 6 y 8.",
       needTwoEvaluations:
         "Se necesitan al menos 2 evaluaciones para comparar el progreso.",
       description:
@@ -1282,6 +1792,18 @@ dominantHand: {
         "Esta región no está presente en ambas evaluaciones seleccionadas.",
       rightSide: "Lado derecho",
       leftSide: "Lado izquierdo",
+      kiviatMean: "Media general",
+      kiviatLegendTitle: "Leyenda",
+      kiviatMetricsTitle: "Valores por criterio",
+      kiviatSeriesTitle: "Series comparadas",
+      kiviatLegend: {
+        optimal: "≥ 80 % Óptimo",
+        adequate: "60–79 % Adecuado",
+        moderate: "40–59 % Déficit moderado",
+        severe: "< 40 % Déficit importante",
+      },
+      kiviatScaleNote:
+        "Porcentaje respecto al valor esperado (escala 0–5). Los % se muestran en los vértices.",
     },
 
     report: {
@@ -1357,6 +1879,23 @@ dominantHand: {
       trial1: "Trial 1",
       trial2: "Trial 2",
       trial3: "Trial 3",
+
+      medicalHistory: "Medical information",
+      medications: "Medications",
+      pathologies: "Conditions / comorbidities",
+      epilepsy: "Epilepsy",
+      relevantSurgeryHistory: "Relevant past surgery / procedures",
+      femaleHealth: "Women’s health",
+      children: "Children",
+      childrenCount: "How many",
+      birthMode: "Delivery type",
+      perinealRehab: "Perineal rehabilitation",
+      urinaryIncontinence: "Urinary incontinence issues",
+      boardStance: "Goofy or regular?",
+      tennisBackhand: "Backhand",
+      tennisStringTension: "String tension",
+      tennisRacketChangedRecently: "Racket changed recently?",
+      padelRacketChangedRecently: "Racket changed recently?",
     
       workEducation: "Work / education",
       professionalRiskNotes: "Professional risk notes",
@@ -1382,6 +1921,7 @@ dominantHand: {
       days: "days",
       weeks: "weeks",
       months: "months",
+      years: "years",
       future: "Future date"
     },
 
@@ -1392,12 +1932,57 @@ dominantHand: {
       mean: "Average",
       percentile: "Percentile",
       interpretation: "Interpretation",
-    
-      low: "Very low",
-      below_average: "Below average",
+      very_low: "Very low",
+      low: "Low",
       average: "Average",
+      good: "Good",
+      excellent: "Excellent",
+      below_average: "Below average",
       above_average: "Above average",
       high: "High",
+      clinicalHint: {
+        percentileKg:
+          "International sex- and age-matched percentile for maximal grip strength in kg.",
+        percentileKgM2:
+          "Same reference scaled by height squared: less body-size bias than kg alone.",
+        very_low:
+          "Below most peers: possible low muscle strength—interpret with clinical context.",
+        low: "Roughly between the 20th and 40th percentile: low, monitor trends over time.",
+        average: "Near the peer median: typical absolute strength for your demographic profile.",
+        good: "Above the peer median: mid-high strength, favorable in screening terms.",
+        excellent:
+          "Upper quartiles: high strength versus the international reference population.",
+      },
+      referenceShort: "Norms from iGRIPS (Tomkinson et al., JSHS 2025).",
+    },
+
+    tests: {
+      gripStrength: {
+        title: "Grip strength test (Jamar)",
+        summary: "Result",
+      },
+      yBalance: {
+        title: "Y Balance Test",
+      },
+      strengthMaximals: {
+        title: "Weightlifting estimated max (1RM)",
+        exercise: "Exercise",
+        sets: "Sets",
+        reps: "Reps",
+        weightKg: "Weight (kg)",
+        theor1RM: "Estimated 1RM (Epley)",
+        addLift: "Add exercise",
+        removeLift: "Remove row",
+        epleyFootnote:
+          "Estimated 1RM: weight × (1 + 0.0333 × reps) — Epley formula.",
+        useInEvaluation:
+          "For sets, reps, load and estimated 1RM (Epley), use the « Weightlifting estimated max (1RM) » test in the evaluation (per region).",
+        exercises: {
+          backSquat: "Back squat",
+          benchPress: "Bench press",
+          deadlift: "Deadlift",
+        },
+      },
     },
     
     evaluation: {
@@ -1429,6 +2014,21 @@ dominantHand: {
       saveEvaluation: "Save evaluation",
       editEvaluation: "Edit evaluation",
       deleteEvaluation: "Delete evaluation",
+      test: "Test",
+      selectedTest: "Selected test",
+      addEvaluationBlock: "Add evaluation block",
+      addTest: "Add test",
+      evaluationBlock: "Block",
+      testsSection: "Tests",
+      blockType: {
+        KIVIAT: "Baseline condition",
+        PAIN_VAS: "Pain VAS",
+        GENERAL_PAIN: "General pain",
+      },
+      otherDetailsOptional: "Other / notes (optional)",
+      otherExercise: "Other exercise",
+      otherExerciseSpecify: "Describe exercise",
+      generalPainVAS: "General pain (VAS 1–10)",
     },
 
     options: {
@@ -1501,6 +2101,19 @@ dominantHand: {
         Escalade: "Climbing",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        surf: "Surf",
+        snowboard: "Snowboard",
+        skateboard: "Skateboard",
+      },
+
+      boardStance: {
+        Regular: "Regular",
+        Goofy: "Goofy",
+      },
+
+      tennisBackhand: {
+        "1 mano": "One-handed backhand",
+        "2 mani": "Two-handed backhand",
       },
 
       weeklySportHours: {
@@ -1579,10 +2192,34 @@ dominantHand: {
         "Riparazione meniscale": "Meniscal repair",
         Altro: "Other",
       },
+
+      sportLevel: {
+        Amatoriale: "Amateur",
+        Professionale: "Professional",
+      },
+
+      fitnessType: {
+        Macchine: "Machines",
+        "Pesi liberi": "Free weights",
+        Corsi: "Classes",
+      },
+
+      yesNo: {
+        No: "No",
+        Sì: "Yes",
+      },
+
+      birthType: {
+        Naturale: "Vaginal delivery",
+        "Taglio cesareo": "Cesarean section",
+      },
     },
 
     chart: {
-      title: "Kiviat visualization",
+      title: "Baseline condition",
+      painEvolution: "Pain evolution",
+      painScaleHint:
+        "VAS scale 0–10 (maximum = 10). Horizontal guide lines at 2, 4, 6 and 8.",
       needTwoEvaluations:
         "At least 2 evaluations are needed to compare progress.",
       description:
@@ -1600,6 +2237,24 @@ dominantHand: {
         "This region is not present in both selected evaluations.",
       rightSide: "Right side",
       leftSide: "Left side",
+      kiviatMean: "Overall mean",
+      kiviatLegendTitle: "Legend",
+      kiviatMetricsTitle: "Scores by item",
+      kiviatSeriesTitle: "Series compared",
+      kiviatLegend: {
+        optimal: "≥ 80% Optimal",
+        adequate: "60–79% Adequate",
+        moderate: "40–59% Moderate deficit",
+        severe: "< 40% Significant deficit",
+      },
+      kiviatScaleNote:
+        "Percentage of expected value (0–5 scale). % scores are shown at the vertices.",
+    },
+
+    dominantHand: {
+      Destra: "Right",
+      Sinistra: "Left",
+      Ambidestro: "Ambidextrous",
     },
 
     report: {

@@ -1,0 +1,15 @@
+Dopo aver scompattato lo ZIP su un altro computer:
+
+1. Apri il Terminale e vai nella cartella del progetto, esempio:
+   cd ~/Desktop/progetto
+
+2. Installa le dipendenze (obbligatorio se lo ZIP non contiene node_modules):
+   npm install
+
+3. Avvia l’app in locale:
+   npm run dev
+
+4. Build di produzione (se serve):
+   npm run build
+
+Se lo ZIP include la cartella node_modules (script “portabile”), il punto 2 è opzionale ma consigliato se cambi versione di Node.js.

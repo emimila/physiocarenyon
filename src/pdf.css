@@ -1,0 +1,69 @@
+/**
+ * Stili attivi solo mentre `pdf-exporting` è sul contenitore (export html2pdf).
+ * `.no-pdf` resta visibile a schermo e viene nascosto nel PDF.
+ */
+.pdf-root.pdf-exporting {
+  font-size: 10px !important;
+  line-height: 1.35;
+}
+
+.pdf-root.pdf-exporting h2 {
+  font-size: 1.35rem !important;
+  margin: 0.4em 0 0.35em;
+}
+
+.pdf-root.pdf-exporting h3 {
+  font-size: 1.1rem !important;
+  margin: 0.45em 0 0.35em;
+}
+
+.pdf-root.pdf-exporting h4 {
+  font-size: 1rem !important;
+  margin: 0.35em 0 0.25em;
+}
+
+.pdf-root.pdf-exporting p {
+  margin: 0.25em 0;
+}
+
+.pdf-root.pdf-exporting table {
+  font-size: 9px !important;
+}
+
+.pdf-root.pdf-exporting table th,
+.pdf-root.pdf-exporting table td {
+  padding: 4px 5px !important;
+}
+
+.pdf-root.pdf-exporting .pdf-header .pdf-logo {
+  max-height: 36px;
+  width: auto;
+}
+
+.pdf-root.pdf-exporting .pdf-figure {
+  padding: 10px 12px !important;
+  margin-top: 8px !important;
+}
+
+.pdf-root.pdf-exporting .pdf-figure h4 {
+  font-size: 10px !important;
+  margin-bottom: 8px !important;
+}
+
+.pdf-root.pdf-exporting .pdf-kiviat-grid {
+  margin-top: 10px !important;
+  gap: 12px !important;
+}
+
+.pdf-root.pdf-exporting svg text {
+  font-size: 9px !important;
+}
+
+.pdf-root.pdf-exporting .no-pdf {
+  display: none !important;
+}
+
+.pdf-root.pdf-exporting .kiviat-comparison-wrap {
+  padding: 8px 10px !important;
+  margin-bottom: 10px !important;
+}

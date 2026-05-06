@@ -18,27 +18,64 @@ export function bmiCategory(bmi) {
   return "Obesità";
 }
 
-export function timeSince(dateString, tt) {
+/** Data ISO `YYYY-MM-DD` → `DD-MM-YYYY` (senza shift fuso). */
+export function formatDateDMY(dateString) {
+  if (!dateString) return "";
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString).trim());
+  if (!m) return String(dateString).trim();
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+function startOfLocalDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/**
+ * Intervallo da una data a oggi: anni (se > 0), settimane, giorni — testo su una riga.
+ */
+export function timeSinceYWD(dateString, tt) {
   if (!dateString) return "";
 
-  const start = new Date(dateString);
-  const today = new Date();
-  const diffMs = today - start;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString).trim());
+  if (!iso) return "";
 
-  if (diffMs < 0) return tt("time.future") || "Future date";
+  const y = Number(iso[1]);
+  const mo = Number(iso[2]) - 1;
+  const day = Number(iso[3]);
+  const start = new Date(y, mo, day);
+  if (!Number.isFinite(start.getTime())) return "";
 
-  const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const totalWeeks = Math.floor(totalDays / 7);
+  const end = startOfLocalDay(new Date());
+  if (end < start) return tt("time.future") || "Future date";
 
-  if (totalWeeks < 20) {
-    const remainingDays = totalDays % 7;
-    return `${totalWeeks} ${tt("time.weeks")}\n+ ${remainingDays} ${tt("time.days")}`;
+  let years = 0;
+  let cursor = new Date(start);
+  for (;;) {
+    const next = new Date(cursor);
+    next.setFullYear(next.getFullYear() + 1);
+    if (next > end) break;
+    cursor = next;
+    years += 1;
   }
 
-  const totalMonths = Math.floor(totalDays / 30.44);
-  const remainingWeeks = Math.floor((totalDays % 30.44) / 7);
+  const diffMs = end - cursor;
+  const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const weeks = Math.floor(totalDays / 7);
+  const days = totalDays % 7;
 
-  return `${totalMonths} ${tt("time.months")}\n+ ${remainingWeeks} ${tt("time.weeks")}`;
+  const parts = [];
+  if (years > 0) parts.push(`${years} ${tt("time.years")}`);
+  if (weeks > 0) parts.push(`${weeks} ${tt("time.weeks")}`);
+  if (days > 0 || parts.length === 0) {
+    parts.push(`${days} ${tt("time.days")}`);
+  }
+
+  return parts.join(" + ");
+}
+
+/** @deprecated Preferire `timeSinceYWD` per schede cliniche. */
+export function timeSince(dateString, tt) {
+  return timeSinceYWD(dateString, tt);
 }
 
 export function evaluationLabel(v) {
@@ -191,4 +228,72 @@ export function classifyYBalance(result) {
       4
     ),
   };
+}
+
+/** Allineato alle opzioni diagnosi in `PatientForm` (valori canonici IT). */
+const PATIENT_DIAGNOSIS_CANON = [
+  "Lombalgia",
+  "Cervicalgia",
+  "Cervico-brachialgia",
+  "Sciatalgia",
+  "Tendinopatia",
+  "Distorsione",
+  "Lesione muscolare",
+  "Frattura",
+  "Post-operatorio",
+  "LCA",
+  "Menisco",
+  "Cuffia dei rotatori",
+  "Instabilità spalla",
+  "Protesi anca",
+  "Protesi ginocchio",
+  "Altro",
+];
+
+/**
+ * Traduce la diagnosi salvata: chiave esatta, poi match case-insensitive con il catalogo, altrimenti testo manuale in minuscolo.
+ */
+export function translatedPatientDiagnosis(diagnosi, tt) {
+  if (diagnosi == null || String(diagnosi).trim() === "") return "";
+  const raw = String(diagnosi).trim();
+  const direct = tt(`options.diagnosis.${raw}`);
+  if (direct) return direct;
+  const low = raw.toLowerCase();
+  const canon = PATIENT_DIAGNOSIS_CANON.find((k) => k.toLowerCase() === low);
+  if (canon) {
+    const lab = tt(`options.diagnosis.${canon}`);
+    return lab || canon;
+  }
+  return low;
+}
+
+/**
+ * Etichetta distretto diagnosi: `ginocchio_destro` → distretto + lato tradotti (non la chiave grezza).
+ */
+export function translatedDistrettoDiagnosi(value, tt) {
+  if (value == null || String(value).trim() === "") return "";
+  const v = String(value).trim().toLowerCase();
+  const m = v.match(/^(.+)_(destra|sinistra|destro|sinistro)$/);
+  if (m) {
+    const base = m[1];
+    const sideKey = m[2];
+    const district = tt(`options.distretti.${base}`);
+    const sideLabel =
+      sideKey === "destra" || sideKey === "destro"
+        ? tt("evaluation.right")
+        : tt("evaluation.left");
+    const d = district || base.replace(/_/g, " ");
+    const s = sideLabel || sideKey;
+    return `${d} — ${s}`;
+  }
+  const whole = tt(`options.distretti.${v}`);
+  if (whole) return whole;
+  return v.replace(/_/g, " ");
+}
+
+/** Testo libero mostrato in minuscolo (note compilate a mano). */
+export function manualTextLower(s) {
+  if (s == null) return "";
+  const t = String(s).trim();
+  return t ? t.toLowerCase() : "";
 }

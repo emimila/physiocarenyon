@@ -23,6 +23,8 @@ export function createDistretto(nome) {
   return {
     id: uid(),
     nome,
+    numeroValutazioneDistretto: "",
+    doloreGeneraleVAS: "",
     destro: { ...emptyScores },
     sinistro: { ...emptyScores },
     dolore: {

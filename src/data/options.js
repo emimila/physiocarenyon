@@ -22,6 +22,9 @@ export const sportOptions = [
   "fitness",
   "tennis",
   "padel",
+  "surf",
+  "snowboard",
+  "skateboard",
   "sci",
   "nuoto",
   "basket",
@@ -32,6 +35,9 @@ export const sportOptions = [
   "yoga",
   "pilates",
 ];
+
+/** Esercizi selezionabili nel test «Massimali pesistica» (1RM Epley). */
+export const strengthLiftExerciseIds = ["backSquat", "benchPress", "deadlift"];
 
 export const tegnerInfo = {
   0: "0",

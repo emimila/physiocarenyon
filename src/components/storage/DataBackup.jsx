@@ -1,4 +1,4 @@
-export default function DataBackup({ patients, setPatients }) {
+export default function DataBackup({ patients, setPatients, compact }) {
   function exportData() {
     const data = {
       version: "1.0",
@@ -53,11 +53,24 @@ export default function DataBackup({ patients, setPatients }) {
     reader.readAsText(file);
   }
 
-  return (
-    <div style={{ marginTop: 10, marginBottom: 10 }}>
-      <button onClick={exportData}>Esporta dati JSON</button>
+  const wrapStyle = compact
+    ? {
+        margin: 0,
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        gap: 6,
+      }
+    : { marginTop: 10, marginBottom: 10 };
 
-      <label style={{ marginLeft: 10 }}>
+  return (
+    <div style={wrapStyle}>
+      <button type="button" onClick={exportData}>
+        Esporta dati JSON
+      </button>
+
+      <label style={compact ? undefined : { marginLeft: 10 }}>
         <span
           style={{
             display: "inline-block",

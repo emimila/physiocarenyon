@@ -5,10 +5,365 @@ import Select from "../ui/Select";
 import Textarea from "../ui/Textarea";
 import Score10 from "../ui/Score10";
 import SideScores from "./SideScores";
-import { distretti } from "../../data/options";
+import { distretti, strengthLiftExerciseIds } from "../../data/options";
+import { assessGrip } from "../../utils/gripAssessment";
+import { epleyOneRmKg, formatOneRmKg } from "../../utils/epley1rm";
+
+export const OTHER_EXERCISE = "__other_exercise__";
+
+function StrengthMaximalsEvaluationFields({
+  tt,
+  distrettoId,
+  test,
+  evaluationForm,
+  setEvaluationForm,
+}) {
+  const lifts = test.lifts?.length
+    ? test.lifts
+    : [{ id: uid(), exercise: "", exerciseOther: "", reps: "", weightKg: "" }];
+
+  function setLifts(nextLifts) {
+    setEvaluationForm({
+      ...evaluationForm,
+      distretti: evaluationForm.distretti.map((dist) =>
+        dist.id === distrettoId
+          ? {
+              ...dist,
+              tests: (dist.tests || []).map((t) =>
+                t.id === test.id ? { ...t, lifts: nextLifts } : t
+              ),
+            }
+          : dist
+      ),
+    });
+  }
+
+  function updateLift(liftId, patch) {
+    setLifts(
+      lifts.map((L) => (L.id === liftId ? { ...L, ...patch } : L))
+    );
+  }
+
+  function addLift() {
+    setLifts([
+      ...lifts,
+      { id: uid(), exercise: "", exerciseOther: "", reps: "", weightKg: "" },
+    ]);
+  }
+
+  function removeLift(liftId) {
+    if (lifts.length <= 1) return;
+    setLifts(lifts.filter((L) => L.id !== liftId));
+  }
+
+  const exerciseOptions = [
+    { value: "", label: "--" },
+    ...strengthLiftExerciseIds.map((id) => ({
+      value: id,
+      label:
+        tt(`tests.strengthMaximals.exercises.${id}`) ||
+        id,
+    })),
+    {
+      value: OTHER_EXERCISE,
+      label: tt("evaluation.otherExercise") || "Altro",
+    },
+  ];
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <p style={{ fontSize: 12, color: "#555", marginBottom: 10 }}>
+        {tt("tests.strengthMaximals.epleyFootnote")}
+      </p>
+
+      {lifts.map((line) => {
+        const oneRm = epleyOneRmKg(line.weightKg, line.reps);
+        const oneRmLabel = formatOneRmKg(oneRm) ?? "—";
+
+        return (
+          <div
+            key={line.id}
+            style={{
+              marginTop: 10,
+              padding: 10,
+              border: "1px solid #e0e0e0",
+              borderRadius: 8,
+              background: "#fff",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                alignItems: "start",
+              }}
+            >
+              <Select
+                label={tt("tests.strengthMaximals.exercise")}
+                value={line.exercise || ""}
+                onChange={(v) =>
+                  updateLift(line.id, {
+                    exercise: v,
+                    exerciseOther:
+                      v === OTHER_EXERCISE ? line.exerciseOther || "" : "",
+                  })
+                }
+                options={exerciseOptions}
+              />
+
+              <div style={{ marginTop: 22 }}>
+                <button type="button" onClick={() => removeLift(line.id)}>
+                  {tt("tests.strengthMaximals.removeLift")}
+                </button>
+              </div>
+            </div>
+
+            {line.exercise === OTHER_EXERCISE && (
+              <Input
+                label={tt("evaluation.otherExerciseSpecify")}
+                value={line.exerciseOther || ""}
+                onChange={(v) => updateLift(line.id, { exerciseOther: v })}
+              />
+            )}
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                marginTop: 8,
+              }}
+            >
+              <Input
+                label={tt("tests.strengthMaximals.reps")}
+                type="number"
+                value={line.reps ?? ""}
+                onChange={(v) => updateLift(line.id, { reps: v })}
+              />
+              <Input
+                label={tt("tests.strengthMaximals.weightKg")}
+                type="number"
+                value={line.weightKg ?? ""}
+                onChange={(v) => updateLift(line.id, { weightKg: v })}
+              />
+            </div>
+
+            <p style={{ marginTop: 10, fontSize: 13 }}>
+              <strong>{tt("tests.strengthMaximals.theor1RM")}:</strong>{" "}
+              {oneRmLabel}
+            </p>
+          </div>
+        );
+      })}
+
+      <button type="button" style={{ marginTop: 12 }} onClick={addLift}>
+        {tt("tests.strengthMaximals.addLift")}
+      </button>
+    </div>
+  );
+}
+
+function GripStrengthEvaluationFields({
+  tt,
+  patient,
+  evaluationDate,
+  distrettoId,
+  test,
+  evaluationForm,
+  setEvaluationForm,
+}) {
+  function updateGrip(patch) {
+    setEvaluationForm({
+      ...evaluationForm,
+      distretti: evaluationForm.distretti.map((dist) =>
+        dist.id === distrettoId
+          ? {
+              ...dist,
+              tests: (dist.tests || []).map((t) =>
+                t.id === test.id
+                  ? {
+                      ...t,
+                      grip: {
+                        ...(t.grip || {}),
+                        ...patch,
+                      },
+                    }
+                  : t
+              ),
+            }
+          : dist
+      ),
+    });
+  }
+
+  const assessmentDate = (() => {
+    const d = evaluationDate ? new Date(evaluationDate) : new Date();
+    return Number.isFinite(d.getTime()) ? d : new Date();
+  })();
+
+  const gripPatient = {
+    sesso: patient?.sesso || "",
+    dataNascita: patient?.dataNascita || "",
+    altezza: patient?.altezza || "",
+    manoDominante:
+      test.grip?.manoDominante || patient?.manoDominante || "",
+    manoDestraForza1: test.grip?.manoDestraForza1 ?? "",
+    manoDestraForza2: test.grip?.manoDestraForza2 ?? "",
+    manoDestraForza3: test.grip?.manoDestraForza3 ?? "",
+    manoSinistraForza1: test.grip?.manoSinistraForza1 ?? "",
+    manoSinistraForza2: test.grip?.manoSinistraForza2 ?? "",
+    manoSinistraForza3: test.grip?.manoSinistraForza3 ?? "",
+  };
+
+  const grip = assessGrip(gripPatient, assessmentDate);
+
+  const gripHintStyle = {
+    display: "block",
+    fontSize: 12,
+    color: "#555",
+    marginTop: 4,
+    lineHeight: 1.35,
+    maxWidth: 560,
+  };
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <Select
+        label={tt("patient.dominantHand")}
+        value={test.grip?.manoDominante || patient?.manoDominante || ""}
+        onChange={(v) => updateGrip({ manoDominante: v })}
+        options={[
+          { value: "", label: "--" },
+          { value: "Destra", label: tt("dominantHand.Destra") },
+          { value: "Sinistra", label: tt("dominantHand.Sinistra") },
+          { value: "Ambidestro", label: tt("dominantHand.Ambidestro") },
+        ]}
+      />
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 16,
+          marginTop: 10,
+        }}
+      >
+        <div>
+          <strong>{tt("evaluation.right")}</strong>
+          <Input
+            label={`${tt("patient.trial1") ?? "Prova 1"} (kg)`}
+            type="number"
+            value={test.grip?.manoDestraForza1 || ""}
+            onChange={(v) => updateGrip({ manoDestraForza1: v })}
+          />
+          <Input
+            label={`${tt("patient.trial2") ?? "Prova 2"} (kg)`}
+            type="number"
+            value={test.grip?.manoDestraForza2 || ""}
+            onChange={(v) => updateGrip({ manoDestraForza2: v })}
+          />
+          <Input
+            label={`${tt("patient.trial3") ?? "Prova 3"} (kg)`}
+            type="number"
+            value={test.grip?.manoDestraForza3 || ""}
+            onChange={(v) => updateGrip({ manoDestraForza3: v })}
+          />
+        </div>
+
+        <div>
+          <strong>{tt("evaluation.left")}</strong>
+          <Input
+            label={`${tt("patient.trial1") ?? "Prova 1"} (kg)`}
+            type="number"
+            value={test.grip?.manoSinistraForza1 || ""}
+            onChange={(v) => updateGrip({ manoSinistraForza1: v })}
+          />
+          <Input
+            label={`${tt("patient.trial2") ?? "Prova 2"} (kg)`}
+            type="number"
+            value={test.grip?.manoSinistraForza2 || ""}
+            onChange={(v) => updateGrip({ manoSinistraForza2: v })}
+          />
+          <Input
+            label={`${tt("patient.trial3") ?? "Prova 3"} (kg)`}
+            type="number"
+            value={test.grip?.manoSinistraForza3 || ""}
+            onChange={(v) => updateGrip({ manoSinistraForza3: v })}
+          />
+        </div>
+      </div>
+
+      <div style={{ marginTop: 12 }}>
+        <strong>{tt("tests.gripStrength.summary") ?? "Risultato"}</strong>
+
+        <p style={{ marginTop: 8 }}>
+          <strong>{tt("patient.dominantHand")}:</strong>{" "}
+          {tt(`dominantHand.${gripPatient.manoDominante}`) ||
+            gripPatient.manoDominante ||
+            "-"}
+        </p>
+
+        <p>
+          <strong>{tt("grip.mean")}:</strong> {grip?.average ?? "-"} kg
+        </p>
+
+        <p>
+          <strong>
+            {tt("grip.percentile")} (kg):
+          </strong>{" "}
+          {grip?.absolutePercentile ? `P${grip.absolutePercentile}` : "-"}
+          {grip?.ready && grip?.absolutePercentile != null && (
+            <span style={gripHintStyle}>
+              {tt("grip.clinicalHint.percentileKg")}
+            </span>
+          )}
+        </p>
+
+        <p>
+          <strong>
+            {tt("grip.percentile")} (kg/m²):
+          </strong>{" "}
+          {grip?.normalizedPercentile ? `P${grip.normalizedPercentile}` : "-"}
+          {grip?.ready && grip?.normalizedPercentile != null && (
+            <span style={gripHintStyle}>
+              {tt("grip.clinicalHint.percentileKgM2")}
+            </span>
+          )}
+        </p>
+
+        <p>
+          <strong>{tt("grip.interpretation")}:</strong>{" "}
+          {grip?.absoluteInterpretationKey
+            ? tt(`grip.${grip.absoluteInterpretationKey}`) ||
+              grip.absoluteInterpretationKey
+            : "-"}
+          {grip?.ready && grip?.absoluteInterpretationKey && (
+            <span style={gripHintStyle}>
+              {tt(`grip.clinicalHint.${grip.absoluteInterpretationKey}`)}
+            </span>
+          )}
+        </p>
+
+        <p>
+          <strong>{tt("grip.right")}:</strong> {grip?.bestRight ?? "-"} kg{" "}
+          <strong>{tt("grip.left")}:</strong> {grip?.bestLeft ?? "-"} kg{" "}
+          <strong>{tt("grip.best")}:</strong> {grip?.bestOverall ?? "-"} kg
+        </p>
+
+        {grip?.ready && (
+          <p style={{ ...gripHintStyle, marginTop: 10, fontSize: 11, color: "#777" }}>
+            {tt("grip.referenceShort")}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function EvaluationForm({
   tt,
+  patient,
   evaluationForm,
   setEvaluationForm,
   distrettoToAdd,
@@ -19,6 +374,15 @@ export default function EvaluationForm({
   saveEvaluation,
   cancel,
 }) {
+  function patchDistretto(distrettoId, patch) {
+    setEvaluationForm({
+      ...evaluationForm,
+      distretti: evaluationForm.distretti.map((dist) =>
+        dist.id === distrettoId ? { ...dist, ...patch } : dist
+      ),
+    });
+  }
+
   function updateDolore(distrettoId, lato, key, value) {
     setEvaluationForm({
       ...evaluationForm,
@@ -51,35 +415,10 @@ export default function EvaluationForm({
           onChange={(v) => setEvaluationForm({ ...evaluationForm, data: v })}
         />
 
-        <Select
-          label={tt("evaluation.voucher")}
-          value={evaluationForm.buono}
-          onChange={(v) => setEvaluationForm({ ...evaluationForm, buono: v })}
-          options={["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
-        />
-
-        <Select
-          label={tt("evaluation.session")}
-          value={evaluationForm.sessione}
-          onChange={(v) =>
-            setEvaluationForm({ ...evaluationForm, sessione: v })
-          }
-          options={[
-            "1", "2", "3", "4", "5",
-            "6", "7", "8", "9", "10",
-            "11", "12", "13", "14", "15",
-            "16", "17", "18", "19", "20",
-          ]}
-        />
-
-        <Select
-          label={tt("evaluation.number")}
-          value={evaluationForm.numeroValutazione}
-          onChange={(v) =>
-            setEvaluationForm({ ...evaluationForm, numeroValutazione: v })
-          }
-          options={["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
-        />
+        <p style={{ margin: "6px 0 10px" }}>
+          <strong>{tt("evaluation.number")}:</strong>{" "}
+          {evaluationForm.numeroValutazione || "—"}
+        </p>
 
         <Textarea
           label={tt("evaluation.notes")}
@@ -122,7 +461,7 @@ export default function EvaluationForm({
                           ...dist,
                           blocks: [
                             ...(dist.blocks || []),
-                            { id: uid(), type: "" },
+                            { id: uid(), type: "", noteAltro: "" },
                           ],
                         }
                       : dist
@@ -130,13 +469,13 @@ export default function EvaluationForm({
                 })
               }
             >
-              Add evaluation block
+              {tt("evaluation.addEvaluationBlock")}
             </button>
 
             {(d.blocks || []).map((block) => (
               <div key={block.id} style={{ marginTop: 10 }}>
                 <Select
-                  label="Block"
+                  label={tt("evaluation.evaluationBlock")}
                   value={block.type}
                   onChange={(value) =>
                     setEvaluationForm({
@@ -154,10 +493,40 @@ export default function EvaluationForm({
                     })
                   }
                   options={[
-                    { value: "KIVIAT", label: "Kiviat" },
-                    { value: "PAIN_VAS", label: "Pain VAS" },
-                    { value: "GENERAL_PAIN", label: "General pain" },
+                    {
+                      value: "KIVIAT",
+                      label: tt("evaluation.blockType.KIVIAT"),
+                    },
+                    {
+                      value: "PAIN_VAS",
+                      label: tt("evaluation.blockType.PAIN_VAS"),
+                    },
+                    {
+                      value: "GENERAL_PAIN",
+                      label: tt("evaluation.blockType.GENERAL_PAIN"),
+                    },
                   ]}
+                />
+                <Textarea
+                  label={tt("evaluation.otherDetailsOptional")}
+                  value={block.noteAltro || ""}
+                  onChange={(value) =>
+                    setEvaluationForm({
+                      ...evaluationForm,
+                      distretti: evaluationForm.distretti.map((dist) =>
+                        dist.id === d.id
+                          ? {
+                              ...dist,
+                              blocks: (dist.blocks || []).map((b) =>
+                                b.id === block.id
+                                  ? { ...b, noteAltro: value }
+                                  : b
+                              ),
+                            }
+                          : dist
+                      ),
+                    })
+                  }
                 />
               </div>
             ))}
@@ -224,32 +593,48 @@ export default function EvaluationForm({
   </div>
 )}
 
+{(d.blocks || []).some((b) => b.type === "GENERAL_PAIN") && (
+  <div style={{ marginTop: 15 }}>
+    <strong>{tt("evaluation.generalPainVAS")}</strong>
+    <Score10
+      min={1}
+      max={10}
+      label={tt("evaluation.painVAS")}
+      value={d.doloreGeneraleVAS || ""}
+      onChange={(v) => patchDistretto(d.id, { doloreGeneraleVAS: v })}
+    />
+  </div>
+)}
+
 <div style={{ marginTop: 15 }}>
   <button
     type="button"
     onClick={() =>
       setEvaluationForm({
         ...evaluationForm,
-        distretti: evaluationForm.distretti.map((dist) =>
-          dist.id === d.id
-            ? {
-                ...dist,
-                tests: [
-                  ...(dist.tests || []),
-                  {
-                    id: uid(),
-                    type: "",
-                    left: {},
-                    right: {},
-                  },
-                ],
-              }
-            : dist
-        ),
+                distretti: evaluationForm.distretti.map((dist) =>
+                  dist.id === d.id
+                    ? {
+                        ...dist,
+                        tests: [
+                          ...(dist.tests || []),
+                          {
+                            id: uid(),
+                            type: "",
+                            noteAltro: "",
+                            grip: {},
+                            left: {},
+                            right: {},
+                            lifts: [],
+                          },
+                        ],
+                      }
+                    : dist
+                ),
       })
     }
   >
-    Add test
+    {tt("evaluation.addTest")}
   </button>
 
             {(d.tests || []).map((test) => (
@@ -264,7 +649,7 @@ export default function EvaluationForm({
                 }}
               >
                 <Select
-                  label="Test"
+                  label={tt("evaluation.test")}
                   value={test.type}
                   onChange={(value) =>
                     setEvaluationForm({
@@ -278,6 +663,19 @@ export default function EvaluationForm({
                                   ? {
                                       ...t,
                                       type: value,
+                                      grip:
+                                        value === "GRIP_STRENGTH"
+                                          ? {
+                                              manoDominante:
+                                                patient?.manoDominante || "",
+                                              manoDestraForza1: "",
+                                              manoDestraForza2: "",
+                                              manoDestraForza3: "",
+                                              manoSinistraForza1: "",
+                                              manoSinistraForza2: "",
+                                              manoSinistraForza3: "",
+                                            }
+                                          : {},
                                       left:
                                         value === "Y_BALANCE"
                                           ? {
@@ -286,7 +684,9 @@ export default function EvaluationForm({
                                               posteromedial: [],
                                               posterolateral: [],
                                             }
-                                          : {},
+                                          : value === "GRIP_STRENGTH"
+                                            ? {}
+                                            : {},
                                       right:
                                         value === "Y_BALANCE"
                                           ? {
@@ -295,7 +695,25 @@ export default function EvaluationForm({
                                               posteromedial: [],
                                               posterolateral: [],
                                             }
-                                          : {},
+                                          : value === "GRIP_STRENGTH"
+                                            ? {}
+                                            : {},
+                                      lifts:
+                                        value === "STRENGTH_MAXIMALS"
+                                          ? t.type === "STRENGTH_MAXIMALS" &&
+                                            Array.isArray(t.lifts) &&
+                                            t.lifts.length > 0
+                                            ? t.lifts
+                                            : [
+                                                {
+                                                  id: uid(),
+                                                  exercise: "",
+                                                  exerciseOther: "",
+                                                  reps: "",
+                                                  weightKg: "",
+                                                },
+                                              ]
+                                          : undefined,
                                     }
                                   : t
                               ),
@@ -304,8 +722,62 @@ export default function EvaluationForm({
                       ),
                     })
                   }
-                  options={[{ value: "Y_BALANCE", label: "Y Balance Test" }]}
+                  options={[
+                    {
+                      value: "Y_BALANCE",
+                      label: tt("tests.yBalance.title") ?? "Y Balance Test",
+                    },
+                    {
+                      value: "GRIP_STRENGTH",
+                      label:
+                        tt("tests.gripStrength.title") ?? "Grip test (Jamar)",
+                    },
+                    {
+                      value: "STRENGTH_MAXIMALS",
+                      label:
+                        tt("tests.strengthMaximals.title") ??
+                        "Massimali pesistica",
+                    },
+                  ]}
                 />
+
+                <Textarea
+                  label={tt("evaluation.otherDetailsOptional")}
+                  value={test.noteAltro || ""}
+                  onChange={(value) =>
+                    setEvaluationForm({
+                      ...evaluationForm,
+                      distretti: evaluationForm.distretti.map((dist) =>
+                        dist.id === d.id
+                          ? {
+                              ...dist,
+                              tests: (dist.tests || []).map((t) =>
+                                t.id === test.id
+                                  ? { ...t, noteAltro: value }
+                                  : t
+                              ),
+                            }
+                          : dist
+                      ),
+                    })
+                  }
+                />
+
+                {test.type && (
+                  <div style={{ marginTop: 8, color: "#555", fontSize: 13 }}>
+                    <strong>
+                      {tt("evaluation.selectedTest") ?? "Test selezionato"}:
+                    </strong>{" "}
+                    {test.type === "Y_BALANCE"
+                      ? tt("tests.yBalance.title") ?? "Y Balance Test"
+                      : test.type === "GRIP_STRENGTH"
+                        ? tt("tests.gripStrength.title") ?? "Grip test (Jamar)"
+                        : test.type === "STRENGTH_MAXIMALS"
+                          ? tt("tests.strengthMaximals.title") ??
+                            "Massimali pesistica"
+                          : test.type}
+                  </div>
+                )}
 
                 {test.type === "Y_BALANCE" && (
                   <div
@@ -409,6 +881,28 @@ export default function EvaluationForm({
                       </div>
                     ))}
                   </div>
+                )}
+
+                {test.type === "GRIP_STRENGTH" && (
+                  <GripStrengthEvaluationFields
+                    tt={tt}
+                    patient={patient}
+                    evaluationDate={evaluationForm.data}
+                    distrettoId={d.id}
+                    test={test}
+                    evaluationForm={evaluationForm}
+                    setEvaluationForm={setEvaluationForm}
+                  />
+                )}
+
+                {test.type === "STRENGTH_MAXIMALS" && (
+                  <StrengthMaximalsEvaluationFields
+                    tt={tt}
+                    distrettoId={d.id}
+                    test={test}
+                    evaluationForm={evaluationForm}
+                    setEvaluationForm={setEvaluationForm}
+                  />
                 )}
               </div>
             ))}
