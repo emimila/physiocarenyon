@@ -1,0 +1,48 @@
+export const distretti = [
+  "Anca",
+  "Ginocchio",
+  "Caviglia",
+  "Piede",
+  "Dita piede",
+  "Spalla",
+  "Gomito",
+  "Polso",
+  "Mano",
+  "Dita mano",
+  "Mandibola",
+  "Colonna cervicale",
+  "Colonna toracica",
+  "Colonna lombare",
+];
+
+export const sportOptions = [
+  "Calcio",
+  "Running",
+  "Ciclismo",
+  "Fitness",
+  "Tennis",
+  "Padel",
+  "Sci",
+  "Nuoto",
+  "Basket",
+  "Pallavolo",
+  "Danza",
+  "CrossFit",
+  "Escalade",
+  "Yoga",
+  "Pilates",
+];
+
+export const tegnerInfo = {
+  0: "Inabilità per problemi al ginocchio",
+  1: "Lavoro sedentario, nessuna attività sportiva",
+  2: "Lavoro leggero, cammino su terreno piano",
+  3: "Lavoro leggero, sport leggeri",
+  4: "Lavoro moderato, sport ricreativo",
+  5: "Lavoro pesante, sport ricreativo regolare",
+  6: "Sport ricreativo intenso",
+  7: "Sport competitivo amatoriale",
+  8: "Sport competitivo regolare",
+  9: "Sport competitivo alto livello",
+  10: "Sport competitivo élite",
+};

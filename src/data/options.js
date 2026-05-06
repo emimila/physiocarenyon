@@ -1,0 +1,48 @@
+export const distretti = [
+  "anca",
+  "ginocchio",
+  "caviglia",
+  "piede",
+  "ditaPiede",
+  "spalla",
+  "gomito",
+  "polso",
+  "mano",
+  "ditaMano",
+  "mandibola",
+  "cervicale",
+  "toracica",
+  "lombare",
+];
+
+export const sportOptions = [
+  "calcio",
+  "running",
+  "ciclismo",
+  "fitness",
+  "tennis",
+  "padel",
+  "sci",
+  "nuoto",
+  "basket",
+  "pallavolo",
+  "danza",
+  "crossfit",
+  "escalade",
+  "yoga",
+  "pilates",
+];
+
+export const tegnerInfo = {
+  0: "0",
+  1: "1",
+  2: "2",
+  3: "3",
+  4: "4",
+  5: "5",
+  6: "6",
+  7: "7",
+  8: "8",
+  9: "9",
+  10: "10",
+};
