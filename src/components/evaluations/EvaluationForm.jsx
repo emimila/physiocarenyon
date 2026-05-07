@@ -356,6 +356,20 @@ export default function EvaluationForm({
           </div>
         </div>
 
+        <div
+          style={{
+            marginBottom: 16,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <button type="button" onClick={cancel}>
+            {tt("common.cancel")}
+          </button>
+        </div>
+
         {evaluationForm.distretti.map((d, idx) => (
           <div
             key={d.id}
@@ -404,39 +418,44 @@ export default function EvaluationForm({
                 />
               ))}
 
-              <button
-                type="button"
-                style={{ alignSelf: "flex-start" }}
-                onClick={() =>
-                  setEvaluationForm({
-                    ...evaluationForm,
-                    distretti: evaluationForm.distretti.map((dist) =>
-                      dist.id === d.id
-                        ? {
-                            ...dist,
-                            blocks: [
-                              ...(dist.blocks || []),
-                              { id: uid(), type: "", noteAltro: "" },
-                            ],
-                          }
-                        : dist
-                    ),
-                  })
-                }
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  alignItems: "center",
+                  marginTop: 12,
+                }}
               >
-                {tt("evaluation.addEvaluationBlock")}
-              </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEvaluationForm({
+                      ...evaluationForm,
+                      distretti: evaluationForm.distretti.map((dist) =>
+                        dist.id === d.id
+                          ? {
+                              ...dist,
+                              blocks: [
+                                ...(dist.blocks || []),
+                                { id: uid(), type: "", noteAltro: "" },
+                              ],
+                            }
+                          : dist
+                      ),
+                    })
+                  }
+                >
+                  {tt("evaluation.addEvaluationBlock")}
+                </button>
+                <button type="button" onClick={saveEvaluation}>
+                  {tt("evaluation.saveEvaluation")}
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
-
-      <button onClick={saveEvaluation}>
-        {tt("evaluation.saveEvaluation")}
-      </button>{" "}
-      <button onClick={cancel}>
-        {tt("common.cancel")}
-      </button>
     </div>
   );
 }

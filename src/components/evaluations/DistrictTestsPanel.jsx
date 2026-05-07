@@ -31,6 +31,7 @@ export default function DistrictTestsPanel({
   d,
   evaluationForm,
   setEvaluationForm,
+  onSaveTestSession,
 }) {
   useEffect(() => {
     setEvaluationForm((prev) => {
@@ -262,6 +263,40 @@ export default function DistrictTestsPanel({
           ) : null}
         </div>
       ))}
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          alignItems: "center",
+          marginTop: 12,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() =>
+            setEvaluationForm({
+              ...evaluationForm,
+              distretti: evaluationForm.distretti.map((dist) =>
+                dist.id === d.id
+                  ? {
+                      ...dist,
+                      tests: [...(dist.tests || []), emptyTestRow()],
+                    }
+                  : dist
+              ),
+            })
+          }
+        >
+          {tt("evaluation.addTest")}
+        </button>
+        {onSaveTestSession ? (
+          <button type="button" onClick={onSaveTestSession}>
+            {tt("testSession.save")}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

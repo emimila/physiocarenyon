@@ -136,6 +136,20 @@ export default function TestSessionForm({
           </div>
         </div>
 
+        <div
+          style={{
+            marginBottom: 16,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <button type="button" onClick={cancel}>
+            {tt("common.cancel")}
+          </button>
+        </div>
+
         {testSessionForm.distretti.map((d, idx) => (
           <div
             key={d.id}
@@ -171,17 +185,11 @@ export default function TestSessionForm({
               d={d}
               evaluationForm={testSessionForm}
               setEvaluationForm={setTestSessionForm}
+              onSaveTestSession={saveTestSession}
             />
           </div>
         ))}
       </div>
-
-      <button type="button" onClick={saveTestSession}>
-        {tt("testSession.save")}
-      </button>{" "}
-      <button type="button" onClick={cancel}>
-        {tt("common.cancel")}
-      </button>
     </div>
   );
 }
