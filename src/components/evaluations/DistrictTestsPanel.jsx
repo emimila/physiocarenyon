@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { uid } from "../../utils/helpers";
 import Input from "../ui/Input";
 import Select from "../ui/Select";
@@ -6,6 +7,18 @@ import {
   GripStrengthEvaluationFields,
   StrengthMaximalsEvaluationFields,
 } from "./evaluationTestFields";
+
+function emptyTestRow() {
+  return {
+    id: uid(),
+    type: "",
+    noteAltro: "",
+    grip: {},
+    left: {},
+    right: {},
+    lifts: [],
+  };
+}
 
 /**
  * Editor test (Y Balance / Grip / Massimali) per un distretto.
@@ -18,38 +31,23 @@ export default function DistrictTestsPanel({
   evaluationForm,
   setEvaluationForm,
 }) {
-  return (
-    <div style={{ marginTop: 15 }}>
-      <button
-        type="button"
-        onClick={() =>
-          setEvaluationForm({
-            ...evaluationForm,
-            distretti: evaluationForm.distretti.map((dist) =>
-              dist.id === d.id
-                ? {
-                    ...dist,
-                    tests: [
-                      ...(dist.tests || []),
-                      {
-                        id: uid(),
-                        type: "",
-                        noteAltro: "",
-                        grip: {},
-                        left: {},
-                        right: {},
-                        lifts: [],
-                      },
-                    ],
-                  }
-                : dist
-            ),
-          })
-        }
-      >
-        {tt("evaluation.addTest")}
-      </button>
+  useEffect(() => {
+    setEvaluationForm((prev) => {
+      const dist = prev.distretti.find((x) => x.id === d.id);
+      if (!dist || (dist.tests || []).length > 0) return prev;
+      return {
+        ...prev,
+        distretti: prev.distretti.map((dist) =>
+          dist.id === d.id
+            ? { ...dist, tests: [emptyTestRow()] }
+            : dist
+        ),
+      };
+    });
+  }, [d.id, setEvaluationForm]);
 
+  return (
+    <div style={{ marginTop: 4 }}>
       {(d.tests || []).map((test) => (
         <div key={test.id} className="evaluation-test-card">
           <Select

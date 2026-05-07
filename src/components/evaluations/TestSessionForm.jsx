@@ -72,11 +72,12 @@ export default function TestSessionForm({
             tt(`options.distretti.${String(d.nome).toLowerCase()}`) ||
             d.nome
           }
+          titleAside={
+            <button type="button" onClick={() => removeDistretto(d.id)}>
+              {tt("evaluation.removeDistrict")}
+            </button>
+          }
         >
-          <button type="button" onClick={() => removeDistretto(d.id)}>
-            {tt("evaluation.removeDistrict")}
-          </button>
-
           <DistrictTestsPanel
             tt={tt}
             patient={patient}

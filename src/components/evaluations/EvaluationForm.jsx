@@ -284,11 +284,12 @@ export default function EvaluationForm({
             tt(`options.distretti.${String(d.nome).toLowerCase()}`) ||
             d.nome
           }
+          titleAside={
+            <button type="button" onClick={() => removeDistretto(d.id)}>
+              {tt("evaluation.removeDistrict")}
+            </button>
+          }
         >
-          <button onClick={() => removeDistretto(d.id)}>
-            {tt("evaluation.removeDistrict")}
-          </button>
-
           <div
             className="evaluation-blocks-stack"
             style={{ marginTop: 15 }}

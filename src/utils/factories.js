@@ -44,7 +44,17 @@ export function createDistrettoTestOnly(nome) {
     id: uid(),
     nome,
     numeroValutazioneDistretto: "",
-    tests: [],
+    tests: [
+      {
+        id: uid(),
+        type: "",
+        noteAltro: "",
+        grip: {},
+        left: {},
+        right: {},
+        lifts: [],
+      },
+    ],
   };
 }
 
