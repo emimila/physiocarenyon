@@ -1616,10 +1616,21 @@ function evaluationCardHeadingText(v, tt) {
   return `${tt("evaluation.number")}: ${num}   ${tt("evaluation.district")}: ${districtSegment}    ${dateStr}`;
 }
 
-function testSessionCardHeadingText(s, tt) {
+/** Stesso schema di `evaluationCardHeadingText`: numero, distretti, data DD.MM.YYYY. */
+function testSessionListHeadingText(s, tt) {
+  const districtLabels = (s.distretti || [])
+    .map((d) => {
+      const nome = d?.nome;
+      if (!nome) return "";
+      return tt(`options.distretti.${String(nome).toLowerCase()}`) || nome;
+    })
+    .filter(Boolean);
+  const districtSegment = districtLabels.length
+    ? districtLabels.join(", ")
+    : "—";
   const num = s.numeroTest ?? "-";
   const dateStr = s.data ? formatDateDMY(s.data) : "—";
-  return `${tt("testSession.cardHeading")} ${num} — ${dateStr}`;
+  return `${tt("testSession.number")}: ${num}   ${tt("evaluation.district")}: ${districtSegment}    ${dateStr}`;
 }
 
 /** Dati VAS per grafici: se c’è solo dolore generale, replica il valore sulle 5 voci. */
@@ -1655,8 +1666,19 @@ function PatientDetail({
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [showEvaluationsList, setShowEvaluationsList] = useState(false);
   const [showTestsList, setShowTestsList] = useState(false);
+  /** Una sola valutazione / sessione test espansa alla volta (in export PDF si mostrano tutte). */
+  const [expandedEvaluationId, setExpandedEvaluationId] = useState(null);
+  const [expandedTestSessionId, setExpandedTestSessionId] = useState(null);
   const revealEvaluations = showEvaluationsList || isExportingPdf;
   const revealTests = showTestsList || isExportingPdf;
+
+  useEffect(() => {
+    if (!showEvaluationsList) setExpandedEvaluationId(null);
+  }, [showEvaluationsList]);
+
+  useEffect(() => {
+    if (!showTestsList) setExpandedTestSessionId(null);
+  }, [showTestsList]);
 
   async function exportPdf() {
     const element = pdfRef.current;
@@ -2202,7 +2224,13 @@ function PatientDetail({
       <div className="no-pdf patient-sheet-toolbar">
         <button
           type="button"
-          onClick={() => setShowEvaluationsList((x) => !x)}
+          onClick={() => {
+            setShowEvaluationsList((open) => {
+              const next = !open;
+              if (next) setShowTestsList(false);
+              return next;
+            });
+          }}
         >
           {tt("patient.sheetEvaluations")}
         </button>
@@ -2212,20 +2240,43 @@ function PatientDetail({
         <button type="button" onClick={startNewTestSession}>
           {tt("patient.sheetNewTest")}
         </button>
-        <button type="button" onClick={() => setShowTestsList((x) => !x)}>
+        <button
+          type="button"
+          onClick={() => {
+            setShowTestsList((open) => {
+              const next = !open;
+              if (next) setShowEvaluationsList(false);
+              return next;
+            });
+          }}
+        >
           {tt("patient.sheetTests")}
         </button>
       </div>
 
+      {(revealTests || revealEvaluations) && (
+        <div
+          className="patient-sheet-list-panel"
+          style={{
+            marginTop: 12,
+            padding: "14px 16px",
+            border: "1px solid #e2e8f0",
+            borderRadius: 10,
+            background: "#fafbfc",
+          }}
+        >
       {revealTests && (
         <>
-          <h3 style={{ marginTop: 16, marginBottom: 10 }}>
+          <h3 style={{ marginTop: 0, marginBottom: 10 }}>
             {tt("patient.testsListTitle")}
           </h3>
           {(selected.sessioniTest || []).length === 0 ? (
             <p>{tt("patient.testsListEmpty")}</p>
           ) : (
-            (selected.sessioniTest || []).map((s) => (
+            (selected.sessioniTest || []).map((s) => {
+              const showTestDetail =
+                isExportingPdf || expandedTestSessionId === s.id;
+              return (
               <div
                 key={s.id}
                 style={{
@@ -2235,10 +2286,46 @@ function PatientDetail({
                   marginBottom: 12,
                 }}
               >
-                <h4 className="eval-evaluation-card-title eval-evaluation-card-title--centered">
-                  {testSessionCardHeadingText(s, tt)}
-                </h4>
+                <div
+                  className="no-pdf"
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: showTestDetail ? 12 : 0,
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 8,
+                      cursor: "pointer",
+                      margin: 0,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={expandedTestSessionId === s.id}
+                      onChange={() =>
+                        setExpandedTestSessionId((cur) =>
+                          cur === s.id ? null : s.id
+                        )
+                      }
+                      aria-expanded={showTestDetail}
+                    />
+                    <span>{testSessionListHeadingText(s, tt)}</span>
+                  </label>
+                </div>
+                {isExportingPdf && (
+                  <h4 className="eval-evaluation-card-title eval-evaluation-card-title--centered">
+                    {testSessionListHeadingText(s, tt)}
+                  </h4>
+                )}
 
+                {showTestDetail && (
+                <>
                 <p style={{ marginTop: 4, textAlign: "left" }}>
                   <strong>{tt("testSession.notes")}:</strong>{" "}
                   {String(s.note ?? "").trim() || "—"}
@@ -2505,19 +2592,33 @@ function PatientDetail({
                     {tt("testSession.delete")}
                   </button>
                 </div>
+                </>
+                )}
               </div>
-            ))
+              );
+            })
           )}
         </>
       )}
 
       {revealEvaluations && (
         <>
+          <h3
+            style={{
+              marginTop: revealTests ? 20 : 0,
+              marginBottom: 10,
+            }}
+          >
+            {tt("patient.sheetEvaluations")}
+          </h3>
       {(selected.valutazioni || []).length === 0 && (
         <p>{tt("evaluation.noEvaluations")}</p>
       )}
 
-      {(selected.valutazioni || []).map((v) => (
+      {(selected.valutazioni || []).map((v) => {
+        const showEvalDetail =
+          isExportingPdf || expandedEvaluationId === v.id;
+        return (
         <div
           key={v.id}
           style={{
@@ -2527,10 +2628,46 @@ function PatientDetail({
             marginBottom: 12,
           }}
         >
-          <h4 className="eval-evaluation-card-title eval-evaluation-card-title--centered">
-            {evaluationCardHeadingText(v, tt)}
-          </h4>
+          <div
+            className="no-pdf"
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: showEvalDetail ? 12 : 0,
+            }}
+          >
+            <label
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
+                cursor: "pointer",
+                margin: 0,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={expandedEvaluationId === v.id}
+                onChange={() =>
+                  setExpandedEvaluationId((cur) =>
+                    cur === v.id ? null : v.id
+                  )
+                }
+                aria-expanded={showEvalDetail}
+              />
+              <span>{evaluationCardHeadingText(v, tt)}</span>
+            </label>
+          </div>
+          {isExportingPdf && (
+            <h4 className="eval-evaluation-card-title eval-evaluation-card-title--centered">
+              {evaluationCardHeadingText(v, tt)}
+            </h4>
+          )}
 
+          {showEvalDetail && (
+          <>
           <p style={{ marginTop: 4, textAlign: "left" }}>
             <strong>{tt("evaluation.notes")}:</strong>{" "}
             {(() => {
@@ -2693,12 +2830,17 @@ function PatientDetail({
               {tt("evaluation.deleteEvaluation")}
             </button>
           </div>
+          </>
+          )}
         </div>
-      ))}
+        );
+      })}
 
       <hr style={{ marginTop: 24 }} />
       <KiviatComparison selected={selected} tt={tt} />
         </>
+      )}
+        </div>
       )}
     </div>
   );
