@@ -202,6 +202,9 @@ export const translations = {
         cervicale: "Colonna cervicale",
         toracica: "Colonna toracica",
         lombare: "Colonna lombare",
+        artoinferiore: "Arto inferiore",
+        artosuperiore: "Arto superiore",
+        cardio: "Cardio",
       },
 
       tegner: {
@@ -741,6 +744,9 @@ export const translations = {
         cervicale: "Colonne cervicale",
         toracica: "Colonne thoracique",
         lombare: "Colonne lombaire",
+        artoinferiore: "Membre inférieur",
+        artosuperiore: "Membre supérieur",
+        cardio: "Cardio",
       },
 
       dominantHand: {
@@ -1230,6 +1236,9 @@ tegner: {
         cervicale: "Halswirbelsäule",
         toracica: "Brustwirbelsäule",
         lombare: "Lendenwirbelsäule",
+        artoinferiore: "Untere Extremität",
+        artosuperiore: "Obere Extremität",
+        cardio: "Cardio",
       },
 
       dominantHand: {
@@ -1652,6 +1661,9 @@ dominantHand: {
         cervicale: "Columna cervical",
         toracica: "Columna torácica",
         lombare: "Columna lumbar",
+        artoinferiore: "Miembro inferior",
+        artosuperiore: "Miembro superior",
+        cardio: "Cardio",
       },
 
       dominantHand: {
@@ -2187,6 +2199,9 @@ dominantHand: {
         cervicale: "Cervical spine",
         toracica: "Thoracic spine",
         lombare: "Lumbar spine",
+        artoinferiore: "Lower limb",
+        artosuperiore: "Upper limb",
+        cardio: "Cardio",
       },
 
       sex: {

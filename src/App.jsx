@@ -843,6 +843,9 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
       { value: "cervicale", label: tt("options.distretti.cervicale") },
       { value: "toracica", label: tt("options.distretti.toracica") },
       { value: "lombare", label: tt("options.distretti.lombare") },
+      { value: "artoinferiore", label: tt("options.distretti.artoinferiore") },
+      { value: "artosuperiore", label: tt("options.distretti.artosuperiore") },
+      { value: "cardio", label: tt("options.distretti.cardio") },
     ],
     [tt]
   );

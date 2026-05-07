@@ -13,6 +13,9 @@ export const distretti = [
   "cervicale",
   "toracica",
   "lombare",
+  "artoinferiore",
+  "artosuperiore",
+  "cardio",
 ];
 
 export const sportOptions = [

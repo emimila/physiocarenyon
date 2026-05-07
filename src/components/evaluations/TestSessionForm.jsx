@@ -43,26 +43,36 @@ export default function TestSessionForm({
             setTestSessionForm({ ...testSessionForm, note: v })
           }
         />
-      </Section>
 
-      <Section title={tt("evaluation.addDistrict")}>
-        <Select
-          label={tt("evaluation.district")}
-          value={distrettoToAdd}
-          onChange={setDistrettoToAdd}
-          options={distretti.map((d) => ({
-            value: d,
-            label: tt(`options.distretti.${d.toLowerCase()}`),
-          }))}
-        />
+        <div style={{ marginTop: 18 }}>
+          <Select
+            label={tt("evaluation.district")}
+            value={distrettoToAdd}
+            onChange={setDistrettoToAdd}
+            options={distretti.map((d) => ({
+              value: d,
+              label:
+                tt(`options.distretti.${d}`) ||
+                tt(`options.distretti.${d.toLowerCase()}`) ||
+                d,
+            }))}
+          />
 
-        <button type="button" onClick={addDistretto}>
-          {tt("evaluation.addDistrict")}
-        </button>
+          <button type="button" onClick={addDistretto} style={{ marginTop: 10 }}>
+            {tt("evaluation.addDistrict")}
+          </button>
+        </div>
       </Section>
 
       {testSessionForm.distretti.map((d) => (
-        <Section key={d.id} title={tt(`options.distretti.${d.nome}`)}>
+        <Section
+          key={d.id}
+          title={
+            tt(`options.distretti.${d.nome}`) ||
+            tt(`options.distretti.${String(d.nome).toLowerCase()}`) ||
+            d.nome
+          }
+        >
           <button type="button" onClick={() => removeDistretto(d.id)}>
             {tt("evaluation.removeDistrict")}
           </button>
