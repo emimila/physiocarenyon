@@ -157,6 +157,7 @@ export const translations = {
       test: "Test",
       selectedTest: "Test selezionato",
       addEvaluationBlock: "Aggiungi blocco valutazione",
+      possibleEvaluations: "Valutazione",
       addTest: "Aggiungi test",
       districtDuplicate: "Questo distretto è già presente.",
       evaluationBlock: "Blocco",
@@ -170,6 +171,7 @@ export const translations = {
       otherExercise: "Altro esercizio",
       otherExerciseSpecify: "Specifica esercizio",
       generalPainVAS: "Dolore valutazione generale",
+      conditionBaseSection: "Condizione base",
     },
 
     testSession: {
@@ -177,6 +179,7 @@ export const translations = {
       sectionTitle: "Dati sessione test",
       date: "Data test",
       number: "Numero progressivo test",
+      possibleTests: "Tipo di test",
       notes: "Note test",
       save: "Salva sessione test",
       edit: "Modifica sessione test",
@@ -699,6 +702,7 @@ export const translations = {
       test: "Test",
       selectedTest: "Test sélectionné",
       addEvaluationBlock: "Ajouter un bloc d’évaluation",
+      possibleEvaluations: "Évaluation",
       addTest: "Ajouter un test",
       districtDuplicate: "Ce district est déjà présent.",
       evaluationBlock: "Bloc",
@@ -712,6 +716,7 @@ export const translations = {
       otherExercise: "Autre exercice",
       otherExerciseSpecify: "Préciser l’exercice",
       generalPainVAS: "Douleur (évaluation générale)",
+      conditionBaseSection: "Condition de base",
     },
 
     testSession: {
@@ -719,6 +724,7 @@ export const translations = {
       sectionTitle: "Données de la séance de tests",
       date: "Date du test",
       number: "Numéro progressif du test",
+      possibleTests: "Type de test",
       notes: "Notes du test",
       save: "Enregistrer la séance de tests",
       edit: "Modifier la séance de tests",
@@ -1191,6 +1197,7 @@ tegner: {
       test: "Test",
       selectedTest: "Ausgewählter Test",
       addEvaluationBlock: "Bewertungsblock hinzufügen",
+      possibleEvaluations: "Bewertung",
       addTest: "Test hinzufügen",
       districtDuplicate: "Dieser Bezirk ist bereits vorhanden.",
       evaluationBlock: "Block",
@@ -1204,6 +1211,7 @@ tegner: {
       otherExercise: "Andere Übung",
       otherExerciseSpecify: "Übung beschreiben",
       generalPainVAS: "Schmerz (allgemeine Bewertung)",
+      conditionBaseSection: "Basiszustand",
     },
 
     testSession: {
@@ -1211,6 +1219,7 @@ tegner: {
       sectionTitle: "Test-Sitzung",
       date: "Testdatum",
       number: "Fortlaufende Testnummer",
+      possibleTests: "Testtyp",
       notes: "Testnotizen",
       save: "Test-Sitzung speichern",
       edit: "Test-Sitzung bearbeiten",
@@ -1616,6 +1625,7 @@ dominantHand: {
       test: "Test",
       selectedTest: "Test seleccionado",
       addEvaluationBlock: "Añadir bloque de evaluación",
+      possibleEvaluations: "Evaluación",
       addTest: "Añadir test",
       districtDuplicate: "Esta región ya está presente.",
       evaluationBlock: "Bloque",
@@ -1629,6 +1639,7 @@ dominantHand: {
       otherExercise: "Otro ejercicio",
       otherExerciseSpecify: "Describir el ejercicio",
       generalPainVAS: "Dolor (evaluación general)",
+      conditionBaseSection: "Condición base",
     },
 
     testSession: {
@@ -1636,6 +1647,7 @@ dominantHand: {
       sectionTitle: "Datos de la sesión de tests",
       date: "Fecha del test",
       number: "Número progresivo del test",
+      possibleTests: "Tipo de test",
       notes: "Notas del test",
       save: "Guardar sesión de tests",
       edit: "Modificar sesión de tests",
@@ -2154,6 +2166,7 @@ dominantHand: {
       test: "Test",
       selectedTest: "Selected test",
       addEvaluationBlock: "Add evaluation block",
+      possibleEvaluations: "Evaluation",
       addTest: "Add test",
       districtDuplicate: "This region is already present.",
       evaluationBlock: "Block",
@@ -2167,6 +2180,7 @@ dominantHand: {
       otherExercise: "Other exercise",
       otherExerciseSpecify: "Describe exercise",
       generalPainVAS: "General evaluation pain",
+      conditionBaseSection: "Baseline condition",
     },
 
     testSession: {
@@ -2174,6 +2188,7 @@ dominantHand: {
       sectionTitle: "Test session details",
       date: "Test date",
       number: "Progressive test number",
+      possibleTests: "Test type",
       notes: "Test notes",
       save: "Save test session",
       edit: "Edit test session",

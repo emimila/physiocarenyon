@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { uid } from "../../utils/helpers";
+import { createActiveTestByType } from "../../utils/factories";
 import Input from "../ui/Input";
 import Select from "../ui/Select";
 import Textarea from "../ui/Textarea";
@@ -62,61 +63,24 @@ export default function DistrictTestsPanel({
                         ...dist,
                         tests: (dist.tests || []).map((t) =>
                           t.id === test.id
-                            ? {
-                                ...t,
-                                type: value,
-                                grip:
-                                  value === "GRIP_STRENGTH"
-                                    ? {
-                                        manoDominante:
-                                          patient?.manoDominante || "",
-                                        manoDestraForza1: "",
-                                        manoDestraForza2: "",
-                                        manoDestraForza3: "",
-                                        manoSinistraForza1: "",
-                                        manoSinistraForza2: "",
-                                        manoSinistraForza3: "",
-                                      }
-                                    : {},
-                                left:
-                                  value === "Y_BALANCE"
-                                    ? {
-                                        legLength: "",
-                                        anterior: [],
-                                        posteromedial: [],
-                                        posterolateral: [],
-                                      }
-                                    : value === "GRIP_STRENGTH"
-                                      ? {}
-                                      : {},
-                                right:
-                                  value === "Y_BALANCE"
-                                    ? {
-                                        legLength: "",
-                                        anterior: [],
-                                        posteromedial: [],
-                                        posterolateral: [],
-                                      }
-                                    : value === "GRIP_STRENGTH"
-                                      ? {}
-                                      : {},
-                                lifts:
-                                  value === "STRENGTH_MAXIMALS"
-                                    ? t.type === "STRENGTH_MAXIMALS" &&
-                                      Array.isArray(t.lifts) &&
-                                      t.lifts.length > 0
+                            ? (() => {
+                                const fresh = createActiveTestByType(
+                                  value,
+                                  patient
+                                );
+                                return {
+                                  ...fresh,
+                                  id: t.id,
+                                  noteAltro: t.noteAltro || "",
+                                  lifts:
+                                    value === "STRENGTH_MAXIMALS" &&
+                                    t.type === "STRENGTH_MAXIMALS" &&
+                                    Array.isArray(t.lifts) &&
+                                    t.lifts.length > 0
                                       ? t.lifts
-                                      : [
-                                          {
-                                            id: uid(),
-                                            exercise: "",
-                                            exerciseOther: "",
-                                            reps: "",
-                                            weightKg: "",
-                                          },
-                                        ]
-                                    : undefined,
-                              }
+                                      : fresh.lifts,
+                                };
+                              })()
                             : t
                         ),
                       }
@@ -142,42 +106,6 @@ export default function DistrictTestsPanel({
               },
             ]}
           />
-
-          <Textarea
-            label={tt("evaluation.otherDetailsOptional")}
-            value={test.noteAltro || ""}
-            onChange={(value) =>
-              setEvaluationForm({
-                ...evaluationForm,
-                distretti: evaluationForm.distretti.map((dist) =>
-                  dist.id === d.id
-                    ? {
-                        ...dist,
-                        tests: (dist.tests || []).map((t) =>
-                          t.id === test.id ? { ...t, noteAltro: value } : t
-                        ),
-                      }
-                    : dist
-                ),
-              })
-            }
-          />
-
-          {test.type && (
-            <div className="evaluation-test-meta">
-              <strong>
-                {tt("evaluation.selectedTest") ?? "Test selezionato"}:
-              </strong>{" "}
-              {test.type === "Y_BALANCE"
-                ? tt("tests.yBalance.title") ?? "Y Balance Test"
-                : test.type === "GRIP_STRENGTH"
-                  ? tt("tests.gripStrength.title") ?? "Grip test (Jamar)"
-                  : test.type === "STRENGTH_MAXIMALS"
-                    ? tt("tests.strengthMaximals.title") ??
-                      "Massimali pesistica"
-                    : test.type}
-            </div>
-          )}
 
           {test.type === "Y_BALANCE" && (
             <div className="evaluation-y-sides-grid">
@@ -304,6 +232,34 @@ export default function DistrictTestsPanel({
               setEvaluationForm={setEvaluationForm}
             />
           )}
+
+          {test.type ? (
+            <div style={{ marginTop: 12 }}>
+              <Textarea
+                compact
+                fullWidth
+                label={tt("evaluation.otherDetailsOptional")}
+                value={test.noteAltro || ""}
+                onChange={(value) =>
+                  setEvaluationForm({
+                    ...evaluationForm,
+                    distretti: evaluationForm.distretti.map((dist) =>
+                      dist.id === d.id
+                        ? {
+                            ...dist,
+                            tests: (dist.tests || []).map((t) =>
+                              t.id === test.id
+                                ? { ...t, noteAltro: value }
+                                : t
+                            ),
+                          }
+                        : dist
+                    ),
+                  })
+                }
+              />
+            </div>
+          ) : null}
         </div>
       ))}
     </div>

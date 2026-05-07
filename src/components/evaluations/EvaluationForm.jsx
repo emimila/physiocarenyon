@@ -1,5 +1,4 @@
-import { Fragment } from "react";
-import Section from "../ui/Section";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { uid } from "../../utils/helpers";
 import Input from "../ui/Input";
 import Select from "../ui/Select";
@@ -8,7 +7,7 @@ import Score10 from "../ui/Score10";
 import SideScores from "./SideScores";
 import { distretti } from "../../data/options";
 
-/** Un blocco = tipo + note + (subito sotto) sole celle/griglie di quel blocco — nulla tra un blocco e il successivo. */
+/** Un blocco: scelta tipo, poi griglia dati; note opzionali sempre sotto la griglia del tipo selezionato. */
 function EvaluationBlockCard({
   tt,
   block,
@@ -21,6 +20,34 @@ function EvaluationBlockCard({
 }) {
   const showKiviat =
     block.type === "KIVIAT" || block.type === "KIVIAT_PAIN";
+
+  function patchBlockNote(value) {
+    setEvaluationForm({
+      ...evaluationForm,
+      distretti: evaluationForm.distretti.map((dist) =>
+        dist.id === d.id
+          ? {
+              ...dist,
+              blocks: (dist.blocks || []).map((b) =>
+                b.id === block.id ? { ...b, noteAltro: value } : b
+              ),
+            }
+          : dist
+      ),
+    });
+  }
+
+  const noteTextarea = (
+    <div style={{ marginTop: 12 }}>
+      <Textarea
+        compact
+        fullWidth
+        label={tt("evaluation.otherDetailsOptional")}
+        value={block.noteAltro || ""}
+        onChange={patchBlockNote}
+      />
+    </div>
+  );
 
   return (
     <article
@@ -36,62 +63,41 @@ function EvaluationBlockCard({
     >
       <div className="evaluation-block-fields">
         <div className="evaluation-block-note-group">
-        <Select
-          compact
-          fullWidth
-          label={tt("evaluation.evaluationBlock")}
-          value={block.type}
-          onChange={(value) =>
-            setEvaluationForm({
-              ...evaluationForm,
-              distretti: evaluationForm.distretti.map((dist) =>
-                dist.id === d.id
-                  ? {
-                      ...dist,
-                      blocks: (dist.blocks || []).map((b) =>
-                        b.id === block.id ? { ...b, type: value } : b
-                      ),
-                    }
-                  : dist
-              ),
-            })
-          }
-          options={[
-            {
-              value: "KIVIAT",
-              label: tt("evaluation.blockType.KIVIAT"),
-            },
-            {
-              value: "PAIN_VAS",
-              label: tt("evaluation.blockType.PAIN_VAS"),
-            },
-            {
-              value: "GENERAL_PAIN",
-              label: tt("evaluation.blockType.GENERAL_PAIN"),
-            },
-          ]}
-        />
-        <Textarea
-          compact
-          fullWidth
-          label={tt("evaluation.otherDetailsOptional")}
-          value={block.noteAltro || ""}
-          onChange={(value) =>
-            setEvaluationForm({
-              ...evaluationForm,
-              distretti: evaluationForm.distretti.map((dist) =>
-                dist.id === d.id
-                  ? {
-                      ...dist,
-                      blocks: (dist.blocks || []).map((b) =>
-                        b.id === block.id ? { ...b, noteAltro: value } : b
-                      ),
-                    }
-                  : dist
-              ),
-            })
-          }
-        />
+          <Select
+            compact
+            fullWidth
+            label={tt("evaluation.evaluationBlock")}
+            value={block.type}
+            onChange={(value) =>
+              setEvaluationForm({
+                ...evaluationForm,
+                distretti: evaluationForm.distretti.map((dist) =>
+                  dist.id === d.id
+                    ? {
+                        ...dist,
+                        blocks: (dist.blocks || []).map((b) =>
+                          b.id === block.id ? { ...b, type: value } : b
+                        ),
+                      }
+                    : dist
+                ),
+              })
+            }
+            options={[
+              {
+                value: "KIVIAT",
+                label: tt("evaluation.blockType.KIVIAT"),
+              },
+              {
+                value: "PAIN_VAS",
+                label: tt("evaluation.blockType.PAIN_VAS"),
+              },
+              {
+                value: "GENERAL_PAIN",
+                label: tt("evaluation.blockType.GENERAL_PAIN"),
+              },
+            ]}
+          />
         </div>
       </div>
 
@@ -116,6 +122,7 @@ function EvaluationBlockCard({
               updateScore(d.id, "destro", key, value)
             }
           />
+          {noteTextarea}
         </div>
       )}
 
@@ -170,6 +177,7 @@ function EvaluationBlockCard({
               </Fragment>
             ))}
           </div>
+          {noteTextarea}
         </div>
       )}
 
@@ -186,24 +194,52 @@ function EvaluationBlockCard({
             value={d.doloreGeneraleVAS || ""}
             onChange={(v) => patchDistretto(d.id, { doloreGeneraleVAS: v })}
           />
+          {noteTextarea}
         </div>
       )}
     </article>
   );
 }
 
+const EVALUATION_BLOCK_TYPE_IDS = ["KIVIAT", "PAIN_VAS", "GENERAL_PAIN"];
+
 export default function EvaluationForm({
   tt,
   evaluationForm,
   setEvaluationForm,
-  distrettoToAdd,
-  setDistrettoToAdd,
-  addDistretto,
+  addDistrettoWithFirstBlock,
   removeDistretto,
   updateScore,
   saveEvaluation,
   cancel,
 }) {
+  const [pickDistretto, setPickDistretto] = useState("");
+  const [pickBlockType, setPickBlockType] = useState("");
+  const pickDistrettoRef = useRef("");
+  const pickBlockTypeRef = useRef("");
+
+  useEffect(() => {
+    pickDistrettoRef.current = pickDistretto;
+  }, [pickDistretto]);
+  useEffect(() => {
+    pickBlockTypeRef.current = pickBlockType;
+  }, [pickBlockType]);
+
+  function clearDistrictPickers() {
+    pickDistrettoRef.current = "";
+    pickBlockTypeRef.current = "";
+    setPickDistretto("");
+    setPickBlockType("");
+  }
+
+  function tryFlushDistrictAdd() {
+    const d = pickDistrettoRef.current;
+    const b = pickBlockTypeRef.current;
+    if (!d || !b) return;
+    addDistrettoWithFirstBlock(d, b);
+    clearDistrictPickers();
+  }
+
   function patchDistretto(distrettoId, patch) {
     setEvaluationForm({
       ...evaluationForm,
@@ -235,105 +271,165 @@ export default function EvaluationForm({
 
   return (
     <div className="evaluation-form">
-      <h2>{tt("evaluation.title")}</h2>
-
-      <Section title={tt("evaluation.title")}>
-        <Input
-          label={tt("evaluation.date")}
-          type="date"
-          value={evaluationForm.data}
-          onChange={(v) => setEvaluationForm({ ...evaluationForm, data: v })}
-        />
-
-        <p style={{ margin: "6px 0 10px" }}>
-          <strong>{tt("evaluation.number")}:</strong>{" "}
-          {evaluationForm.numeroValutazione || "—"}
-        </p>
-
-        <Textarea
-          label={tt("evaluation.notes")}
-          value={evaluationForm.note}
-          onChange={(v) => setEvaluationForm({ ...evaluationForm, note: v })}
-        />
-
-        <div style={{ marginTop: 18 }}>
-          <Select
-            label={tt("evaluation.district")}
-            value={distrettoToAdd}
-            onChange={setDistrettoToAdd}
-            options={distretti.map((d) => ({
-              value: d,
-              label:
-                tt(`options.distretti.${d}`) ||
-                tt(`options.distretti.${d.toLowerCase()}`) ||
-                d,
-            }))}
-          />
-
-          <button type="button" onClick={addDistretto} style={{ marginTop: 10 }}>
-            {tt("evaluation.addDistrict")}
-          </button>
-        </div>
-      </Section>
-
-      {evaluationForm.distretti.map((d) => (
-        <Section
-          key={d.id}
-          title={
-            tt(`options.distretti.${d.nome}`) ||
-            tt(`options.distretti.${String(d.nome).toLowerCase()}`) ||
-            d.nome
-          }
-          titleAside={
-            <button type="button" onClick={() => removeDistretto(d.id)}>
-              {tt("evaluation.removeDistrict")}
-            </button>
-          }
+      <div
+        className="section-card"
+        style={{
+          border: "1px solid #ddd",
+          borderRadius: 10,
+          padding: 15,
+          marginBottom: 15,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 16,
+            marginBottom: 12,
+          }}
         >
-          <div
-            className="evaluation-blocks-stack"
-            style={{ marginTop: 15 }}
-            data-eval-ui="blocks-v2"
-          >
-            {(d.blocks || []).map((block) => (
-              <EvaluationBlockCard
-                key={block.id}
-                tt={tt}
-                block={block}
-                d={d}
-                evaluationForm={evaluationForm}
-                setEvaluationForm={setEvaluationForm}
-                updateScore={updateScore}
-                updateDolore={updateDolore}
-                patchDistretto={patchDistretto}
-              />
-            ))}
-
-            <button
-              type="button"
-              style={{ alignSelf: "flex-start" }}
-              onClick={() =>
-                setEvaluationForm({
-                  ...evaluationForm,
-                  distretti: evaluationForm.distretti.map((dist) =>
-                    dist.id === d.id
-                      ? {
-                          ...dist,
-                          blocks: [
-                            ...(dist.blocks || []),
-                            { id: uid(), type: "", noteAltro: "" },
-                          ],
-                        }
-                      : dist
-                  ),
-                })
+          <p style={{ margin: 0 }}>
+            <strong>{tt("evaluation.number")}:</strong>{" "}
+            {evaluationForm.numeroValutazione || "—"}
+          </p>
+          <div style={{ flex: "1 1 220px", maxWidth: 420 }}>
+            <Input
+              label={tt("evaluation.date")}
+              type="date"
+              value={evaluationForm.data}
+              onChange={(v) =>
+                setEvaluationForm({ ...evaluationForm, data: v })
               }
-            >
-              {tt("evaluation.addEvaluationBlock")}
-            </button>
+            />
           </div>
-        </Section>
-      ))}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 12,
+            alignItems: "flex-start",
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+            <Select
+              label={tt("evaluation.district")}
+              value={pickDistretto}
+              onChange={(v) => {
+                pickDistrettoRef.current = v;
+                setPickDistretto(v);
+                if (v && pickBlockTypeRef.current) tryFlushDistrictAdd();
+              }}
+              options={[
+                { value: "", label: "--" },
+                ...distretti.map((d) => ({
+                  value: d,
+                  label:
+                    tt(`options.distretti.${d}`) ||
+                    tt(`options.distretti.${d.toLowerCase()}`) ||
+                    d,
+                })),
+              ]}
+            />
+          </div>
+          <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+            <Select
+              label={tt("evaluation.possibleEvaluations")}
+              value={pickBlockType}
+              onChange={(v) => {
+                pickBlockTypeRef.current = v;
+                setPickBlockType(v);
+                if (v && pickDistrettoRef.current) tryFlushDistrictAdd();
+              }}
+              options={[
+                { value: "", label: "--" },
+                ...EVALUATION_BLOCK_TYPE_IDS.map((id) => ({
+                  value: id,
+                  label: tt(`evaluation.blockType.${id}`) || id,
+                })),
+              ]}
+            />
+          </div>
+        </div>
+
+        {evaluationForm.distretti.map((d, idx) => (
+          <div
+            key={d.id}
+            style={{
+              marginTop: idx === 0 ? 20 : 24,
+              paddingTop: idx === 0 ? 16 : 20,
+              borderTop: "1px solid #e2e8f0",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                marginBottom: 12,
+              }}
+            >
+              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>
+                {tt(`options.distretti.${d.nome}`) ||
+                  tt(`options.distretti.${String(d.nome).toLowerCase()}`) ||
+                  d.nome}
+              </h3>
+              <button type="button" onClick={() => removeDistretto(d.id)}>
+                {tt("evaluation.removeDistrict")}
+              </button>
+            </div>
+
+            <div
+              className="evaluation-blocks-stack"
+              style={{ marginTop: 4 }}
+              data-eval-ui="blocks-v2"
+            >
+              {(d.blocks || []).map((block) => (
+                <EvaluationBlockCard
+                  key={block.id}
+                  tt={tt}
+                  block={block}
+                  d={d}
+                  evaluationForm={evaluationForm}
+                  setEvaluationForm={setEvaluationForm}
+                  updateScore={updateScore}
+                  updateDolore={updateDolore}
+                  patchDistretto={patchDistretto}
+                />
+              ))}
+
+              <button
+                type="button"
+                style={{ alignSelf: "flex-start" }}
+                onClick={() =>
+                  setEvaluationForm({
+                    ...evaluationForm,
+                    distretti: evaluationForm.distretti.map((dist) =>
+                      dist.id === d.id
+                        ? {
+                            ...dist,
+                            blocks: [
+                              ...(dist.blocks || []),
+                              { id: uid(), type: "", noteAltro: "" },
+                            ],
+                          }
+                        : dist
+                    ),
+                  })
+                }
+              >
+                {tt("evaluation.addEvaluationBlock")}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
       <button onClick={saveEvaluation}>
         {tt("evaluation.saveEvaluation")}

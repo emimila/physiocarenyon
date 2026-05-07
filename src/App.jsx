@@ -169,9 +169,7 @@ export default function App() {
   const [editingTestSession, setEditingTestSession] = useState(false);
   const [form, setForm] = useState(emptyPatient);
   const [evaluationForm, setEvaluationForm] = useState(createEvaluation());
-  const [distrettoToAdd, setDistrettoToAdd] = useState("");
   const [testSessionForm, setTestSessionForm] = useState(createTestSession());
-  const [distrettoToAddTest, setDistrettoToAddTest] = useState("");
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(patients));
@@ -273,7 +271,6 @@ export default function App() {
       ) + 1;
 
     setEvaluationForm(createEvaluation(String(nextVal)));
-    setDistrettoToAdd("");
     setEditingEvaluation(true);
     setEditingPatient(false);
     setEditingTestSession(false);
@@ -291,7 +288,6 @@ export default function App() {
       ) + 1;
 
     setTestSessionForm(createTestSession(String(nextNum)));
-    setDistrettoToAddTest("");
     setEditingTestSession(true);
     setEditingPatient(false);
     setEditingEvaluation(false);
@@ -301,7 +297,6 @@ export default function App() {
     setTestSessionForm(
       sanitizeTestSessionForSave(JSON.parse(JSON.stringify(session)))
     );
-    setDistrettoToAddTest("");
     setEditingTestSession(true);
     setEditingPatient(false);
     setEditingEvaluation(false);
@@ -309,53 +304,49 @@ export default function App() {
 
   function editEvaluation(ev) {
     setEvaluationForm(sanitizeEvaluationForSave(JSON.parse(JSON.stringify(ev))));
-    setDistrettoToAdd("");
     setEditingEvaluation(true);
     setEditingPatient(false);
     setEditingTestSession(false);
   }
 
-  function addDistretto() {
-    if (!distrettoToAdd) return;
+  function addDistrettoWithFirstBlock(nome, blockType) {
+    if (!nome || !blockType) return false;
 
-    const alreadyExists = evaluationForm.distretti.some(
-      (d) => d.nome === distrettoToAdd
-    );
+    const alreadyExists = evaluationForm.distretti.some((d) => d.nome === nome);
 
     if (alreadyExists) {
       alert(tt("evaluation.districtDuplicate"));
-      return;
+      return false;
     }
+
+    const newDist = createDistretto(nome);
+    newDist.blocks = [{ id: uid(), type: blockType, noteAltro: "" }];
 
     setEvaluationForm({
       ...evaluationForm,
-      distretti: [...evaluationForm.distretti, createDistretto(distrettoToAdd)],
+      distretti: [...evaluationForm.distretti, newDist],
     });
-
-    setDistrettoToAdd("");
+    return true;
   }
 
-  function addDistrettoTestSession() {
-    if (!distrettoToAddTest) return;
+  function addDistrettoTestSessionWithFirstTest(nome, testType) {
+    if (!nome || !testType) return false;
 
-    const alreadyExists = testSessionForm.distretti.some(
-      (d) => d.nome === distrettoToAddTest
-    );
+    const alreadyExists = testSessionForm.distretti.some((d) => d.nome === nome);
 
     if (alreadyExists) {
       alert(tt("evaluation.districtDuplicate") ?? "Distretto già presente.");
-      return;
+      return false;
     }
 
     setTestSessionForm({
       ...testSessionForm,
       distretti: [
         ...testSessionForm.distretti,
-        createDistrettoTestOnly(distrettoToAddTest),
+        createDistrettoTestOnly(nome, selected, testType),
       ],
     });
-
-    setDistrettoToAddTest("");
+    return true;
   }
 
   function removeDistrettoTestSession(id) {
@@ -652,12 +643,11 @@ export default function App() {
 
           {editingEvaluation && selected && (
             <EvaluationForm
+              key={evaluationForm.id}
               tt={tt}
               evaluationForm={evaluationForm}
               setEvaluationForm={setEvaluationForm}
-              distrettoToAdd={distrettoToAdd}
-              setDistrettoToAdd={setDistrettoToAdd}
-              addDistretto={addDistretto}
+              addDistrettoWithFirstBlock={addDistrettoWithFirstBlock}
               removeDistretto={removeDistretto}
               updateScore={updateScore}
               saveEvaluation={saveEvaluation}
@@ -667,13 +657,12 @@ export default function App() {
 
           {editingTestSession && selected && (
             <TestSessionForm
+              key={testSessionForm.id}
               tt={tt}
               patient={selected}
               testSessionForm={testSessionForm}
               setTestSessionForm={setTestSessionForm}
-              distrettoToAdd={distrettoToAddTest}
-              setDistrettoToAdd={setDistrettoToAddTest}
-              addDistretto={addDistrettoTestSession}
+              addDistrettoWithFirstTest={addDistrettoTestSessionWithFirstTest}
               removeDistretto={removeDistrettoTestSession}
               saveTestSession={saveTestSession}
               cancel={() => setEditingTestSession(false)}
