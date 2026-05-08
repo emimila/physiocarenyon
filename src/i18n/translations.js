@@ -25,6 +25,8 @@ export const translations = {
       subtitle: "Scheda paziente + valutazioni per distretto",
       patients: "Pazienti",
       noSelection: "Seleziona un paziente o creane uno nuovo.",
+      collapsePatientList: "Riduci elenco pazienti",
+      expandPatientList: "Mostra elenco pazienti",
     },
 
     patient: {
@@ -601,6 +603,8 @@ export const translations = {
       subtitle: "Fiche patient + évaluations par région",
       patients: "Patients",
       noSelection: "Sélectionnez un patient ou créez-en un nouveau.",
+      collapsePatientList: "Réduire la liste des patients",
+      expandPatientList: "Afficher la liste des patients",
     },
 
     patient: {
@@ -1190,6 +1194,8 @@ tegner: {
       patients: "Patienten",
       noSelection:
         "Wählen Sie einen Patienten aus oder erstellen Sie einen neuen.",
+      collapsePatientList: "Patientenliste einklappen",
+      expandPatientList: "Patientenliste anzeigen",
     },
 
     dominantHand: {
@@ -1778,6 +1784,8 @@ tegner: {
       subtitle: "Ficha del paciente + evaluaciones por región",
       patients: "Pacientes",
       noSelection: "Selecciona un paciente o crea uno nuevo.",
+      collapsePatientList: "Ocultar lista de pacientes",
+      expandPatientList: "Mostrar lista de pacientes",
     },
 
     patient: {
@@ -2366,6 +2374,8 @@ dominantHand: {
       subtitle: "Patient file + evaluations by region",
       patients: "Patients",
       noSelection: "Select a patient or create a new one.",
+      collapsePatientList: "Collapse patient list",
+      expandPatientList: "Show patient list",
     },
 
     patient: {

@@ -512,21 +512,93 @@ hr.patient-sheet-divider {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: clamp(14px, 2vw, 22px);
+  gap: clamp(11px, 1.62vw, 18px);
   text-align: left;
 }
 
 .app-sidebar {
-  flex: 0 0 clamp(240px, 28vw, 300px);
+  flex: 0 0 clamp(194px, 22.68vw, 243px);
   min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  transition:
+    flex-basis 0.22s ease,
+    width 0.22s ease,
+    max-width 0.22s ease;
 }
 
-.app-sidebar h3 {
-  margin: 0 0 10px;
+.app-sidebar--collapsed {
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  max-width: 44px !important;
+  min-width: 44px;
+  padding-left: 0;
+  padding-right: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-sidebar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.app-sidebar-toolbar h3 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-h);
   letter-spacing: 0.02em;
+}
+
+.app-sidebar-collapse-btn,
+.app-sidebar-expand-btn {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 8px);
+  background: var(--surface-2, var(--surface));
+  color: var(--text-h);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.app-sidebar-collapse-btn:hover,
+.app-sidebar-expand-btn:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.app-sidebar-list {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.app-sidebar--collapsed .app-sidebar-expand-btn {
+  margin-top: 8px;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 4rem;
+  padding: 10px 2px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 1.25rem;
 }
 
 .app-content {
@@ -940,12 +1012,37 @@ hr.patient-sheet-divider {
     flex-direction: column;
   }
 
-  .app-sidebar {
+  .app-sidebar:not(.app-sidebar--collapsed) {
     flex: 0 0 auto;
     width: 100%;
     max-height: min(40vh, 320px);
     overflow-y: auto;
     padding-right: 4px;
+  }
+
+  .app-sidebar--collapsed {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    max-height: none;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 6px 8px;
+    overflow: visible;
+  }
+
+  .app-sidebar--collapsed .app-sidebar-expand-btn {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    flex: 0 0 auto;
+    min-height: 2.25rem;
+    width: auto;
+    min-width: 2.75rem;
+    margin-top: 0;
+    padding: 0 12px;
+    font-size: 1.1rem;
   }
 
   .app-content {
@@ -961,7 +1058,7 @@ hr.patient-sheet-divider {
  */
 @media (orientation: landscape) and (min-width: 900px) and (max-width: 1450px) {
   :root {
-    --ipad-land-sidebar: clamp(268px, 28vw, 340px);
+    --ipad-land-sidebar: clamp(217px, 22.68vw, 275px);
   }
 
   html {
@@ -1010,7 +1107,7 @@ hr.patient-sheet-divider {
     align-items: stretch;
   }
 
-  .app-sidebar {
+  .app-sidebar:not(.app-sidebar--collapsed) {
     flex: 0 0 var(--ipad-land-sidebar);
     width: var(--ipad-land-sidebar);
     max-width: var(--ipad-land-sidebar);
@@ -1020,6 +1117,15 @@ hr.patient-sheet-divider {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding-right: 6px;
+  }
+
+  .app-sidebar.app-sidebar--collapsed {
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    max-width: 44px !important;
+    min-width: 44px;
+    max-height: none;
+    padding-right: 4px;
   }
 
   .app-content {

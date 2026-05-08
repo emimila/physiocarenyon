@@ -3,7 +3,14 @@ import { assessGrip } from "./utils/gripAssessment";
 import html2pdf from "html2pdf.js";
 import { exportHtmlToPdf, getHtml2PdfOptions } from "./utils/exportHtmlToPdf";
 import ReportView from "./components/reports/ReportView";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import DataBackup from "./components/storage/DataBackup";
 import { getText } from "./i18n";
 import EvaluationForm from "./components/evaluations/EvaluationForm";
@@ -82,6 +89,24 @@ function stampDistrictSlotNumbers(patient, entity, entityId, kind) {
 }
 
 const STORAGE_KEY = "physiocare_nyon_stabile";
+/** Preferenza elenco pazienti ridotto (1 = collassato). */
+const STORAGE_SIDEBAR_COLLAPSED = "physiocare_nyon_sidebar_collapsed";
+
+function readSidebarCollapsedPref() {
+  try {
+    return localStorage.getItem(STORAGE_SIDEBAR_COLLAPSED) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSidebarCollapsedPref(collapsed) {
+  try {
+    localStorage.setItem(STORAGE_SIDEBAR_COLLAPSED, collapsed ? "1" : "0");
+  } catch {
+    /* ignore */
+  }
+}
 
 const emptyPatient = {
   id: "",
@@ -165,6 +190,7 @@ export default function App() {
   const tt = getText(lang);
 
   const [selected, setSelected] = useState(null);
+  const [patientListCollapsed, setPatientListCollapsed] = useState(false);
   const [editingPatient, setEditingPatient] = useState(false);
   const [editingEvaluation, setEditingEvaluation] = useState(false);
   const [editingTestSession, setEditingTestSession] = useState(false);
@@ -180,6 +206,21 @@ export default function App() {
     () => patients.filter((p) => patientMatchesSearchQuery(p, query)),
     [patients, query]
   );
+
+  useLayoutEffect(() => {
+    if (!selected) setPatientListCollapsed(false);
+  }, [selected]);
+
+  useEffect(() => {
+    if (selected?.id && readSidebarCollapsedPref()) {
+      setPatientListCollapsed(true);
+    }
+  }, [selected?.id]);
+
+  function setPatientListCollapsedPersist(next) {
+    writeSidebarCollapsedPref(next);
+    setPatientListCollapsed(next);
+  }
 
   function syncSelected(updatedPatient) {
     setPatients((prev) =>
@@ -591,43 +632,76 @@ export default function App() {
       <hr className="app-divider" />
 
       <div className="app-layout">
-        <aside className="app-sidebar">
-          <h3>{tt("app.patients")}</h3>
-
-          {filtered.map((p) => (
-            <div
-              key={p.id}
-              role="button"
-              tabIndex={0}
-              className={`patient-card${selected?.id === p.id ? " patient-card--active" : ""}`}
-              onClick={() => {
-                setSelected(p);
-                setEditingPatient(false);
-                setEditingEvaluation(false);
-                setEditingTestSession(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setSelected(p);
-                  setEditingPatient(false);
-                  setEditingEvaluation(false);
-                  setEditingTestSession(false);
-                }
-              }}
-            >
-              <div className="patient-card__row">
-                <strong className="patient-card__name">
-                  {p.cognome} {p.nome}
-                </strong>
-                {p.dataNascita ? (
-                  <span className="patient-card__dob" title={tt("patient.birthDate")}>
-                    {formatDateDMY(p.dataNascita)}
-                  </span>
-                ) : null}
+        <aside
+          className={`app-sidebar${patientListCollapsed ? " app-sidebar--collapsed" : ""}`}
+          aria-label={tt("app.patients")}
+        >
+          {!patientListCollapsed ? (
+            <>
+              <div className="app-sidebar-toolbar">
+                <h3>{tt("app.patients")}</h3>
+                <button
+                  type="button"
+                  className="app-sidebar-collapse-btn"
+                  onClick={() => setPatientListCollapsedPersist(true)}
+                  aria-expanded="true"
+                  aria-controls="patient-list-panel"
+                  aria-label={tt("app.collapsePatientList")}
+                  title={tt("app.collapsePatientList")}
+                >
+                  ‹
+                </button>
               </div>
-            </div>
-          ))}
+              <div id="patient-list-panel" className="app-sidebar-list">
+                {filtered.map((p) => (
+                  <div
+                    key={p.id}
+                    role="button"
+                    tabIndex={0}
+                    className={`patient-card${selected?.id === p.id ? " patient-card--active" : ""}`}
+                    onClick={() => {
+                      setSelected(p);
+                      setEditingPatient(false);
+                      setEditingEvaluation(false);
+                      setEditingTestSession(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelected(p);
+                        setEditingPatient(false);
+                        setEditingEvaluation(false);
+                        setEditingTestSession(false);
+                      }
+                    }}
+                  >
+                    <div className="patient-card__row">
+                      <strong className="patient-card__name">
+                        {p.cognome} {p.nome}
+                      </strong>
+                      {p.dataNascita ? (
+                        <span className="patient-card__dob" title={tt("patient.birthDate")}>
+                          {formatDateDMY(p.dataNascita)}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="app-sidebar-expand-btn"
+              onClick={() => setPatientListCollapsedPersist(false)}
+              aria-expanded="false"
+              aria-controls="patient-list-panel"
+              aria-label={tt("app.expandPatientList")}
+              title={tt("app.expandPatientList")}
+            >
+              ›
+            </button>
+          )}
         </aside>
 
         <div className="app-content">
