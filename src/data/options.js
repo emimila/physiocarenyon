@@ -32,6 +32,7 @@ export const sportOptions = [
   "nuoto",
   "basket",
   "pallavolo",
+  "handball",
   "danza",
   "crossfit",
   "escalade",

@@ -87,6 +87,8 @@ export const translations = {
       tennisStringTension: "Tensione corde",
       tennisRacketChangedRecently: "Racchetta cambiata di recente?",
       padelRacketChangedRecently: "Racchetta cambiata di recente?",
+      sciType: "Tipo di sci",
+      calcioFieldRole: "Ruolo in campo",
       dominantHand: "Mano dominante",
       rightHandDynamometer: "Dinamometro mano destra",
       leftHandDynamometer: "Dinamometro mano sinistra",
@@ -323,18 +325,42 @@ export const translations = {
         Tennis: "Tennis",
         padel: "Padel",
         Padel: "Padel",
+        sci: "Sci",
         Sci: "Sci",
+        handball: "Pallamano",
+        Handball: "Pallamano",
+        nuoto: "Nuoto",
         Nuoto: "Nuoto",
+        basket: "Basket",
         Basket: "Basket",
+        pallavolo: "Pallavolo",
         Pallavolo: "Pallavolo",
+        danza: "Danza",
         Danza: "Danza",
+        crossfit: "CrossFit",
         CrossFit: "CrossFit",
+        escalade: "Escalade",
         Escalade: "Escalade",
+        yoga: "Yoga",
         Yoga: "Yoga",
+        pilates: "Pilates",
         Pilates: "Pilates",
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
+      },
+
+      sciTipo: {
+        fond: "Ski de fond / sci di fondo",
+        randonnee: "Ski de randonnée / sci alpinismo",
+        alpin: "Ski alpin / sci alpino",
+      },
+
+      calcioRuolo: {
+        portiere: "Portiere",
+        difensore: "Difensore",
+        laterale: "Laterale",
+        attaccante: "Attaccante",
       },
 
       boardStance: {
@@ -672,6 +698,8 @@ export const translations = {
       tennisStringTension: "Tension des cordes",
       tennisRacketChangedRecently: "Raquette changée récemment ?",
       padelRacketChangedRecently: "Raquette changée récemment ?",
+      sciType: "Type de ski",
+      calcioFieldRole: "Rôle sur le terrain",
     
       workEducation: "Domaine de travail / formation",
       professionalRiskNotes: "Notes sur les risques professionnels",
@@ -997,6 +1025,7 @@ tegner: {
         nuoto: "Natation",
         basket: "Basket",
         pallavolo: "Volley",
+        handball: "Handball",
         danza: "Danse",
         crossfit: "CrossFit",
         escalade: "Escalade",
@@ -1013,6 +1042,7 @@ tegner: {
         Nuoto: "Natation",
         Basket: "Basket",
         Pallavolo: "Volley",
+        Handball: "Handball",
         Danza: "Danse",
         CrossFit: "CrossFit",
         Escalade: "Escalade",
@@ -1021,6 +1051,19 @@ tegner: {
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
+      },
+
+      sciTipo: {
+        fond: "Ski de fond",
+        randonnee: "Ski de randonnée",
+        alpin: "Ski alpin",
+      },
+
+      calcioRuolo: {
+        portiere: "Gardien de but",
+        difensore: "Défenseur",
+        laterale: "Latéral",
+        attaccante: "Attaquant",
       },
 
       boardStance: {
@@ -1269,6 +1312,8 @@ tegner: {
       tennisStringTension: "Saitenhärte / Besaitung",
       tennisRacketChangedRecently: "Schläger kürzlich gewechselt?",
       padelRacketChangedRecently: "Schläger kürzlich gewechselt?",
+      sciType: "Skidisziplin",
+      calcioFieldRole: "Position auf dem Platz",
     
       workEducation: "Beruf / Ausbildung",
       professionalRiskNotes: "Berufsbedingte Risiken",
@@ -1618,6 +1663,21 @@ tegner: {
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
+        handball: "Handball",
+        Handball: "Handball",
+      },
+
+      sciTipo: {
+        fond: "Langlauf (Ski de fond)",
+        randonnee: "Skitouren (Ski de randonnée)",
+        alpin: "Alpinski (Ski alpin)",
+      },
+
+      calcioRuolo: {
+        portiere: "Torwart",
+        difensore: "Verteidiger",
+        laterale: "Außenverteidiger / Flügel",
+        attaccante: "Stürmer",
       },
 
       boardStance: {
@@ -1853,6 +1913,8 @@ tegner: {
   tennisStringTension: "Tensión de cuerdas",
   tennisRacketChangedRecently: "¿Raqueta cambiada recientemente?",
   padelRacketChangedRecently: "¿Pala cambiada recientemente?",
+  sciType: "Tipo de esquí",
+  calcioFieldRole: "Rol en el campo",
 
   workEducation: "Trabajo / formación",
   professionalRiskNotes: "Riesgos profesionales",
@@ -2113,6 +2175,21 @@ dominantHand: {
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
+        handball: "Balonmano",
+        Handball: "Balonmano",
+      },
+
+      sciTipo: {
+        fond: "Esquí de fondo",
+        randonnee: "Esquí de travesía",
+        alpin: "Esquí alpino",
+      },
+
+      calcioRuolo: {
+        portiere: "Portero",
+        difensore: "Defensa",
+        laterale: "Lateral",
+        attaccante: "Delantero",
       },
 
       boardStance: {
@@ -2442,6 +2519,8 @@ dominantHand: {
       tennisStringTension: "String tension",
       tennisRacketChangedRecently: "Racket changed recently?",
       padelRacketChangedRecently: "Racket changed recently?",
+      sciType: "Ski type",
+      calcioFieldRole: "Position on the pitch",
     
       workEducation: "Work / education",
       professionalRiskNotes: "Professional risk notes",
@@ -2784,6 +2863,21 @@ dominantHand: {
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
+        handball: "Handball",
+        Handball: "Handball",
+      },
+
+      sciTipo: {
+        fond: "Cross-country skiing",
+        randonnee: "Ski touring",
+        alpin: "Alpine skiing",
+      },
+
+      calcioRuolo: {
+        portiere: "Goalkeeper",
+        difensore: "Defender",
+        laterale: "Full-back / wide player",
+        attaccante: "Forward",
       },
 
       boardStance: {

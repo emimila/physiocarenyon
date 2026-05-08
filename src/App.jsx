@@ -162,6 +162,10 @@ fitnessTipo: "",
   tennisStringTension: "",
   tennisRacketChangedRecently: "",
   padelRacketChangedRecently: "",
+  /** Sci: fond | randonnee | alpin */
+  sciTipo: "",
+  /** Calcio: portiere | difensore | laterale | attaccante */
+  calcioRuolo: "",
   manoDominante: "",
   valutazioni: [],
   sessioniTest: [],
@@ -1386,6 +1390,42 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
           </>
         )}
 
+        {(form.sportMultipli || []).some(
+          (s) => String(s).toLowerCase() === "calcio"
+        ) && (
+          <>
+            <h4>{t("options.sport.calcio", "Calcio")}</h4>
+            <Select
+              label={t("patient.calcioFieldRole", "Ruolo in campo")}
+              value={form.calcioRuolo || ""}
+              onChange={(v) => update("calcioRuolo", v)}
+              options={["portiere", "difensore", "laterale", "attaccante"].map(
+                (id) => ({
+                  value: id,
+                  label: t(`options.calcioRuolo.${id}`, id),
+                })
+              )}
+            />
+          </>
+        )}
+
+        {(form.sportMultipli || []).some(
+          (s) => String(s).toLowerCase() === "sci"
+        ) && (
+          <>
+            <h4>{t("options.sport.sci", "Sci")}</h4>
+            <Select
+              label={t("patient.sciType", "Tipo di sci")}
+              value={form.sciTipo || ""}
+              onChange={(v) => update("sciTipo", v)}
+              options={["fond", "randonnee", "alpin"].map((id) => ({
+                value: id,
+                label: t(`options.sciTipo.${id}`, id),
+              }))}
+            />
+          </>
+        )}
+
         <Input
           label={t("patient.otherSports", "Altri sport / dettagli")}
           value={form.sportAltro}
@@ -2140,6 +2180,29 @@ function PatientDetail({
             :{" "}
             {tt(`options.yesNo.${selected.padelRacketChangedRecently}`) ||
               selected.padelRacketChangedRecently}
+          </p>
+        )}
+
+      {(selected.sportMultipli || []).some(
+        (s) => String(s).toLowerCase() === "calcio"
+      ) &&
+        patientTrim(selected.calcioRuolo) && (
+          <p>
+            <strong>{tt("options.sport.calcio") ?? "Calcio"}:</strong>{" "}
+            {tt("patient.calcioFieldRole") ?? "Ruolo"}:{" "}
+            {tt(`options.calcioRuolo.${selected.calcioRuolo}`) ||
+              selected.calcioRuolo}
+          </p>
+        )}
+
+      {(selected.sportMultipli || []).some(
+        (s) => String(s).toLowerCase() === "sci"
+      ) &&
+        patientTrim(selected.sciTipo) && (
+          <p>
+            <strong>{tt("options.sport.sci") ?? "Sci"}:</strong>{" "}
+            {tt("patient.sciType") ?? "Tipo"}:{" "}
+            {tt(`options.sciTipo.${selected.sciTipo}`) || selected.sciTipo}
           </p>
         )}
 
