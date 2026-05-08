@@ -353,7 +353,7 @@ hr.patient-sheet-divider {
   margin-bottom: 4px;
 }
 
-/* Area catturata da html2canvas per «Salva grafico confronto». */
+/* Area esportata in PDF (grafici comparativi Kiviat / report test). */
 .kiviat-comparison-export-root {
   overflow: visible;
 }

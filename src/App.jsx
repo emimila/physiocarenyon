@@ -1,13 +1,14 @@
 import { APP_VERSION } from "./appVersion";
 import { assessGrip } from "./utils/gripAssessment";
 import html2pdf from "html2pdf.js";
-import html2canvas from "html2canvas";
+import { exportHtmlToPdf, getHtml2PdfOptions } from "./utils/exportHtmlToPdf";
 import ReportView from "./components/reports/ReportView";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import DataBackup from "./components/storage/DataBackup";
 import { getText } from "./i18n";
 import EvaluationForm from "./components/evaluations/EvaluationForm";
 import TestSessionForm from "./components/evaluations/TestSessionForm";
+import PatientTestChartsPanel from "./components/tests/PatientTestChartsPanel";
 import { OTHER_EXERCISE } from "./components/evaluations/evaluationTestFields";
 import Textarea from "./components/ui/Textarea";
 import Section from "./components/ui/Section";
@@ -1666,11 +1667,16 @@ function PatientDetail({
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [showEvaluationsList, setShowEvaluationsList] = useState(false);
   const [showTestsList, setShowTestsList] = useState(false);
+  const [showComparativeCharts, setShowComparativeCharts] = useState(false);
+  const [showTestCharts, setShowTestCharts] = useState(false);
   /** Una sola valutazione / sessione test espansa alla volta (in export PDF si mostrano tutte). */
   const [expandedEvaluationId, setExpandedEvaluationId] = useState(null);
   const [expandedTestSessionId, setExpandedTestSessionId] = useState(null);
   const revealEvaluations = showEvaluationsList || isExportingPdf;
   const revealTests = showTestsList || isExportingPdf;
+  const revealComparativeCharts =
+    showComparativeCharts || isExportingPdf;
+  const revealTestChartsPanel = showTestCharts || isExportingPdf;
 
   useEffect(() => {
     if (!showEvaluationsList) setExpandedEvaluationId(null);
@@ -1688,14 +1694,12 @@ function PatientDetail({
     await new Promise((r) => requestAnimationFrame(() => r()));
 
     try {
-      const opt = {
-        margin: 0.5,
-        filename: `${selected.nome}_${selected.cognome}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-      };
-
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf()
+        .set(
+          getHtml2PdfOptions(`${selected.nome}_${selected.cognome}.pdf`)
+        )
+        .from(element)
+        .save();
     } finally {
       setIsExportingPdf(false);
     }
@@ -2227,7 +2231,11 @@ function PatientDetail({
           onClick={() => {
             setShowEvaluationsList((open) => {
               const next = !open;
-              if (next) setShowTestsList(false);
+              if (next) {
+                setShowTestsList(false);
+                setShowComparativeCharts(false);
+                setShowTestCharts(false);
+              }
               return next;
             });
           }}
@@ -2245,16 +2253,55 @@ function PatientDetail({
           onClick={() => {
             setShowTestsList((open) => {
               const next = !open;
-              if (next) setShowEvaluationsList(false);
+              if (next) {
+                setShowEvaluationsList(false);
+                setShowComparativeCharts(false);
+                setShowTestCharts(false);
+              }
               return next;
             });
           }}
         >
           {tt("patient.sheetTests")}
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShowComparativeCharts((open) => {
+              const next = !open;
+              if (next) {
+                setShowEvaluationsList(false);
+                setShowTestsList(false);
+                setShowTestCharts(false);
+              }
+              return next;
+            });
+          }}
+        >
+          {tt("patient.sheetComparativeCharts")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShowTestCharts((open) => {
+              const next = !open;
+              if (next) {
+                setShowEvaluationsList(false);
+                setShowTestsList(false);
+                setShowComparativeCharts(false);
+              }
+              return next;
+            });
+          }}
+        >
+          {tt("patient.sheetTestCharts")}
+        </button>
       </div>
 
-      {(revealTests || revealEvaluations) && (
+      {(revealTests ||
+        revealEvaluations ||
+        revealComparativeCharts ||
+        revealTestChartsPanel) && (
         <div
           className="patient-sheet-list-panel"
           style={{
@@ -2836,10 +2883,39 @@ function PatientDetail({
         );
       })}
 
-      <hr style={{ marginTop: 24 }} />
-      <KiviatComparison selected={selected} tt={tt} />
         </>
       )}
+
+      {revealComparativeCharts && (
+        <>
+          <h3
+            style={{
+              marginTop:
+                revealTests || revealEvaluations || revealTestChartsPanel
+                  ? 20
+                  : 0,
+              marginBottom: 10,
+            }}
+          >
+            {tt("patient.sheetComparativeCharts")}
+          </h3>
+          <KiviatComparison selected={selected} tt={tt} />
+        </>
+      )}
+
+      {revealTestChartsPanel && (
+        <div
+          style={{
+            marginTop:
+              revealTests || revealEvaluations || revealComparativeCharts
+                ? 20
+                : 0,
+          }}
+        >
+          <PatientTestChartsPanel selected={selected} tt={tt} />
+        </div>
+      )}
+
         </div>
       )}
     </div>
@@ -2860,6 +2936,7 @@ function KiviatComparison({ selected, tt }) {
     )
   );
   const chartExportRoots = useRef({});
+  const [exportingKiviatId, setExportingKiviatId] = useState(null);
 
   const [comparisons, setComparisons] = useState(() => [
     {
@@ -2871,7 +2948,7 @@ function KiviatComparison({ selected, tt }) {
     },
   ]);
 
-  async function exportComparisonPng(comp) {
+  async function exportComparisonPdf(comp) {
     const el = chartExportRoots.current[comp.id];
     if (!el) return;
     const evA = valutazioni.find((x) => x.id === comp.valA);
@@ -2879,21 +2956,18 @@ function KiviatComparison({ selected, tt }) {
     const nA = evA?.numeroValutazione ?? "?";
     const nB = evB?.numeroValutazione ?? "?";
     const safe = (n) => String(n).replace(/[^\w.-]+/g, "_");
-    const fname = `comparazione valutazione ${safe(nA)} - ${safe(nB)}.png`;
+
+    setExportingKiviatId(comp.id);
+    await new Promise((r) => requestAnimationFrame(() => r()));
     try {
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
+      await exportHtmlToPdf(el, {
+        filename: `Kiviat_${safe(selected?.nome)}_${safe(selected?.cognome)}_${safe(nA)}_${safe(nB)}.pdf`,
       });
-      const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
-      a.download = fname;
-      a.click();
     } catch (e) {
       console.error(e);
-      alert(tt("chart.saveComparisonError"));
+      alert(tt("chart.saveChartPdfError"));
+    } finally {
+      setExportingKiviatId(null);
     }
   }
 
@@ -2945,8 +3019,11 @@ function KiviatComparison({ selected, tt }) {
         <h3 style={{ marginTop: 0 }}>{tt("chart.title")}</h3>
       </div>
 
-      {comparisons.map((c, index) => (
-        <div key={c.id}>
+      {comparisons.map((c, index) => {
+        const evA = valutazioni.find((x) => x.id === c.valA);
+        const evB = valutazioni.find((x) => x.id === c.valB);
+        return (
+          <div key={c.id}>
           <div className="no-pdf">
             <h4>
               {tt("chart.comparison")} {index + 1}
@@ -2994,17 +3071,55 @@ function KiviatComparison({ selected, tt }) {
               <div className="no-pdf" style={{ marginTop: 10 }}>
                 <button
                   type="button"
-                  onClick={() => exportComparisonPng(c)}
+                  disabled={exportingKiviatId === c.id}
+                  onClick={() => exportComparisonPdf(c)}
                 >
-                  {tt("chart.saveComparisonPng")}
+                  {exportingKiviatId === c.id
+                    ? tt("common.loading", "…")
+                    : tt("chart.saveChartPdf")}
                 </button>
               </div>
               <div
                 ref={(node) => {
                   chartExportRoots.current[c.id] = node;
                 }}
-                className="kiviat-comparison-export-root"
+                className={`kiviat-comparison-export-root pdf-root ${exportingKiviatId === c.id ? "pdf-exporting" : ""}`}
               >
+                <div
+                  className="pdf-avoid-break"
+                  style={{
+                    marginBottom: 12,
+                    padding: "10px 12px",
+                    borderBottom: "1px solid #e2e8f0",
+                    fontSize: 12,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <div style={{ fontWeight: 700, color: "#0d5c68" }}>
+                    Physiocare Nyon
+                  </div>
+                  <div style={{ marginTop: 6, fontWeight: 600 }}>
+                    {[selected.nome, selected.cognome].filter(Boolean).join(" ") ||
+                      "—"}
+                  </div>
+                  {selected.dataNascita ? (
+                    <div style={{ color: "#64748b", fontSize: 11 }}>
+                      {tt("patient.birthDate")}:{" "}
+                      {formatDateDMY(selected.dataNascita)}
+                    </div>
+                  ) : null}
+                  <div style={{ marginTop: 8, fontSize: 11, color: "#334155" }}>
+                    {tt("chart.title")} · {tt("chart.comparison")} {index + 1} ·{" "}
+                    {tt(`options.distretti.${String(c.distretto).toLowerCase()}`) ||
+                      c.distretto}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#475569" }}>
+                    {tt("chart.initialEvaluation")}:{" "}
+                    {evA ? evaluationCardHeadingText(evA, tt) : "—"} ·{" "}
+                    {tt("chart.finalEvaluation")}:{" "}
+                    {evB ? evaluationCardHeadingText(evB, tt) : "—"}
+                  </div>
+                </div>
                 <KiviatResult
                   comparison={{ ...c, mode: "lato" }}
                   valutazioni={valutazioni}
@@ -3014,7 +3129,8 @@ function KiviatComparison({ selected, tt }) {
             </>
           )}
         </div>
-      ))}
+        );
+      })}
 
       <div className="no-pdf">
         <button type="button" onClick={addComparison}>

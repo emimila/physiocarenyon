@@ -76,3 +76,26 @@
   padding: 8px 10px !important;
   margin-bottom: 10px !important;
 }
+
+/* Riduce tagli a metà elemento tra una pagina e l’altra (html2pdf pagebreak css + avoid-all). */
+.pdf-root.pdf-exporting .pdf-avoid-break,
+.pdf-root.pdf-exporting .yb-chart-card,
+.pdf-root.pdf-exporting .kiviat-chart {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.pdf-root.pdf-exporting tr {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.pdf-root.pdf-exporting thead {
+  display: table-header-group;
+}
+
+.pdf-root.pdf-exporting .y-balance-full-report > h4,
+.pdf-root.pdf-exporting .y-balance-full-report .yb-meta-grid {
+  break-after: avoid-page;
+  page-break-after: avoid;
+}
