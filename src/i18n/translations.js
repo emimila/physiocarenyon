@@ -87,6 +87,8 @@ export const translations = {
       tennisStringTension: "Tensione corde",
       tennisRacketChangedRecently: "Racchetta cambiata di recente?",
       padelRacketChangedRecently: "Racchetta cambiata di recente?",
+      smoker: "Fumatore",
+      lastBloodPressureTestDate: "Ultimo test pressione arteriosa (data)",
       sciType: "Tipo di sci",
       calcioFieldRole: "Ruolo in campo",
       dominantHand: "Mano dominante",
@@ -698,6 +700,8 @@ export const translations = {
       tennisStringTension: "Tension des cordes",
       tennisRacketChangedRecently: "Raquette changée récemment ?",
       padelRacketChangedRecently: "Raquette changée récemment ?",
+      smoker: "Fumeur",
+      lastBloodPressureTestDate: "Dernier contrôle tension artérielle (date)",
       sciType: "Type de ski",
       calcioFieldRole: "Rôle sur le terrain",
     
@@ -1312,6 +1316,8 @@ tegner: {
       tennisStringTension: "Saitenhärte / Besaitung",
       tennisRacketChangedRecently: "Schläger kürzlich gewechselt?",
       padelRacketChangedRecently: "Schläger kürzlich gewechselt?",
+      smoker: "Raucher/in",
+      lastBloodPressureTestDate: "Letzte Blutdruckmessung (Datum)",
       sciType: "Skidisziplin",
       calcioFieldRole: "Position auf dem Platz",
     
@@ -1913,6 +1919,8 @@ tegner: {
   tennisStringTension: "Tensión de cuerdas",
   tennisRacketChangedRecently: "¿Raqueta cambiada recientemente?",
   padelRacketChangedRecently: "¿Pala cambiada recientemente?",
+  smoker: "Fumador/a",
+  lastBloodPressureTestDate: "Última medición de tensión arterial (fecha)",
   sciType: "Tipo de esquí",
   calcioFieldRole: "Rol en el campo",
 
@@ -2519,6 +2527,8 @@ dominantHand: {
       tennisStringTension: "String tension",
       tennisRacketChangedRecently: "Racket changed recently?",
       padelRacketChangedRecently: "Racket changed recently?",
+      smoker: "Smoker",
+      lastBloodPressureTestDate: "Last blood pressure check (date)",
       sciType: "Ski type",
       calcioFieldRole: "Position on the pitch",
     

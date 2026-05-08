@@ -34,6 +34,7 @@ import {
   bmiCategory,
   timeSinceYWD,
   formatDateDMY,
+  formatPatientListDisplayName,
   patientMatchesSearchQuery,
   calculateYBalance,
   classifyYBalance,
@@ -122,6 +123,8 @@ const emptyPatient = {
   altezza: "",
   farmaci: "",
   patologie: "",
+  dataUltimoTestPressioneArteriosa: "",
+  fumatore: "",
   epilessia: "",
   antecedentiChirurgici: "",
   figli: "",
@@ -681,7 +684,7 @@ export default function App() {
                   >
                     <div className="patient-card__row">
                       <strong className="patient-card__name">
-                        {p.cognome} {p.nome}
+                        {formatPatientListDisplayName(p)}
                       </strong>
                       {p.dataNascita ? (
                         <span className="patient-card__dob" title={tt("patient.birthDate")}>
@@ -1082,6 +1085,23 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
           label={t("patient.pathologies", "Patologie")}
           value={form.patologie || ""}
           onChange={(v) => update("patologie", v)}
+        />
+
+        <Input
+          type="date"
+          label={t(
+            "patient.lastBloodPressureTestDate",
+            "Ultimo test pressione arteriosa (data)"
+          )}
+          value={form.dataUltimoTestPressioneArteriosa || ""}
+          onChange={(v) => update("dataUltimoTestPressioneArteriosa", v)}
+        />
+
+        <Select
+          label={t("patient.smoker", "Fumatore")}
+          value={form.fumatore || ""}
+          onChange={(v) => update("fumatore", v)}
+          options={[{ value: "", label: "--" }, ...yesNoOptions]}
         />
 
         <Select
@@ -1850,7 +1870,7 @@ function PatientDetail({
       </header>
 
       <h2>
-        {selected.nome || "-"} {selected.cognome || "-"}
+        {formatPatientListDisplayName(selected) || "-"}
         {selected.dataNascita
           ? `  ${formatDateDMY(selected.dataNascita)}`
           : ""}
@@ -1920,11 +1940,17 @@ function PatientDetail({
       {(() => {
         const farm = patientTrim(manualTextLower(selected.farmaci));
         const pat = patientTrim(manualTextLower(selected.patologie));
+        const bpDate = patientTrim(selected.dataUltimoTestPressioneArteriosa);
+        const bpStr = bpDate ? formatDateDMY(bpDate) || bpDate : "";
+        const smoke =
+          selected.fumatore &&
+          (tt(`options.yesNo.${selected.fumatore}`) || selected.fumatore);
+        const smokeStr = patientTrim(smoke);
         const ep =
           selected.epilessia &&
           (tt(`options.yesNo.${selected.epilessia}`) || selected.epilessia);
         const epStr = patientTrim(ep);
-        if (!farm && !pat && !epStr) return null;
+        if (!farm && !pat && !bpStr && !smokeStr && !epStr) return null;
         const chunks = [];
         if (farm) {
           chunks.push(
@@ -1937,6 +1963,21 @@ function PatientDetail({
           chunks.push(
             <span key="pat">
               <strong>{tt("patient.pathologies")}:</strong> {pat}
+            </span>
+          );
+        }
+        if (bpStr) {
+          chunks.push(
+            <span key="bp">
+              <strong>{tt("patient.lastBloodPressureTestDate")}:</strong>{" "}
+              {bpStr}
+            </span>
+          );
+        }
+        if (smokeStr) {
+          chunks.push(
+            <span key="smoke">
+              <strong>{tt("patient.smoker")}:</strong> {smokeStr}
             </span>
           );
         }
@@ -3236,8 +3277,7 @@ function KiviatComparison({ selected, tt }) {
                     Physiocare Nyon
                   </div>
                   <div style={{ marginTop: 6, fontWeight: 600 }}>
-                    {[selected.nome, selected.cognome].filter(Boolean).join(" ") ||
-                      "—"}
+                    {formatPatientListDisplayName(selected) || "—"}
                   </div>
                   {selected.dataNascita ? (
                     <div style={{ color: "#64748b", fontSize: 11 }}>

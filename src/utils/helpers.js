@@ -26,6 +26,26 @@ export function formatDateDMY(dateString) {
   return `${m[3]}.${m[2]}.${m[1]}`;
 }
 
+/** Nome visualizzato: ogni parola con iniziale maiuscola, resto minuscolo. */
+function formatNomeLista(raw) {
+  const parts = String(raw ?? "")
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toLocaleUpperCase() + w.slice(1));
+  return parts.join(" ");
+}
+
+/** Elenco pazienti: cognome tutto maiuscolo, nome con iniziale maiuscola per parola. */
+export function formatPatientListDisplayName(p) {
+  const cognome = String(p?.cognome ?? "")
+    .trim()
+    .toUpperCase();
+  const nome = formatNomeLista(p?.nome);
+  return [cognome, nome].filter(Boolean).join(" ");
+}
+
 /** Filtro elenco pazienti: nome, cognome, sport (come prima) + data di nascita (ISO o DD.MM.YYYY, anche solo cifre). */
 export function patientMatchesSearchQuery(p, queryRaw) {
   const q = String(queryRaw ?? "").trim().toLowerCase();
