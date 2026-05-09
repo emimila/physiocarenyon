@@ -114,6 +114,8 @@ export const translations = {
       imagingDetails: "Dettagli diagnostica",
       imaging2: "Diagnostica (2ª, se necessaria)",
       imagingDetails2: "Dettagli / commenti 2ª diagnostica",
+      imagingRevealHint:
+        "Premi «Aggiungi diagnosi» per mostrare esami e diagnostica (opzionale).",
       injuryDate: "Data infortunio",
       timeSinceInjury: "Tempo da infortunio",
       surgeryDate: "Data operazione chirurgica",
@@ -721,6 +723,8 @@ export const translations = {
       imagingDetails: "Détails imagerie",
       imaging2: "Imagerie (2e, si nécessaire)",
       imagingDetails2: "Détails / commentaires 2e imagerie",
+      imagingRevealHint:
+        "Appuyez sur « Ajouter un diagnostic » pour afficher l’imagerie et les examens (facultatif).",
       injuryDate: "Date de blessure",
       timeSinceInjury: "Temps depuis la blessure",
       surgeryDate: "Date d’intervention",
@@ -1337,6 +1341,8 @@ tegner: {
       imagingDetails: "Details Bildgebung",
       imaging2: "Bildgebung (2., falls nötig)",
       imagingDetails2: "Details / Kommentare 2. Bildgebung",
+      imagingRevealHint:
+        "«Diagnose hinzufügen» tippen, um Bildgebung und Untersuchungen anzuzeigen (optional).",
       injuryDate: "Verletzungsdatum",
       timeSinceInjury: "Zeit seit Verletzung",
       surgeryDate: "Operationsdatum",
@@ -1940,6 +1946,8 @@ tegner: {
   imagingDetails: "Detalles pruebas",
   imaging2: "Pruebas / imagen (2.ª, si aplica)",
   imagingDetails2: "Detalles / comentarios 2.ª prueba",
+  imagingRevealHint:
+    "Pulsa « Añadir diagnóstico » para mostrar pruebas e imagen (opcional).",
   injuryDate: "Fecha de lesión",
   timeSinceInjury: "Tiempo desde la lesión",
   surgeryDate: "Fecha de cirugía",
@@ -2548,6 +2556,8 @@ dominantHand: {
       imagingDetails: "Imaging details",
       imaging2: "Imaging (2nd, if needed)",
       imagingDetails2: "Details / comments (2nd imaging)",
+      imagingRevealHint:
+        "Press « Add diagnosis » to show imaging and tests (optional).",
       injuryDate: "Injury date",
       timeSinceInjury: "Time since injury",
       surgeryDate: "Surgery date",

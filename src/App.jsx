@@ -921,6 +921,23 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
     [tt]
   );
 
+  function imagingFormHasData(f) {
+    return Boolean(
+      patientTrim(f?.diagnostica) ||
+        patientTrim(f?.diagnosticaDettagli) ||
+        patientTrim(f?.diagnostica2) ||
+        patientTrim(f?.diagnosticaDettagli2)
+    );
+  }
+
+  const [showImagingSection, setShowImagingSection] = useState(() =>
+    imagingFormHasData(form)
+  );
+
+  useEffect(() => {
+    setShowImagingSection(imagingFormHasData(form));
+  }, [form.id]);
+
   const diagnosiRighe = migrateDiagnosiRighe(form);
 
   function setDiagnosiRighe(nextRows) {
@@ -938,6 +955,7 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
       ...diagnosiRighe,
       { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
     ]);
+    setShowImagingSection(true);
   }
 
   function removeDiagnosiRiga(rowId) {
@@ -1519,25 +1537,25 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
                   idx < diagnosiRighe.length - 1 ? "1px solid var(--border)" : "none",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 6,
-                }}
-              >
-                <strong style={{ fontSize: "0.9375rem" }}>
-                  {t("patient.diagnosis", "Diagnosi / problema principale")}{" "}
-                  {idx + 1}
-                </strong>
-                {diagnosiRighe.length > 1 ? (
+              {diagnosiRighe.length > 1 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  <strong style={{ fontSize: "0.9375rem" }}>
+                    {t("patient.diagnosis", "Diagnosi / problema principale")}{" "}
+                    {idx + 1}
+                  </strong>
                   <button type="button" onClick={() => removeDiagnosiRiga(row.id)}>
                     {t("patient.removeDiagnosis", "Rimuovi")}
                   </button>
-                ) : null}
-              </div>
+                </div>
+              ) : null}
               <Select
                 label={t("patient.diagnosis", "Diagnosi / problema principale")}
                 value={row.diagnosi || ""}
@@ -1567,31 +1585,54 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
           {t("patient.addDiagnosis", "+ Aggiungi diagnosi")}
         </button>
 
-        <Select
-          label={t("patient.imaging", "Diagnostica")}
-          value={form.diagnostica}
-          onChange={(v) => update("diagnostica", v)}
-          options={imagingOptions}
-        />
+        {!showImagingSection ? (
+          <p
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--text-muted, #666)",
+              marginTop: -6,
+              marginBottom: 14,
+            }}
+          >
+            {t(
+              "patient.imagingRevealHint",
+              "Premi «Aggiungi diagnosi» per mostrare esami e diagnostica (opzionale)."
+            )}
+          </p>
+        ) : null}
 
-        <Textarea
-          label={t("patient.imagingDetails", "Dettagli diagnostica")}
-          value={form.diagnosticaDettagli}
-          onChange={(v) => update("diagnosticaDettagli", v)}
-        />
+        {showImagingSection ? (
+          <>
+            <Select
+              label={t("patient.imaging", "Diagnostica")}
+              value={form.diagnostica}
+              onChange={(v) => update("diagnostica", v)}
+              options={imagingOptions}
+            />
 
-        <Select
-          label={t("patient.imaging2", "Diagnostica (2ª, se necessaria)")}
-          value={form.diagnostica2 || ""}
-          onChange={(v) => update("diagnostica2", v)}
-          options={imagingOptions}
-        />
+            <Textarea
+              label={t("patient.imagingDetails", "Dettagli diagnostica")}
+              value={form.diagnosticaDettagli}
+              onChange={(v) => update("diagnosticaDettagli", v)}
+            />
 
-        <Textarea
-          label={t("patient.imagingDetails2", "Dettagli / commenti 2ª diagnostica")}
-          value={form.diagnosticaDettagli2 || ""}
-          onChange={(v) => update("diagnosticaDettagli2", v)}
-        />
+            <Select
+              label={t("patient.imaging2", "Diagnostica (2ª, se necessaria)")}
+              value={form.diagnostica2 || ""}
+              onChange={(v) => update("diagnostica2", v)}
+              options={imagingOptions}
+            />
+
+            <Textarea
+              label={t(
+                "patient.imagingDetails2",
+                "Dettagli / commenti 2ª diagnostica"
+              )}
+              value={form.diagnosticaDettagli2 || ""}
+              onChange={(v) => update("diagnosticaDettagli2", v)}
+            />
+          </>
+        ) : null}
 
         <Input
           label={t("patient.injuryDate", "Data infortunio")}
