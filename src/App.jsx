@@ -138,13 +138,13 @@ const emptyPatient = {
   /** Diagnosi multiple (incrementale); i campi sopra restano sincronizzati dalla prima riga per compatibilità. */
   diagnosiRighe: [],
   diagnostica: "",
-  diagnosticaDettagli: "",
   diagnostica2: "",
-  diagnosticaDettagli2: "",
+  diagnosticaDettagli: "",
   dataInfortunio: "",
   dataOperazione: "",
   artoOperato: "",
   tipoOperazione: "",
+  medicoPrescrittore: "",
   variazionePeso: "",
 motivoVariazionePeso: "",
 
@@ -247,6 +247,8 @@ export default function App() {
       diagnosiRighe: [
         { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
       ],
+      quadroClinicoTipo: "",
+      infortunioChirurgicoPrevisto: "",
     });
     setSelected(null);
     setEditingPatient(true);
@@ -922,21 +924,34 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
   );
 
   function imagingFormHasData(f) {
+    const d2 = patientTrim(f?.diagnostica2);
+    const hasSecond =
+      Boolean(d2 && d2 !== "Nessuna");
     return Boolean(
       patientTrim(f?.diagnostica) ||
         patientTrim(f?.diagnosticaDettagli) ||
-        patientTrim(f?.diagnostica2) ||
-        patientTrim(f?.diagnosticaDettagli2)
+        hasSecond
     );
   }
 
+  const isLegacyClinicalLayout = !Object.prototype.hasOwnProperty.call(
+    form,
+    "quadroClinicoTipo"
+  );
+
   const [showImagingSection, setShowImagingSection] = useState(() =>
-    imagingFormHasData(form)
+    isLegacyClinicalLayout ? imagingFormHasData(form) : false
   );
 
   useEffect(() => {
-    setShowImagingSection(imagingFormHasData(form));
-  }, [form.id]);
+    const legacy = !Object.prototype.hasOwnProperty.call(
+      form,
+      "quadroClinicoTipo"
+    );
+    if (legacy) {
+      setShowImagingSection(imagingFormHasData(form));
+    }
+  }, [form.id, form.quadroClinicoTipo]);
 
   const diagnosiRighe = migrateDiagnosiRighe(form);
 
@@ -955,7 +970,9 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
       ...diagnosiRighe,
       { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
     ]);
-    setShowImagingSection(true);
+    if (isLegacyClinicalLayout) {
+      setShowImagingSection(true);
+    }
   }
 
   function removeDiagnosiRiga(rowId) {
@@ -1010,6 +1027,199 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
     "Riparazione meniscale",
     "Altro",
   ].map((v) => option("options.surgeryType", v));
+
+  const clinicalOriginOptions = [
+    {
+      value: "",
+      label: t("patient.clinicalOriginPlaceholder", "— Scegli —"),
+    },
+    {
+      value: "infortunio",
+      label: t("patient.clinicalOriginInjury", "Infortunio"),
+    },
+    {
+      value: "malattia",
+      label: t("patient.clinicalOriginIllness", "Malattia"),
+    },
+  ];
+
+  const injurySurgeryPlannedOptions = [
+    {
+      value: "",
+      label: t("patient.injurySurgeryPlaceholder", "—"),
+    },
+    { value: "si", label: tt("options.yesNo.Sì") || "Sì" },
+    { value: "no", label: tt("options.yesNo.No") || "No" },
+  ];
+
+  const diagnosiRigheBlock = (
+    <div className="patient-diagnosi-righe">
+      {diagnosiRighe.map((row, idx) => (
+        <div
+          key={row.id}
+          className="patient-diagnosi-riga"
+          style={{
+            marginBottom: 12,
+            paddingBottom: 12,
+            borderBottom:
+              idx < diagnosiRighe.length - 1 ? "1px solid var(--border)" : "none",
+          }}
+        >
+          {diagnosiRighe.length > 1 ? (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 6,
+              }}
+            >
+              <strong style={{ fontSize: "0.9375rem" }}>
+                {t("patient.diagnosis", "Diagnosi / problema principale")}{" "}
+                {idx + 1}
+              </strong>
+              <button type="button" onClick={() => removeDiagnosiRiga(row.id)}>
+                {t("patient.removeDiagnosis", "Rimuovi")}
+              </button>
+            </div>
+          ) : null}
+          <Select
+            label={t("patient.diagnosis", "Diagnosi / problema principale")}
+            value={row.diagnosi || ""}
+            onChange={(v) => updateDiagnosiRiga(row.id, { diagnosi: v })}
+            options={diagnosisOptions}
+          />
+          <Select
+            label={tt("evaluation.district")}
+            value={row.distrettoDiagnosi || ""}
+            onChange={(v) =>
+              updateDiagnosiRiga(row.id, { distrettoDiagnosi: v })
+            }
+            options={distrettoDiagnosiOptions}
+          />
+          <Textarea
+            compact
+            fullWidth
+            label={t("patient.diagnosisDetails", "Dettagli diagnosi")}
+            value={row.dettagli || ""}
+            onChange={(v) => updateDiagnosiRiga(row.id, { dettagli: v })}
+          />
+        </div>
+      ))}
+    </div>
+  );
+
+  const addDiagnosiBtn = (
+    <button type="button" onClick={addDiagnosiRiga} style={{ marginBottom: 14 }}>
+      {t("patient.addDiagnosis", "+ Aggiungi diagnosi")}
+    </button>
+  );
+
+  const imagingFieldsFull = (
+    <>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "12px 16px",
+          alignItems: "flex-start",
+          marginBottom: 10,
+        }}
+      >
+        <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+          <Select
+            label={t("patient.imaging", "Diagnostica")}
+            value={form.diagnostica}
+            onChange={(v) => update("diagnostica", v)}
+            options={imagingOptions}
+          />
+        </div>
+        <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+          <Select
+            label={t("patient.imaging2Short", "Diagnostica 2")}
+            value={form.diagnostica2 || ""}
+            onChange={(v) => update("diagnostica2", v)}
+            options={imagingOptions}
+          />
+        </div>
+      </div>
+      <Textarea
+        label={t("patient.imagingDetails", "Dettagli diagnostica")}
+        value={form.diagnosticaDettagli}
+        onChange={(v) => update("diagnosticaDettagli", v)}
+      />
+    </>
+  );
+
+  const imagingLegacyGated = (
+    <>
+      {!showImagingSection ? (
+        <p
+          style={{
+            fontSize: "0.8125rem",
+            color: "var(--text-muted, #666)",
+            marginTop: -6,
+            marginBottom: 14,
+          }}
+        >
+          {t(
+            "patient.imagingRevealHint",
+            "Premi «Aggiungi diagnosi» per mostrare esami e diagnostica (opzionale)."
+          )}
+        </p>
+      ) : null}
+      {showImagingSection ? imagingFieldsFull : null}
+    </>
+  );
+
+  const injuryDateBlock = (
+    <>
+      <Input
+        label={t("patient.injuryDate", "Data infortunio")}
+        type="date"
+        value={form.dataInfortunio}
+        onChange={(v) => update("dataInfortunio", v)}
+      />
+      {form.dataInfortunio ? (
+        <p>
+          <strong>{t("patient.timeSinceInjury", "Tempo da infortunio")}:</strong>{" "}
+          {timeSinceYWD(form.dataInfortunio, tt)}
+        </p>
+      ) : null}
+    </>
+  );
+
+  const surgeryFieldsBlock = (
+    <>
+      <Input
+        label={t("patient.surgeryDate", "Data operazione chirurgica")}
+        type="date"
+        value={form.dataOperazione}
+        onChange={(v) => update("dataOperazione", v)}
+      />
+      {form.dataOperazione ? (
+        <p>
+          <strong>
+            {t("patient.timeSinceSurgery", "Tempo post-operatorio")}:
+          </strong>{" "}
+          {timeSinceYWD(form.dataOperazione, tt)}
+        </p>
+      ) : null}
+      <Select
+        label={t("patient.operatedLimb", "Arto operato / localizzazione")}
+        value={form.artoOperato}
+        onChange={(v) => update("artoOperato", v)}
+        options={operatedLimbOptions}
+      />
+      <Select
+        label={t("patient.surgeryType", "Tipo operazione")}
+        value={form.tipoOperazione}
+        onChange={(v) => update("tipoOperazione", v)}
+        options={surgeryTypeOptions}
+      />
+    </>
+  );
 
   return (
     <div>
@@ -1521,161 +1731,84 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
         >
           {t(
             "patient.diagnosesIntro",
-            "Puoi aggiungere più diagnosi: ogni riga è indipendente (testo e distretto)."
+            "Diagnosi multiple: ogni riga è una voce. Usa «Aggiungi diagnosi» per aggiungerne un’altra (incrementale)."
           )}
         </p>
 
-        <div className="patient-diagnosi-righe">
-          {diagnosiRighe.map((row, idx) => (
-            <div
-              key={row.id}
-              className="patient-diagnosi-riga"
-              style={{
-                marginBottom: 12,
-                paddingBottom: 12,
-                borderBottom:
-                  idx < diagnosiRighe.length - 1 ? "1px solid var(--border)" : "none",
-              }}
-            >
-              {diagnosiRighe.length > 1 ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  <strong style={{ fontSize: "0.9375rem" }}>
-                    {t("patient.diagnosis", "Diagnosi / problema principale")}{" "}
-                    {idx + 1}
-                  </strong>
-                  <button type="button" onClick={() => removeDiagnosiRiga(row.id)}>
-                    {t("patient.removeDiagnosis", "Rimuovi")}
-                  </button>
-                </div>
-              ) : null}
-              <Select
-                label={t("patient.diagnosis", "Diagnosi / problema principale")}
-                value={row.diagnosi || ""}
-                onChange={(v) => updateDiagnosiRiga(row.id, { diagnosi: v })}
-                options={diagnosisOptions}
-              />
-              <Select
-                label={tt("evaluation.district")}
-                value={row.distrettoDiagnosi || ""}
-                onChange={(v) =>
-                  updateDiagnosiRiga(row.id, { distrettoDiagnosi: v })
-                }
-                options={distrettoDiagnosiOptions}
-              />
-              <Textarea
-                compact
-                fullWidth
-                label={t("patient.diagnosisDetails", "Dettagli diagnosi")}
-                value={row.dettagli || ""}
-                onChange={(v) => updateDiagnosiRiga(row.id, { dettagli: v })}
-              />
-            </div>
-          ))}
-        </div>
-
-        <button type="button" onClick={addDiagnosiRiga} style={{ marginBottom: 14 }}>
-          {t("patient.addDiagnosis", "+ Aggiungi diagnosi")}
-        </button>
-
-        {!showImagingSection ? (
-          <p
-            style={{
-              fontSize: "0.8125rem",
-              color: "var(--text-muted, #666)",
-              marginTop: -6,
-              marginBottom: 14,
-            }}
-          >
-            {t(
-              "patient.imagingRevealHint",
-              "Premi «Aggiungi diagnosi» per mostrare esami e diagnostica (opzionale)."
-            )}
-          </p>
-        ) : null}
-
-        {showImagingSection ? (
+        {isLegacyClinicalLayout ? (
+          <>
+            {diagnosiRigheBlock}
+            {addDiagnosiBtn}
+            {imagingLegacyGated}
+            {injuryDateBlock}
+            {surgeryFieldsBlock}
+          </>
+        ) : (
           <>
             <Select
-              label={t("patient.imaging", "Diagnostica")}
-              value={form.diagnostica}
-              onChange={(v) => update("diagnostica", v)}
-              options={imagingOptions}
-            />
-
-            <Textarea
-              label={t("patient.imagingDetails", "Dettagli diagnostica")}
-              value={form.diagnosticaDettagli}
-              onChange={(v) => update("diagnosticaDettagli", v)}
-            />
-
-            <Select
-              label={t("patient.imaging2", "Diagnostica (2ª, se necessaria)")}
-              value={form.diagnostica2 || ""}
-              onChange={(v) => update("diagnostica2", v)}
-              options={imagingOptions}
-            />
-
-            <Textarea
               label={t(
-                "patient.imagingDetails2",
-                "Dettagli / commenti 2ª diagnostica"
+                "patient.clinicalOrigin",
+                "Infortunio o malattia?"
               )}
-              value={form.diagnosticaDettagli2 || ""}
-              onChange={(v) => update("diagnosticaDettagli2", v)}
+              value={form.quadroClinicoTipo || ""}
+              onChange={(v) =>
+                setForm({
+                  ...form,
+                  quadroClinicoTipo: v,
+                  infortunioChirurgicoPrevisto:
+                    v === "infortunio"
+                      ? form.infortunioChirurgicoPrevisto || ""
+                      : "",
+                })
+              }
+              options={clinicalOriginOptions}
             />
+
+            {form.quadroClinicoTipo === "malattia" ? (
+              <>
+                {diagnosiRigheBlock}
+                {imagingFieldsFull}
+                {addDiagnosiBtn}
+              </>
+            ) : null}
+
+            {form.quadroClinicoTipo === "infortunio" ? (
+              <>
+                {injuryDateBlock}
+                <Select
+                  label={t(
+                    "patient.injurySurgeryPlanned",
+                    "Intervento chirurgico (anche futuro)?"
+                  )}
+                  value={form.infortunioChirurgicoPrevisto || ""}
+                  onChange={(v) => update("infortunioChirurgicoPrevisto", v)}
+                  options={injurySurgeryPlannedOptions}
+                />
+                {form.infortunioChirurgicoPrevisto === "si" ? (
+                  <>
+                    {surgeryFieldsBlock}
+                    {diagnosiRigheBlock}
+                    {addDiagnosiBtn}
+                  </>
+                ) : null}
+                {form.infortunioChirurgicoPrevisto === "no" ? (
+                  <>
+                    {diagnosiRigheBlock}
+                    {imagingFieldsFull}
+                    {addDiagnosiBtn}
+                  </>
+                ) : null}
+              </>
+            ) : null}
           </>
-        ) : null}
-
-        <Input
-          label={t("patient.injuryDate", "Data infortunio")}
-          type="date"
-          value={form.dataInfortunio}
-          onChange={(v) => update("dataInfortunio", v)}
-        />
-
-        {form.dataInfortunio && (
-          <p>
-            <strong>{t("patient.timeSinceInjury", "Tempo da infortunio")}:</strong>{" "}
-            {timeSinceYWD(form.dataInfortunio, tt)}
-          </p>
         )}
-
-        <Input
-          label={t("patient.surgeryDate", "Data operazione chirurgica")}
-          type="date"
-          value={form.dataOperazione}
-          onChange={(v) => update("dataOperazione", v)}
-        />
-
-        {form.dataOperazione && (
-          <p>
-            <strong>{t("patient.timeSinceSurgery", "Tempo post-operatorio")}:</strong>{" "}
-            {timeSinceYWD(form.dataOperazione, tt)}
-          </p>
-        )}
-
-        <Select
-          label={t("patient.operatedLimb", "Arto operato / localizzazione")}
-          value={form.artoOperato}
-          onChange={(v) => update("artoOperato", v)}
-          options={operatedLimbOptions}
-        />
-
-        <Select
-          label={t("patient.surgeryType", "Tipo operazione")}
-          value={form.tipoOperazione}
-          onChange={(v) => update("tipoOperazione", v)}
-          options={surgeryTypeOptions}
-        />
       </Section>
+
+      <Textarea
+        label={t("patient.regardingPrescribingDoctor", "Medico prescrittore")}
+        value={form.medicoPrescrittore || ""}
+        onChange={(v) => update("medicoPrescrittore", v)}
+      />
 
       <button onClick={savePatient}>{t("common.save", "Salva")}</button>{" "}
       <button onClick={cancel}>{t("common.cancel", "Annulla")}</button>
@@ -2305,6 +2438,36 @@ function PatientDetail({
         </p>
       )}
 
+      {Object.prototype.hasOwnProperty.call(selected, "quadroClinicoTipo") &&
+      patientTrim(selected.quadroClinicoTipo) ? (
+        <p>
+          <strong>
+            {tt("patient.clinicalOrigin", "Infortunio o malattia?")}:
+          </strong>{" "}
+          {selected.quadroClinicoTipo === "infortunio"
+            ? tt("patient.clinicalOriginInjury", "Infortunio")
+            : tt("patient.clinicalOriginIllness", "Malattia")}
+        </p>
+      ) : null}
+
+      {Object.prototype.hasOwnProperty.call(
+        selected,
+        "infortunioChirurgicoPrevisto"
+      ) && patientTrim(selected.infortunioChirurgicoPrevisto) ? (
+        <p>
+          <strong>
+            {tt(
+              "patient.injurySurgeryPlanned",
+              "Intervento chirurgico (anche futuro)?"
+            )}
+            :
+          </strong>{" "}
+          {selected.infortunioChirurgicoPrevisto === "si"
+            ? tt("options.yesNo.Sì") || "Sì"
+            : tt("options.yesNo.No") || "No"}
+        </p>
+      ) : null}
+
       {(() => {
         const dxRows = migrateDiagnosiRighe(selected).filter((row) =>
           patientDiagnosiRowIsFilled(row, tt)
@@ -2315,8 +2478,15 @@ function PatientDetail({
         const imgDet = patientTrim(
           manualTextLower(selected.diagnosticaDettagli)
         );
+        const d2Raw = patientTrim(selected.diagnostica2);
+        const showImaging2 = Boolean(d2Raw && d2Raw !== "Nessuna");
+        const imgSecond =
+          showImaging2 &&
+          (tt(`options.imaging.${selected.diagnostica2}`) ||
+            patientTrim(selected.diagnostica2));
         const hasDx = dxRows.length > 0;
-        const hasImg = patientTrim(imgMain) || imgDet;
+        const hasImg =
+          patientTrim(imgMain) || imgDet || showImaging2;
         if (!hasDx && !hasImg) return null;
         return (
           <div className="patient-sheet-dx-img-row">
@@ -2363,6 +2533,14 @@ function PatientDetail({
                     <strong>{tt("patient.imaging")}:</strong> {imgMain}
                   </p>
                 ) : null}
+                {showImaging2 ? (
+                  <p style={{ margin: imgDet ? "0 0 6px" : "0 0 6px" }}>
+                    <strong>
+                      {tt("patient.imaging2Short", "Diagnostica 2")}:
+                    </strong>{" "}
+                    {imgSecond}
+                  </p>
+                ) : null}
                 {imgDet ? (
                   <p style={{ margin: 0 }}>
                     <strong>{tt("patient.imagingDetails")}:</strong> {imgDet}
@@ -2371,30 +2549,6 @@ function PatientDetail({
               </div>
             ) : null}
           </div>
-        );
-      })()}
-
-      {(() => {
-        const img2 =
-          tt(`options.imaging.${selected.diagnostica2}`) ||
-          patientTrim(selected.diagnostica2);
-        const det2 = patientTrim(
-          manualTextLower(selected.diagnosticaDettagli2)
-        );
-        if (!patientTrim(img2) && !det2) return null;
-        return (
-          <>
-            {patientTrim(img2) ? (
-              <p>
-                <strong>{tt("patient.imaging2")}:</strong> {img2}
-              </p>
-            ) : null}
-            {det2 ? (
-              <p>
-                <strong>{tt("patient.imagingDetails2")}:</strong> {det2}
-              </p>
-            ) : null}
-          </>
         );
       })()}
 
@@ -2433,6 +2587,17 @@ function PatientDetail({
             selected.tipoOperazione}
         </p>
       )}
+
+      {patientTrim(manualTextLower(selected.medicoPrescrittore)) && (
+        <p>
+          <strong>
+            {tt("patient.regardingPrescribingDoctor", "Medico prescrittore")}
+            :
+          </strong>{" "}
+          {manualTextLower(selected.medicoPrescrittore)}
+        </p>
+      )}
+
       <div className="no-pdf patient-sheet-actions">
         <button type="button" onClick={() => editPatient(selected)}>
           {tt("common.edit")}
