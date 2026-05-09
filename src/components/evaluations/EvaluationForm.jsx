@@ -205,6 +205,7 @@ const EVALUATION_BLOCK_TYPE_IDS = ["KIVIAT", "PAIN_VAS", "GENERAL_PAIN"];
 
 export default function EvaluationForm({
   tt,
+  patientBonNumero,
   evaluationForm,
   setEvaluationForm,
   addDistrettoWithFirstBlock,
@@ -269,8 +270,27 @@ export default function EvaluationForm({
     });
   }
 
+  const bonLabel =
+    patientBonNumero !== "" &&
+    patientBonNumero != null &&
+    Number.isFinite(Number(patientBonNumero))
+      ? `Bon ${Number(patientBonNumero)}`
+      : "";
+
   return (
     <div className="evaluation-form">
+      {bonLabel ? (
+        <p
+          style={{
+            margin: "0 0 12px",
+            fontSize: "1.05rem",
+            fontWeight: 700,
+          }}
+        >
+          {bonLabel}
+        </p>
+      ) : null}
+
       <div
         className="section-card"
         style={{
@@ -280,6 +300,16 @@ export default function EvaluationForm({
           marginBottom: 15,
         }}
       >
+        <p
+          style={{
+            margin: "0 0 12px",
+            fontSize: "0.95rem",
+            fontWeight: 600,
+            color: "var(--text-muted, #555)",
+          }}
+        >
+          {tt("patient.clinicalFrame")}
+        </p>
         <div
           style={{
             display: "flex",

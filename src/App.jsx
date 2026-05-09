@@ -54,7 +54,21 @@ import {
   distrettoActiveTests,
 } from "./utils/sanitizeEvaluation";
 import { normalizePatientSessioniTest } from "./utils/patientNormalize";
+import {
+  buildSnapshotBodyFromPatientLike,
+  buildSnapshotSheetContextFromPatientLike,
+  normalizePatientClinicalHistory,
+  normalizeStoricoSnapshotEntry,
+  spreadSnapshotToPatientTop,
+  todayIsoDate,
+} from "./utils/clinicalHistory";
+import {
+  formatBonLabel,
+  migratePatientsBonNumbers,
+  nextBonNumberForPatient,
+} from "./utils/bonCounter";
 import { epleyOneRmKg, formatOneRmKg } from "./utils/epley1rm";
+import { PatientAnamnesisSheet } from "./components/PatientAnamnesisSheet";
 import { sportOptions, tegnerInfo } from "./data/options";
 
 /**
@@ -172,6 +186,12 @@ fitnessTipo: "",
   manoDominante: "",
   valutazioni: [],
   sessioniTest: [],
+  /** Storico quadro clinico (dal più vecchio al più recente). */
+  storicoQuadroClinico: [],
+  /** Data (ISO) prima creazione scheda paziente. */
+  dataCreazionePaziente: "",
+  /** Numero dossier «Bon 1» (sempre la prima diagnosi di questo paziente). */
+  bonNumero: "",
 };
 
 export default function App() {
@@ -181,12 +201,15 @@ export default function App() {
       if (!data) return [];
       const parsed = JSON.parse(data);
       const list = Array.isArray(parsed) ? parsed : [];
-      return list.map((p) =>
-        normalizePatientSessioniTest({
-          ...p,
-          diagnosiRighe: migrateDiagnosiRighe(p),
-        })
+      const withClinical = list.map((p) =>
+        normalizePatientClinicalHistory(
+          normalizePatientSessioniTest({
+            ...p,
+            diagnosiRighe: migrateDiagnosiRighe(p),
+          })
+        )
       );
+      return migratePatientsBonNumbers(withClinical);
     } catch {
       return [];
     }
@@ -202,6 +225,9 @@ export default function App() {
   const [editingEvaluation, setEditingEvaluation] = useState(false);
   const [editingTestSession, setEditingTestSession] = useState(false);
   const [form, setForm] = useState(emptyPatient);
+  const [saveClinicalAsAppend, setSaveClinicalAsAppend] = useState(false);
+  /** Sincrono: evita che il salvataggio «nuova diagnosi» perda il flag prima del commit. */
+  const saveClinicalAsAppendRef = useRef(false);
   const [evaluationForm, setEvaluationForm] = useState(createEvaluation());
   const [testSessionForm, setTestSessionForm] = useState(createTestSession());
 
@@ -230,10 +256,11 @@ export default function App() {
   }
 
   function syncSelected(updatedPatient) {
+    const n = normalizePatientClinicalHistory(updatedPatient);
     setPatients((prev) =>
-      prev.map((p) => (p.id === updatedPatient.id ? updatedPatient : p))
+      prev.map((p) => (p.id === n.id ? n : p))
     );
-    setSelected(updatedPatient);
+    setSelected(n);
   }
 
   function update(key, value) {
@@ -241,6 +268,8 @@ export default function App() {
   }
 
   function newPatient() {
+    setSaveClinicalAsAppend(false);
+    saveClinicalAsAppendRef.current = false;
     setForm({
       ...emptyPatient,
       id: uid(),
@@ -249,6 +278,8 @@ export default function App() {
       ],
       quadroClinicoTipo: "",
       infortunioChirurgicoPrevisto: "",
+      storicoQuadroClinico: [],
+      dataCreazionePaziente: "",
     });
     setSelected(null);
     setEditingPatient(true);
@@ -257,15 +288,22 @@ export default function App() {
   }
 
   function editPatient(p) {
-    setForm({
-      ...emptyPatient,
+    setSaveClinicalAsAppend(false);
+    saveClinicalAsAppendRef.current = false;
+    const normalized = normalizePatientClinicalHistory({
       ...p,
-      sportMultipli: p.sportMultipli || [],
-      valutazioni: p.valutazioni || [],
-      sessioniTest: p.sessioniTest || [],
       diagnosiRighe: migrateDiagnosiRighe(p),
     });
-    setSelected(p);
+    setForm({
+      ...emptyPatient,
+      ...normalized,
+      sportMultipli: normalized.sportMultipli || [],
+      valutazioni: normalized.valutazioni || [],
+      sessioniTest: normalized.sessioniTest || [],
+      diagnosiRighe: migrateDiagnosiRighe(normalized),
+      storicoQuadroClinico: normalized.storicoQuadroClinico || [],
+    });
+    setSelected(normalized);
     setEditingPatient(true);
     setEditingEvaluation(false);
     setEditingTestSession(false);
@@ -277,31 +315,180 @@ export default function App() {
       return;
     }
 
-    const righe = migrateDiagnosiRighe(form).map((r) => ({
-      ...r,
-      id: r.id || uid(),
-    }));
+    const exists = patients.some((p) => p.id === form.id);
+    const todayIso = todayIsoDate();
+    const body = buildSnapshotBodyFromPatientLike(form);
+    const sheetContext = buildSnapshotSheetContextFromPatientLike(form);
+    const prevPatient = patients.find((p) => p.id === form.id);
+    const dataCreazionePaziente =
+      exists && patientTrim(prevPatient?.dataCreazionePaziente)
+        ? String(prevPatient.dataCreazionePaziente).trim()
+        : todayIso;
+
+    const appendClinical =
+      saveClinicalAsAppendRef.current || saveClinicalAsAppend;
+
+    let storicoQuadroClinico;
+    if (appendClinical && exists) {
+      const prevNorm = normalizePatientClinicalHistory({
+        ...prevPatient,
+        diagnosiRighe: migrateDiagnosiRighe(prevPatient),
+      });
+      const rawBase =
+        Array.isArray(prevNorm.storicoQuadroClinico) &&
+        prevNorm.storicoQuadroClinico.length > 0
+          ? prevNorm.storicoQuadroClinico
+          : form.storicoQuadroClinico || [];
+      const base = rawBase
+        .map((s) => normalizeStoricoSnapshotEntry(s))
+        .filter(Boolean);
+      storicoQuadroClinico = [
+        ...base,
+        {
+          id: uid(),
+          dataValutazione: todayIso,
+          bonNumero: nextBonNumberForPatient(base),
+          sheetContext,
+          ...body,
+        },
+      ];
+    } else if (appendClinical && !exists) {
+      storicoQuadroClinico = [
+        {
+          id: uid(),
+          dataValutazione: todayIso,
+          bonNumero: 1,
+          sheetContext,
+          ...body,
+        },
+      ];
+    } else if (!exists) {
+      storicoQuadroClinico = [
+        {
+          id: uid(),
+          dataValutazione: todayIso,
+          bonNumero: 1,
+          sheetContext,
+          ...body,
+        },
+      ];
+    } else {
+      const prev = Array.isArray(form.storicoQuadroClinico)
+        ? form.storicoQuadroClinico
+            .map((s) => normalizeStoricoSnapshotEntry(s))
+            .filter(Boolean)
+        : [];
+      if (prev.length === 0) {
+        storicoQuadroClinico = [
+          {
+            id: uid(),
+            dataValutazione: todayIso,
+            bonNumero: 1,
+            sheetContext,
+            ...body,
+          },
+        ];
+      } else {
+        const last = prev[prev.length - 1];
+        const lastBon =
+          last.bonNumero != null && last.bonNumero !== ""
+            ? Number(last.bonNumero)
+            : nextBonNumberForPatient(prev.slice(0, -1));
+        storicoQuadroClinico = [
+          ...prev.slice(0, -1),
+          normalizeStoricoSnapshotEntry({
+            ...last,
+            ...body,
+            sheetContext,
+            id: last.id,
+            dataValutazione: patientTrim(last.dataValutazione)
+              ? last.dataValutazione
+              : todayIso,
+            bonNumero: lastBon,
+          }),
+        ];
+      }
+    }
+
+    const lastSnap = storicoQuadroClinico[storicoQuadroClinico.length - 1];
+    const flat = spreadSnapshotToPatientTop(lastSnap);
+    const righe = flat.diagnosiRighe || [];
     const first = righe[0] || {};
+
+    const dossierBon =
+      storicoQuadroClinico.length > 0 &&
+      storicoQuadroClinico[0].bonNumero != null &&
+      storicoQuadroClinico[0].bonNumero !== ""
+        ? Number(storicoQuadroClinico[0].bonNumero)
+        : patientTrim(prevPatient?.bonNumero) &&
+            Number.isFinite(Number(prevPatient.bonNumero))
+          ? Number(prevPatient.bonNumero)
+          : patientTrim(form.bonNumero) && Number.isFinite(Number(form.bonNumero))
+            ? Number(form.bonNumero)
+            : "";
+
     const cleanForm = {
       ...emptyPatient,
       ...form,
       valutazioni: form.valutazioni || [],
       sessioniTest: form.sessioniTest || [],
       sportMultipli: form.sportMultipli || [],
+      storicoQuadroClinico,
+      dataCreazionePaziente,
+      bonNumero: dossierBon,
+      ...flat,
       diagnosiRighe: righe,
       diagnosi: first.diagnosi || "",
       distrettoDiagnosi: first.distrettoDiagnosi || "",
       diagnosiDettagli: first.dettagli || "",
     };
 
-    const exists = patients.some((p) => p.id === cleanForm.id);
     const updatedPatients = exists
       ? patients.map((p) => (p.id === cleanForm.id ? cleanForm : p))
       : [...patients, cleanForm];
 
     setPatients(updatedPatients);
     setSelected(cleanForm);
+    setSaveClinicalAsAppend(false);
+    saveClinicalAsAppendRef.current = false;
     setEditingPatient(false);
+  }
+
+  function addDiagnosisEntry(p) {
+    const fromList = patients.find((x) => x.id === p.id);
+    const normalized = fromList
+      ? fromList
+      : normalizePatientClinicalHistory({
+          ...p,
+          diagnosiRighe: migrateDiagnosiRighe(p),
+        });
+    setSaveClinicalAsAppend(true);
+    saveClinicalAsAppendRef.current = true;
+    setForm({
+      ...emptyPatient,
+      ...normalized,
+      sportMultipli: normalized.sportMultipli || [],
+      valutazioni: normalized.valutazioni || [],
+      sessioniTest: normalized.sessioniTest || [],
+      diagnosiRighe: [
+        { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+      ],
+      diagnostica: "",
+      diagnostica2: "",
+      diagnosticaDettagli: "",
+      dataInfortunio: "",
+      dataOperazione: "",
+      artoOperato: "",
+      tipoOperazione: "",
+      quadroClinicoTipo: "",
+      infortunioChirurgicoPrevisto: "",
+      medicoPrescrittore: "",
+      storicoQuadroClinico: normalized.storicoQuadroClinico || [],
+    });
+    setSelected(normalized);
+    setEditingPatient(true);
+    setEditingEvaluation(false);
+    setEditingTestSession(false);
   }
 
   function removePatient(id) {
@@ -721,7 +908,11 @@ export default function App() {
               update={update}
               setForm={setForm}
               savePatient={savePatient}
-              cancel={() => setEditingPatient(false)}
+              cancel={() => {
+                setSaveClinicalAsAppend(false);
+                saveClinicalAsAppendRef.current = false;
+                setEditingPatient(false);
+              }}
             />
           )}
 
@@ -729,6 +920,7 @@ export default function App() {
             <EvaluationForm
               key={evaluationForm.id}
               tt={tt}
+              patientBonNumero={selected.bonNumero}
               evaluationForm={evaluationForm}
               setEvaluationForm={setEvaluationForm}
               addDistrettoWithFirstBlock={addDistrettoWithFirstBlock}
@@ -758,6 +950,7 @@ export default function App() {
               selected={selected}
               tt={tt}
               editPatient={editPatient}
+              addDiagnosisEntry={addDiagnosisEntry}
               removePatient={removePatient}
               startNewEvaluation={startNewEvaluation}
               startNewTestSession={startNewTestSession}
@@ -1720,6 +1913,14 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
         />
       </Section>
 
+      {form.bonNumero !== "" &&
+      form.bonNumero != null &&
+      Number.isFinite(Number(form.bonNumero)) ? (
+        <p style={{ margin: "0 0 8px", fontSize: "1.05rem", fontWeight: 700 }}>
+          {formatBonLabel(form.bonNumero)}
+        </p>
+      ) : null}
+
       <Section title={t("patient.clinicalFrame", "Quadro clinico")}>
         <p
           style={{
@@ -1959,10 +2160,261 @@ function painDataForChart(sideDolore, distretto) {
   return Object.fromEntries(keys.map((k) => [k, v]));
 }
 
+/** Solo quadro clinico / diagnosi di uno snapshot (senza anamnesi). */
+function PatientClinicalSnapshotFields({ snap, tt }) {
+  return (
+    <>
+          {Object.prototype.hasOwnProperty.call(snap, "quadroClinicoTipo") &&
+          patientTrim(snap.quadroClinicoTipo) ? (
+            <p>
+              <strong>
+                {tt("patient.clinicalOrigin", "Infortunio o malattia?")}:
+              </strong>{" "}
+              {snap.quadroClinicoTipo === "infortunio"
+                ? tt("patient.clinicalOriginInjury", "Infortunio")
+                : tt("patient.clinicalOriginIllness", "Malattia")}
+            </p>
+          ) : null}
+
+          {Object.prototype.hasOwnProperty.call(
+            snap,
+            "infortunioChirurgicoPrevisto"
+          ) && patientTrim(snap.infortunioChirurgicoPrevisto) ? (
+            <p>
+              <strong>
+                {tt(
+                  "patient.injurySurgeryPlanned",
+                  "Intervento chirurgico (anche futuro)?"
+                )}
+                :
+              </strong>{" "}
+              {snap.infortunioChirurgicoPrevisto === "si"
+                ? tt("options.yesNo.Sì") || "Sì"
+                : tt("options.yesNo.No") || "No"}
+            </p>
+          ) : null}
+
+          {(() => {
+            const dxRows = migrateDiagnosiRighe(snap).filter((row) =>
+              patientDiagnosiRowIsFilled(row, tt)
+            );
+            const imgMain =
+              tt(`options.imaging.${snap.diagnostica}`) ||
+              patientTrim(snap.diagnostica);
+            const imgDet = patientTrim(
+              manualTextLower(snap.diagnosticaDettagli)
+            );
+            const d2Raw = patientTrim(snap.diagnostica2);
+            const showImaging2 = Boolean(d2Raw && d2Raw !== "Nessuna");
+            const imgSecond =
+              showImaging2 &&
+              (tt(`options.imaging.${snap.diagnostica2}`) ||
+                patientTrim(snap.diagnostica2));
+            const hasDx = dxRows.length > 0;
+            const hasImg =
+              patientTrim(imgMain) || imgDet || showImaging2;
+            if (!hasDx && !hasImg) return null;
+            return (
+              <div className="patient-sheet-dx-img-row">
+                {hasDx ? (
+                  <div className="patient-sheet-dx-col">
+                    <strong>
+                      {tt("patient.diagnosisShort")}
+                      {patientTrim(snap.dataValutazione)
+                        ? ` (${formatDateDMY(snap.dataValutazione)})`
+                        : ""}
+                      :
+                    </strong>
+                    <ul className="patient-sheet-dx-list">
+                      {dxRows.map((row) => {
+                        const dx = translatedPatientDiagnosis(row.diagnosi, tt);
+                        const dist = row.distrettoDiagnosi
+                          ? translatedDistrettoDiagnosi(
+                              row.distrettoDiagnosi,
+                              tt
+                            )
+                          : "";
+                        const det = manualTextLower(row.dettagli);
+                        const main = [dx, dist].filter(Boolean).join(" — ");
+                        const detT = patientTrim(det);
+                        return (
+                          <li key={row.id}>
+                            {main ? (
+                              <>
+                                {main}
+                                {detT ? (
+                                  <span style={{ color: "var(--text-muted)" }}>
+                                    {" "}
+                                    — {det}
+                                  </span>
+                                ) : null}
+                              </>
+                            ) : detT ? (
+                              <span>{det}</span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ) : null}
+                {hasImg ? (
+                  <div className="patient-sheet-img-col">
+                    {!hasDx && patientTrim(snap.dataValutazione) ? (
+                      <p style={{ margin: "0 0 6px" }}>
+                        <strong>
+                          {tt("patient.evaluationOf", "valutazione del")}{" "}
+                          {formatDateDMY(snap.dataValutazione)}
+                        </strong>
+                      </p>
+                    ) : null}
+                    {patientTrim(imgMain) ? (
+                      <p style={{ margin: "0 0 6px" }}>
+                        <strong>{tt("patient.imaging")}:</strong> {imgMain}
+                      </p>
+                    ) : null}
+                    {showImaging2 ? (
+                      <p style={{ margin: imgDet ? "0 0 6px" : "0 0 6px" }}>
+                        <strong>
+                          {tt("patient.imaging2Short", "Diagnostica 2")}:
+                        </strong>{" "}
+                        {imgSecond}
+                      </p>
+                    ) : null}
+                    {imgDet ? (
+                      <p style={{ margin: 0 }}>
+                        <strong>{tt("patient.imagingDetails")}:</strong>{" "}
+                        {imgDet}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })()}
+
+          {patientTrim(snap.dataInfortunio) && (
+            <p>
+              <strong>{tt("patient.injuryDate")}:</strong>{" "}
+              {`${formatDateDMY(snap.dataInfortunio)} \u2026 ${timeSinceYWD(
+                snap.dataInfortunio,
+                tt
+              )}`}
+            </p>
+          )}
+
+          {patientTrim(snap.dataOperazione) && (
+            <p>
+              <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
+              {`${formatDateDMY(snap.dataOperazione)} \u2026 ${timeSinceYWD(
+                snap.dataOperazione,
+                tt
+              )}`}
+            </p>
+          )}
+
+          {patientTrim(snap.artoOperato) && (
+            <p>
+              <strong>{tt("patient.operatedLimbShort")}:</strong>{" "}
+              {tt(`options.operatedLimb.${snap.artoOperato}`) ||
+                snap.artoOperato}
+            </p>
+          )}
+
+          {patientTrim(snap.tipoOperazione) && (
+            <p>
+              <strong>{tt("patient.surgeryType")}:</strong>{" "}
+              {tt(`options.surgeryType.${snap.tipoOperazione}`) ||
+                snap.tipoOperazione}
+            </p>
+          )}
+
+          {patientTrim(manualTextLower(snap.medicoPrescrittore)) && (
+            <p>
+              <strong>
+                {tt("patient.regardingPrescribingDoctor", "Medico prescrittore")}
+                :
+              </strong>{" "}
+              {manualTextLower(snap.medicoPrescrittore)}
+            </p>
+          )}
+    </>
+  );
+}
+
+/**
+ * Per ogni voce di storico: anamnesi congelata al salvataggio, etichetta Bon,
+ * quadro clinico (come una valutazione completa).
+ */
+function PatientClinicalHistoryBlocks({ storico, selected, tt }) {
+  if (!storico || storico.length === 0) return null;
+
+  return (
+    <>
+      {storico.map((snap, idx) => {
+        const anamnSource =
+          snap.sheetContext && typeof snap.sheetContext === "object"
+            ? snap.sheetContext
+            : idx === 0
+              ? selected
+              : null;
+        return (
+          <div
+            key={snap.id || `clinical-snap-${idx}`}
+            className="patient-clinical-snapshot"
+          >
+            {idx > 0 ? (
+              <>
+                <hr
+                  style={{
+                    margin: "20px 0 12px",
+                    border: 0,
+                    borderTop: "1px solid var(--border)",
+                  }}
+                />
+                <p
+                  style={{
+                    margin: "0 0 12px",
+                    fontSize: "1rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  {formatBonLabel(snap.bonNumero)
+                    ? `${formatBonLabel(snap.bonNumero)} `
+                    : ""}
+                  {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
+                  {patientTrim(snap.dataValutazione)
+                    ? formatDateDMY(snap.dataValutazione)
+                    : "—"}
+                </p>
+              </>
+            ) : null}
+
+            <PatientAnamnesisSheet
+              data={anamnSource}
+              tt={tt}
+              diffPrevious={
+                idx > 0 &&
+                storico[idx - 1]?.sheetContext &&
+                typeof storico[idx - 1].sheetContext === "object"
+                  ? storico[idx - 1].sheetContext
+                  : null
+              }
+            />
+
+            <PatientClinicalSnapshotFields snap={snap} tt={tt} />
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 function PatientDetail({
   selected,
   tt,
   editPatient,
+  addDiagnosisEntry,
   removePatient,
   startNewEvaluation,
   startNewTestSession,
@@ -1985,6 +2437,12 @@ function PatientDetail({
   const revealComparativeCharts =
     showComparativeCharts || isExportingPdf;
   const revealTestChartsPanel = showTestCharts || isExportingPdf;
+
+  const storicoQuadroClinico = selected.storicoQuadroClinico || [];
+  const firstAppointmentDate =
+    storicoQuadroClinico.length > 0
+      ? storicoQuadroClinico[0].dataValutazione
+      : "";
 
   useEffect(() => {
     if (!showEvaluationsList) setExpandedEvaluationId(null);
@@ -2043,562 +2501,55 @@ function PatientDetail({
         </div>
       </header>
 
-      <h2>
-        {formatPatientListDisplayName(selected) || "-"}
-        {selected.dataNascita
-          ? `  ${formatDateDMY(selected.dataNascita)}`
-          : ""}
+      <h2 style={{ lineHeight: 1.4 }}>
+        <span>
+          {formatPatientListDisplayName(selected) || "-"}
+          {selected.dataNascita
+            ? `  ${formatDateDMY(selected.dataNascita)}`
+            : ""}
+          {selected.bonNumero !== "" &&
+          selected.bonNumero != null &&
+          Number.isFinite(Number(selected.bonNumero)) ? (
+            <>
+              {" "}
+              {formatBonLabel(selected.bonNumero)}{" "}
+              {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
+              {patientTrim(firstAppointmentDate)
+                ? formatDateDMY(firstAppointmentDate)
+                : "—"}
+            </>
+          ) : patientTrim(firstAppointmentDate) ? (
+            <>
+              {" "}
+              {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
+              {formatDateDMY(firstAppointmentDate)}
+            </>
+          ) : null}
+        </span>
       </h2>
 
-      {(patientTrim(selected.peso) ||
-        patientTrim(selected.altezza) ||
-        patientTrim(calcBMI(selected.peso, selected.altezza)) ||
-        patientTrim(selected.sesso) ||
-        patientTrim(selected.manoDominante)) && (
-        <p
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "0 12px",
-            alignItems: "baseline",
-          }}
-        >
-          {patientTrim(selected.peso) ? (
-            <span>
-              <strong>{tt("patient.weight")}:</strong> {selected.peso} kg
-            </span>
-          ) : null}
-          {patientTrim(selected.altezza) ? (
-            <span>
-              <strong>{tt("patient.height")}:</strong> {selected.altezza} cm
-            </span>
-          ) : null}
-          {patientTrim(calcBMI(selected.peso, selected.altezza)) ? (
-            <span>
-              <strong>{tt("patient.bmi")}:</strong>{" "}
-              {calcBMI(selected.peso, selected.altezza)}
-            </span>
-          ) : null}
-          {patientTrim(selected.sesso) ? (
-            <span>
-              <strong>{tt("patient.sex")}:</strong>{" "}
-              {tt(`options.sex.${selected.sesso}`) || selected.sesso}
-            </span>
-          ) : null}
-          {patientTrim(selected.manoDominante) ? (
-            <span>
-              <strong>{tt("patient.dominantHand")}:</strong>{" "}
-              {tt(`dominantHand.${selected.manoDominante}`) ||
-                selected.manoDominante}
-            </span>
-          ) : null}
-        </p>
+      {storicoQuadroClinico.length === 0 ? (
+        <PatientAnamnesisSheet data={selected} tt={tt} />
+      ) : (
+        <PatientClinicalHistoryBlocks
+          storico={storicoQuadroClinico}
+          selected={selected}
+          tt={tt}
+        />
       )}
 
-      {patientTrim(selected.variazionePeso) && (
-        <p>
-          <strong>{tt("patient.weightChange")}:</strong>{" "}
-          {tt(`options.yesNo.${selected.variazionePeso}`) ||
-            selected.variazionePeso}
-        </p>
-      )}
-
-      {selected.variazionePeso === "Sì" &&
-        patientTrim(manualTextLower(selected.motivoVariazionePeso)) && (
-          <p>
-            <strong>{tt("patient.weightChangeReason")}:</strong>{" "}
-            {manualTextLower(selected.motivoVariazionePeso)}
-          </p>
-        )}
-
-      {(() => {
-        const farm = patientTrim(manualTextLower(selected.farmaci));
-        const pat = patientTrim(manualTextLower(selected.patologie));
-        const bpDate = patientTrim(selected.dataUltimoTestPressioneArteriosa);
-        const bpStr = bpDate ? formatDateDMY(bpDate) || bpDate : "";
-        const smoke =
-          selected.fumatore &&
-          (tt(`options.yesNo.${selected.fumatore}`) || selected.fumatore);
-        const smokeStr = patientTrim(smoke);
-        const ep =
-          selected.epilessia &&
-          (tt(`options.yesNo.${selected.epilessia}`) || selected.epilessia);
-        const epStr = patientTrim(ep);
-        if (!farm && !pat && !bpStr && !smokeStr && !epStr) return null;
-        const chunks = [];
-        if (farm) {
-          chunks.push(
-            <span key="farm">
-              <strong>{tt("patient.medications")}:</strong> {farm}
-            </span>
-          );
-        }
-        if (pat) {
-          chunks.push(
-            <span key="pat">
-              <strong>{tt("patient.pathologies")}:</strong> {pat}
-            </span>
-          );
-        }
-        if (bpStr) {
-          chunks.push(
-            <span key="bp">
-              <strong>{tt("patient.lastBloodPressureTestDate")}:</strong>{" "}
-              {bpStr}
-            </span>
-          );
-        }
-        if (smokeStr) {
-          chunks.push(
-            <span key="smoke">
-              <strong>{tt("patient.smoker")}:</strong> {smokeStr}
-            </span>
-          );
-        }
-        if (epStr) {
-          chunks.push(
-            <span key="ep">
-              <strong>{tt("patient.epilepsy")}:</strong> {epStr}
-            </span>
-          );
-        }
-        return (
-          <p
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0 12px",
-              alignItems: "baseline",
-            }}
-          >
-            {chunks.flatMap((el, i) =>
-              i === 0 ? [el] : [<span key={`sep-${i}`}>|</span>, el]
-            )}
-          </p>
-        );
-      })()}
-
-      {patientTrim(manualTextLower(selected.antecedentiChirurgici)) && (
-        <p>
-          <strong>{tt("patient.relevantSurgeryHistory")}:</strong>{" "}
-          {manualTextLower(selected.antecedentiChirurgici)}
-        </p>
-      )}
-
-      {selected.sesso === "Donna" &&
-        (() => {
-          const yn = (v) =>
-            v ? tt(`options.yesNo.${v}`) || v : "";
-          const parts = [];
-          if (patientTrim(selected.figli)) {
-            parts.push(`${tt("patient.children")}: ${yn(selected.figli)}`);
-            if (selected.figli === "Sì") {
-              if (patientTrim(selected.numeroFigli)) {
-                parts.push(
-                  `${tt("patient.childrenCount")}: ${selected.numeroFigli}`
-                );
-              }
-              if (patientTrim(selected.tipoParto)) {
-                parts.push(
-                  `${tt("patient.birthMode")}: ${
-                    tt(`options.birthType.${selected.tipoParto}`) ||
-                    selected.tipoParto
-                  }`
-                );
-              }
-            }
-          }
-          if (patientTrim(selected.riabilitazionePerineale)) {
-            parts.push(
-              `${tt("patient.perinealRehab")}: ${yn(
-                selected.riabilitazionePerineale
-              )}`
-            );
-          }
-          if (patientTrim(selected.incontinenza)) {
-            parts.push(
-              `${tt("patient.urinaryIncontinence")}: ${yn(
-                selected.incontinenza
-              )}`
-            );
-          }
-          if (!parts.length) return null;
-          return (
-            <p style={{ lineHeight: 1.45 }}>{parts.join(" | ")}</p>
-          );
-        })()}
-
-      {patientTrim(manualTextLower(selected.dominioLavoro)) && (
-        <p>
-          <strong>{tt("patient.workEducation")}:</strong>{" "}
-          {manualTextLower(selected.dominioLavoro)}
-        </p>
-      )}
-
-      {patientTrim(manualTextLower(selected.rischiProfessionali)) && (
-        <p>
-          <strong>{tt("patient.professionalRiskNotes")}:</strong>{" "}
-          {manualTextLower(selected.rischiProfessionali)}
-        </p>
-      )}
-
-{/* motivoAccesso (Referral / Già cliente / Internet): salvato nei dati e nell’export JSON per statistiche; non mostrato in questa scheda. */}
-
-      {(() => {
-        const list = (selected.sportMultipli || [])
-          .filter(Boolean)
-          .map((s) => {
-            const lower = String(s).toLowerCase();
-            const upper =
-              String(s).charAt(0).toUpperCase() + String(s).slice(1);
-            return (
-              tt(`options.sport.${lower}`) ||
-              tt(`options.sport.${upper}`) ||
-              s
-            );
-          })
-          .join(", ");
-        const extra = patientTrim(manualTextLower(selected.sportAltro));
-        const body =
-          list && extra ? `${list}, ${extra}` : list || extra || "";
-        if (!body) return null;
-        return (
-          <p>
-            <strong>{tt("patient.sports")}:</strong> {body}
-          </p>
-        );
-      })()}
-
-      {patientTrim(selected.sportLivello) && (
-        <p>
-          <strong>{tt("patient.sportPracticeLevel")}:</strong>{" "}
-          {tt(`options.sportLevel.${selected.sportLivello}`) ||
-            selected.sportLivello}
-        </p>
-      )}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "running"
-      ) &&
-        (() => {
-          const trim = (v) =>
-            v != null && String(v).trim() !== ""
-              ? manualTextLower(String(v).trim())
-              : "";
-          const parts = [];
-          const km = trim(selected.running10km);
-          const mez = trim(selected.runningMezza);
-          const mar = trim(selected.runningMaratona);
-          if (km) parts.push(`${tt("patient.running10km")}: ${km}`);
-          if (mez) parts.push(`${tt("patient.runningHalfMarathon")}: ${mez}`);
-          if (mar) parts.push(`${tt("patient.runningMarathon")}: ${mar}`);
-          if (!parts.length) return null;
-          return (
-            <p>
-              <strong>{tt("patient.running")}:</strong> {parts.join(" | ")}
-            </p>
-          );
-        })()}
-
-{(selected.sportMultipli || []).some(
-  (s) => String(s).toLowerCase() === "fitness"
-) &&
-  selected.fitnessTipo && (
-    <p>
-      <strong>{tt("patient.fitness")}:</strong>{" "}
-      {tt(`options.fitnessType.${selected.fitnessTipo}`) ||
-        selected.fitnessTipo}
-    </p>
-  )}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "surf"
-      ) &&
-        patientTrim(selected.surfStance) && (
-          <p>
-            <strong>{tt("options.sport.surf") ?? "Surf"}:</strong>{" "}
-            {tt(`options.boardStance.${selected.surfStance}`) ||
-              selected.surfStance}
-          </p>
-        )}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "snowboard"
-      ) &&
-        patientTrim(selected.snowboardStance) && (
-          <p>
-            <strong>{tt("options.sport.snowboard") ?? "Snowboard"}:</strong>{" "}
-            {tt(`options.boardStance.${selected.snowboardStance}`) ||
-              selected.snowboardStance}
-          </p>
-        )}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "skateboard"
-      ) &&
-        patientTrim(selected.skateboardStance) && (
-          <p>
-            <strong>{tt("options.sport.skateboard") ?? "Skateboard"}:</strong>{" "}
-            {tt(`options.boardStance.${selected.skateboardStance}`) ||
-              selected.skateboardStance}
-          </p>
-        )}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "tennis"
-      ) &&
-        (() => {
-          const bh =
-            selected.tennisBackhand &&
-            (tt(`options.tennisBackhand.${selected.tennisBackhand}`) ||
-              selected.tennisBackhand);
-          const tension = patientTrim(
-            manualTextLower(selected.tennisStringTension)
-          );
-          const racket = selected.tennisRacketChangedRecently
-            ? tt(`options.yesNo.${selected.tennisRacketChangedRecently}`) ||
-              selected.tennisRacketChangedRecently
-            : "";
-          const segs = [];
-          if (patientTrim(bh)) {
-            segs.push(
-              `${tt("patient.tennisBackhand") ?? "Rovescio"}: ${bh}`
-            );
-          }
-          if (tension) {
-            segs.push(
-              `${tt("patient.tennisStringTension") ?? "Tensione corde"}: ${tension}`
-            );
-          }
-          if (patientTrim(racket)) {
-            segs.push(
-              `${tt("patient.tennisRacketChangedRecently") ?? "Racchetta cambiata"}: ${racket}`
-            );
-          }
-          if (!segs.length) return null;
-          return (
-            <p>
-              <strong>{tt("options.sport.tennis") ?? "Tennis"}:</strong>{" "}
-              {segs.join(" | ")}
-            </p>
-          );
-        })()}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "padel"
-      ) &&
-        patientTrim(selected.padelRacketChangedRecently) && (
-          <p>
-            <strong>{tt("options.sport.padel") ?? "Padel"}:</strong>{" "}
-            {tt("patient.padelRacketChangedRecently") ??
-              "Racchetta cambiata di recente"}
-            :{" "}
-            {tt(`options.yesNo.${selected.padelRacketChangedRecently}`) ||
-              selected.padelRacketChangedRecently}
-          </p>
-        )}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "calcio"
-      ) &&
-        patientTrim(selected.calcioRuolo) && (
-          <p>
-            <strong>{tt("options.sport.calcio") ?? "Calcio"}:</strong>{" "}
-            {tt("patient.calcioFieldRole") ?? "Ruolo"}:{" "}
-            {tt(`options.calcioRuolo.${selected.calcioRuolo}`) ||
-              selected.calcioRuolo}
-          </p>
-        )}
-
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "sci"
-      ) &&
-        patientTrim(selected.sciTipo) && (
-          <p>
-            <strong>{tt("options.sport.sci") ?? "Sci"}:</strong>{" "}
-            {tt("patient.sciType") ?? "Tipo"}:{" "}
-            {tt(`options.sciTipo.${selected.sciTipo}`) || selected.sciTipo}
-          </p>
-        )}
-
-      {selected.tegner !== "" &&
-        selected.tegner != null &&
-        patientTrim(String(selected.tegner)) && (
-          <p>
-            <strong>{tt("patient.tegner")}:</strong> {selected.tegner}{" "}
-            {`- ${tt(`options.tegner.${selected.tegner}`) || tegnerInfo[selected.tegner]}`}
-          </p>
-        )}
-
-      {patientTrim(selected.oreSport) && (
-        <p>
-          <strong>{tt("patient.weeklySportHours")}:</strong>{" "}
-          {tt(`options.weeklySportHours.${selected.oreSport}`) ||
-            selected.oreSport}
-        </p>
-      )}
-
-      {Object.prototype.hasOwnProperty.call(selected, "quadroClinicoTipo") &&
-      patientTrim(selected.quadroClinicoTipo) ? (
-        <p>
-          <strong>
-            {tt("patient.clinicalOrigin", "Infortunio o malattia?")}:
-          </strong>{" "}
-          {selected.quadroClinicoTipo === "infortunio"
-            ? tt("patient.clinicalOriginInjury", "Infortunio")
-            : tt("patient.clinicalOriginIllness", "Malattia")}
-        </p>
-      ) : null}
-
-      {Object.prototype.hasOwnProperty.call(
-        selected,
-        "infortunioChirurgicoPrevisto"
-      ) && patientTrim(selected.infortunioChirurgicoPrevisto) ? (
-        <p>
-          <strong>
-            {tt(
-              "patient.injurySurgeryPlanned",
-              "Intervento chirurgico (anche futuro)?"
-            )}
-            :
-          </strong>{" "}
-          {selected.infortunioChirurgicoPrevisto === "si"
-            ? tt("options.yesNo.Sì") || "Sì"
-            : tt("options.yesNo.No") || "No"}
-        </p>
-      ) : null}
-
-      {(() => {
-        const dxRows = migrateDiagnosiRighe(selected).filter((row) =>
-          patientDiagnosiRowIsFilled(row, tt)
-        );
-        const imgMain =
-          tt(`options.imaging.${selected.diagnostica}`) ||
-          patientTrim(selected.diagnostica);
-        const imgDet = patientTrim(
-          manualTextLower(selected.diagnosticaDettagli)
-        );
-        const d2Raw = patientTrim(selected.diagnostica2);
-        const showImaging2 = Boolean(d2Raw && d2Raw !== "Nessuna");
-        const imgSecond =
-          showImaging2 &&
-          (tt(`options.imaging.${selected.diagnostica2}`) ||
-            patientTrim(selected.diagnostica2));
-        const hasDx = dxRows.length > 0;
-        const hasImg =
-          patientTrim(imgMain) || imgDet || showImaging2;
-        if (!hasDx && !hasImg) return null;
-        return (
-          <div className="patient-sheet-dx-img-row">
-            {hasDx ? (
-              <div className="patient-sheet-dx-col">
-                <strong>{tt("patient.diagnosisShort")}:</strong>
-                <ul className="patient-sheet-dx-list">
-                  {dxRows.map((row) => {
-                    const dx = translatedPatientDiagnosis(row.diagnosi, tt);
-                    const dist = row.distrettoDiagnosi
-                      ? translatedDistrettoDiagnosi(
-                          row.distrettoDiagnosi,
-                          tt
-                        )
-                      : "";
-                    const det = manualTextLower(row.dettagli);
-                    const main = [dx, dist].filter(Boolean).join(" — ");
-                    const detT = patientTrim(det);
-                    return (
-                      <li key={row.id}>
-                        {main ? (
-                          <>
-                            {main}
-                            {detT ? (
-                              <span style={{ color: "var(--text-muted)" }}>
-                                {" "}
-                                — {det}
-                              </span>
-                            ) : null}
-                          </>
-                        ) : detT ? (
-                          <span>{det}</span>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ) : null}
-            {hasImg ? (
-              <div className="patient-sheet-img-col">
-                {patientTrim(imgMain) ? (
-                  <p style={{ margin: "0 0 6px" }}>
-                    <strong>{tt("patient.imaging")}:</strong> {imgMain}
-                  </p>
-                ) : null}
-                {showImaging2 ? (
-                  <p style={{ margin: imgDet ? "0 0 6px" : "0 0 6px" }}>
-                    <strong>
-                      {tt("patient.imaging2Short", "Diagnostica 2")}:
-                    </strong>{" "}
-                    {imgSecond}
-                  </p>
-                ) : null}
-                {imgDet ? (
-                  <p style={{ margin: 0 }}>
-                    <strong>{tt("patient.imagingDetails")}:</strong> {imgDet}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        );
-      })()}
-
-      {patientTrim(selected.dataInfortunio) && (
-        <p>
-          <strong>{tt("patient.injuryDate")}:</strong>{" "}
-          {`${formatDateDMY(selected.dataInfortunio)} \u2026 ${timeSinceYWD(
-            selected.dataInfortunio,
-            tt
-          )}`}
-        </p>
-      )}
-
-      {patientTrim(selected.dataOperazione) && (
-        <p>
-          <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
-          {`${formatDateDMY(selected.dataOperazione)} \u2026 ${timeSinceYWD(
-            selected.dataOperazione,
-            tt
-          )}`}
-        </p>
-      )}
-
-      {patientTrim(selected.artoOperato) && (
-        <p>
-          <strong>{tt("patient.operatedLimbShort")}:</strong>{" "}
-          {tt(`options.operatedLimb.${selected.artoOperato}`) ||
-            selected.artoOperato}
-        </p>
-      )}
-
-      {patientTrim(selected.tipoOperazione) && (
-        <p>
-          <strong>{tt("patient.surgeryType")}:</strong>{" "}
-          {tt(`options.surgeryType.${selected.tipoOperazione}`) ||
-            selected.tipoOperazione}
-        </p>
-      )}
-
-      {patientTrim(manualTextLower(selected.medicoPrescrittore)) && (
-        <p>
-          <strong>
-            {tt("patient.regardingPrescribingDoctor", "Medico prescrittore")}
-            :
-          </strong>{" "}
-          {manualTextLower(selected.medicoPrescrittore)}
-        </p>
-      )}
-
-      <div className="no-pdf patient-sheet-actions">
+      <div
+        className="no-pdf patient-sheet-actions"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          alignItems: "center",
+        }}
+      >
+        <button type="button" onClick={() => addDiagnosisEntry(selected)}>
+          {tt("patient.addDiagnosisSheet", "+ Aggiungi diagnosi")}
+        </button>
         <button type="button" onClick={() => editPatient(selected)}>
           {tt("common.edit")}
         </button>

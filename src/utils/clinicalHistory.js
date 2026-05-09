@@ -1,0 +1,244 @@
+import {
+  migrateDiagnosiRighe,
+  patientTrim,
+  uid,
+} from "./helpers";
+
+/** Campi anamnesi / sport salvati con ogni voce di storico (stampa come valutazione completa). */
+const SNAPSHOT_SHEET_CONTEXT_KEYS = [
+  "peso",
+  "altezza",
+  "sesso",
+  "manoDominante",
+  "variazionePeso",
+  "motivoVariazionePeso",
+  "farmaci",
+  "patologie",
+  "dataUltimoTestPressioneArteriosa",
+  "fumatore",
+  "epilessia",
+  "antecedentiChirurgici",
+  "figli",
+  "numeroFigli",
+  "tipoParto",
+  "riabilitazionePerineale",
+  "incontinenza",
+  "dominioLavoro",
+  "rischiProfessionali",
+  "sportMultipli",
+  "sportAltro",
+  "sportLivello",
+  "running10km",
+  "runningMezza",
+  "runningMaratona",
+  "fitnessTipo",
+  "surfStance",
+  "snowboardStance",
+  "skateboardStance",
+  "tennisBackhand",
+  "tennisStringTension",
+  "tennisRacketChangedRecently",
+  "padelRacketChangedRecently",
+  "calcioRuolo",
+  "sciTipo",
+  "tegner",
+  "oreSport",
+];
+
+export function buildSnapshotSheetContextFromPatientLike(form) {
+  const f = form && typeof form === "object" ? form : {};
+  const out = {};
+  for (const k of SNAPSHOT_SHEET_CONTEXT_KEYS) {
+    if (k === "sportMultipli") {
+      out[k] = Array.isArray(f.sportMultipli) ? [...f.sportMultipli] : [];
+    } else {
+      out[k] = f[k] ?? "";
+    }
+  }
+  return out;
+}
+
+/** Valore normalizzato per confronto diff tra due `sheetContext`. */
+export function normalizedSheetFieldValue(key, obj) {
+  if (!obj || typeof obj !== "object") return "";
+  if (key === "sportMultipli") {
+    return JSON.stringify([...(obj.sportMultipli || [])].map(String).sort());
+  }
+  return String(obj[key] ?? "").trim();
+}
+
+export function sheetContextFieldDiffers(key, cur, prev) {
+  if (!prev || typeof prev !== "object" || !cur || typeof cur !== "object")
+    return false;
+  return (
+    normalizedSheetFieldValue(key, cur) !== normalizedSheetFieldValue(key, prev)
+  );
+}
+
+/** Campi clinici salvati per ogni «fotografia» nel tempo. */
+export function buildSnapshotBodyFromPatientLike(form) {
+  return {
+    diagnosiRighe: migrateDiagnosiRighe(form).map((r) => ({
+      ...r,
+      id: r.id || uid(),
+    })),
+    diagnostica: form.diagnostica ?? "",
+    diagnostica2: form.diagnostica2 ?? "",
+    diagnosticaDettagli: form.diagnosticaDettagli ?? "",
+    dataInfortunio: form.dataInfortunio ?? "",
+    dataOperazione: form.dataOperazione ?? "",
+    artoOperato: form.artoOperato ?? "",
+    tipoOperazione: form.tipoOperazione ?? "",
+    quadroClinicoTipo: form.quadroClinicoTipo ?? "",
+    infortunioChirurgicoPrevisto: form.infortunioChirurgicoPrevisto ?? "",
+    medicoPrescrittore: form.medicoPrescrittore ?? "",
+  };
+}
+
+export function spreadSnapshotToPatientTop(snap) {
+  if (!snap) return {};
+  const righe = migrateDiagnosiRighe({
+    diagnosiRighe: snap.diagnosiRighe,
+    diagnosi: snap.diagnosi,
+    distrettoDiagnosi: snap.distrettoDiagnosi,
+    diagnosiDettagli: snap.diagnosiDettagli,
+  }).map((r) => ({ ...r, id: r.id || uid() }));
+  const first = righe[0] || {};
+  return {
+    diagnosiRighe: righe,
+    diagnosi: first.diagnosi || "",
+    distrettoDiagnosi: first.distrettoDiagnosi || "",
+    diagnosiDettagli: first.dettagli || "",
+    diagnostica: snap.diagnostica ?? "",
+    diagnostica2: snap.diagnostica2 ?? "",
+    diagnosticaDettagli: snap.diagnosticaDettagli ?? "",
+    dataInfortunio: snap.dataInfortunio ?? "",
+    dataOperazione: snap.dataOperazione ?? "",
+    artoOperato: snap.artoOperato ?? "",
+    tipoOperazione: snap.tipoOperazione ?? "",
+    quadroClinicoTipo: snap.quadroClinicoTipo ?? "",
+    infortunioChirurgicoPrevisto: snap.infortunioChirurgicoPrevisto ?? "",
+    medicoPrescrittore: snap.medicoPrescrittore ?? "",
+  };
+}
+
+function diagnosiRowHasData(row) {
+  return Boolean(
+    patientTrim(row?.diagnosi) ||
+      patientTrim(row?.distrettoDiagnosi) ||
+      patientTrim(row?.dettagli)
+  );
+}
+
+/** True se la scheda ha dati clinici «piatti» (pre-storico o ultimo stato). */
+export function legacyPatientClinicalHasVisibleData(p) {
+  if (!p) return false;
+  const rows = migrateDiagnosiRighe(p);
+  if (rows.some(diagnosiRowHasData)) return true;
+  const dx = patientTrim(p.diagnostica);
+  if (dx && dx !== "Nessuna") return true;
+  const d2 = patientTrim(p.diagnostica2);
+  if (d2 && d2 !== "Nessuna") return true;
+  if (patientTrim(p.diagnosticaDettagli)) return true;
+  if (patientTrim(p.dataInfortunio) || patientTrim(p.dataOperazione))
+    return true;
+  const arto = patientTrim(p.artoOperato);
+  if (arto && arto !== "Non operato") return true;
+  const tipo = patientTrim(p.tipoOperazione);
+  if (tipo && tipo !== "Nessuna") return true;
+  if (patientTrim(p.quadroClinicoTipo)) return true;
+  if (patientTrim(p.infortunioChirurgicoPrevisto)) return true;
+  if (patientTrim(p.medicoPrescrittore)) return true;
+  return false;
+}
+
+export function normalizeStoricoSnapshotEntry(snap) {
+  if (!snap || typeof snap !== "object") return null;
+  const body = buildSnapshotBodyFromPatientLike({
+    ...snap,
+    diagnosiRighe: snap.diagnosiRighe,
+  });
+  const bonRaw = snap.bonNumero;
+  const bon =
+    bonRaw != null && bonRaw !== ""
+      ? Number(bonRaw)
+      : undefined;
+  const scRaw = snap.sheetContext;
+  const sheetContext =
+    scRaw && typeof scRaw === "object"
+      ? buildSnapshotSheetContextFromPatientLike(scRaw)
+      : undefined;
+  return {
+    id: snap.id || uid(),
+    dataValutazione: snap.dataValutazione != null ? String(snap.dataValutazione) : "",
+    ...body,
+    ...(bon !== undefined && Number.isFinite(bon) ? { bonNumero: bon } : {}),
+    ...(sheetContext ? { sheetContext } : {}),
+  };
+}
+
+/**
+ * Garantisce `storicoQuadroClinico` e migra le righe.
+ * Se manca lo storico ma ci sono dati clinici legacy, crea una voce iniziale.
+ */
+export function normalizePatientClinicalHistory(patient) {
+  const p = { ...patient };
+  let storico = Array.isArray(p.storicoQuadroClinico)
+    ? p.storicoQuadroClinico.map(normalizeStoricoSnapshotEntry).filter(Boolean)
+    : [];
+
+  if (storico.length === 0 && legacyPatientClinicalHasVisibleData(p)) {
+    storico = [
+      {
+        id: uid(),
+        dataValutazione: patientTrim(p.dataCreazionePaziente)
+          ? String(p.dataCreazionePaziente).trim()
+          : "",
+        sheetContext: buildSnapshotSheetContextFromPatientLike(p),
+        ...buildSnapshotBodyFromPatientLike(p),
+      },
+    ];
+  }
+
+  if (storico.length > 0) {
+    const [first, ...rest] = storico;
+    if (!first.sheetContext || typeof first.sheetContext !== "object") {
+      storico = [
+        {
+          ...first,
+          sheetContext: buildSnapshotSheetContextFromPatientLike(p),
+        },
+        ...rest,
+      ];
+    }
+    let prevCtx = storico[0].sheetContext;
+    if (prevCtx && typeof prevCtx === "object") {
+      storico = storico.map((entry, i) => {
+        if (i === 0) return entry;
+        const has =
+          entry.sheetContext && typeof entry.sheetContext === "object";
+        if (has) {
+          prevCtx = entry.sheetContext;
+          return entry;
+        }
+        return {
+          ...entry,
+          sheetContext: buildSnapshotSheetContextFromPatientLike(prevCtx),
+        };
+      });
+    }
+  }
+
+  p.storicoQuadroClinico = storico;
+
+  if (storico.length > 0) {
+    const last = storico[storico.length - 1];
+    Object.assign(p, spreadSnapshotToPatientTop(last));
+  }
+
+  return p;
+}
+
+export function todayIsoDate() {
+  return new Date().toISOString().split("T")[0];
+}
