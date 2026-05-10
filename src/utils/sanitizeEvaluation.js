@@ -1,3 +1,5 @@
+import { fixedRepsForSpeed } from "./isokineticCalculations";
+
 const SCORE_KEYS = [
   "forza",
   "funzione",
@@ -123,6 +125,43 @@ function pruneTest(t) {
         reps: line.reps ?? "",
         weightKg: line.weightKg ?? "",
       })),
+    };
+  }
+  if (t.type === "ISOKINETIC") {
+    const iso = t.isokinetic && typeof t.isokinetic === "object" ? t.isokinetic : {};
+    const pruneSide = (s) => ({
+      ptExt: s?.ptExt ?? "",
+      ptFlex: s?.ptFlex ?? "",
+      anglePtExt: s?.anglePtExt ?? "",
+      anglePtFlex: s?.anglePtFlex ?? "",
+      romExt: s?.romExt ?? "",
+      romFlex: s?.romFlex ?? "",
+      workExt: s?.workExt ?? "",
+      workFlex: s?.workFlex ?? "",
+    });
+    const rows = (iso.rows || []).map((r) => ({
+      speed: r.speed,
+      reps: fixedRepsForSpeed(r.speed) || String(r.reps ?? ""),
+      left: pruneSide(r.left),
+      right: pruneSide(r.right),
+    }));
+    const wc = iso.weightConfirmation;
+    const weightConfirmation =
+      wc === "chart" || wc === "manual" || wc === "pending" ? wc : "pending";
+    return {
+      id: t.id,
+      type: t.type,
+      noteAltro: t.noteAltro ?? "",
+      isokinetic: {
+        injuredSide:
+          iso.injuredSide === "left" || iso.injuredSide === "right"
+            ? iso.injuredSide
+            : "",
+        weightConfirmation,
+        manualWeightKg: iso.manualWeightKg ?? "",
+        bodyWeightKgUsed: iso.bodyWeightKgUsed ?? "",
+        rows,
+      },
     };
   }
   return { id: t.id, type: t.type, noteAltro: t.noteAltro ?? "" };

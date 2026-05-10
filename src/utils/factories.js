@@ -1,4 +1,5 @@
 import { uid } from "./helpers";
+import { fixedRepsForSpeed } from "./isokineticCalculations";
 
 export const emptyScores = {
   forza: "",
@@ -85,6 +86,30 @@ export function createActiveTestByType(type, patient = null) {
         weightKg: "",
       },
     ];
+  }
+  if (type === "ISOKINETIC") {
+    const side = () => ({
+      ptExt: "",
+      ptFlex: "",
+      anglePtExt: "",
+      anglePtFlex: "",
+      romExt: "",
+      romFlex: "",
+      workExt: "",
+      workFlex: "",
+    });
+    base.isokinetic = {
+      injuredSide: "",
+      weightConfirmation: "pending",
+      manualWeightKg: "",
+      bodyWeightKgUsed: "",
+      rows: [60, 180, 300].map((speed) => ({
+        speed,
+        reps: fixedRepsForSpeed(speed),
+        left: side(),
+        right: side(),
+      })),
+    };
   }
   return base;
 }

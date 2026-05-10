@@ -53,13 +53,26 @@ import {
   distrettoHasGeneralPainVAS,
   distrettoActiveTests,
 } from "./utils/sanitizeEvaluation";
+import {
+  computeRowMetrics,
+  fixedRepsForSpeed,
+  formatPct1,
+  hqPercent,
+  parseIsokineticNum,
+} from "./utils/isokineticCalculations";
 import { normalizePatientSessioniTest } from "./utils/patientNormalize";
+import {
+  findFirstIsokineticManualWeightKg,
+  finalizeIsokineticWeightFields,
+  isokineticSaveValidationError,
+} from "./utils/isokineticSessionSave";
 import {
   buildSnapshotBodyFromPatientLike,
   buildSnapshotSheetContextFromPatientLike,
   formDiffersFromBaseline,
   normalizePatientClinicalHistory,
   normalizeStoricoSnapshotEntry,
+  patchPatientPesoFromTestSession,
   patientFlatStateFromSnapshotEntry,
   spreadSnapshotToPatientTop,
   todayIsoDate,
@@ -791,12 +804,28 @@ export default function App() {
       return;
     }
 
+    const isoErr = isokineticSaveValidationError(testSessionForm, selected, tt);
+    if (isoErr) {
+      alert(isoErr);
+      return;
+    }
+
     const existing = (selected.sessioniTest || []).some(
       (s) => s.id === testSessionForm.id
     );
 
+    const manualKg = findFirstIsokineticManualWeightKg(testSessionForm);
+    let patientForSession = selected;
+    if (manualKg) {
+      patientForSession = patchPatientPesoFromTestSession(
+        selected,
+        manualKg,
+        testSessionForm.data
+      );
+    }
+
     const withDistrictNumbers = stampDistrictSlotNumbers(
-      selected,
+      patientForSession,
       testSessionForm,
       testSessionForm.id,
       "sessioneTest"
@@ -810,12 +839,12 @@ export default function App() {
           if (t.type !== "GRIP_STRENGTH") return t;
           const md = t.grip?.manoDominante;
           if (md !== "" && md != null) return t;
-          if (selected?.manoDominante) {
+          if (patientForSession?.manoDominante) {
             return {
               ...t,
               grip: {
                 ...(t.grip || {}),
-                manoDominante: selected.manoDominante,
+                manoDominante: patientForSession.manoDominante,
               },
             };
           }
@@ -824,15 +853,21 @@ export default function App() {
       })),
     };
 
-    const cleaned = sanitizeTestSessionForSave(withGripDominant);
+    const withIsoFinal = finalizeIsokineticWeightFields(
+      withGripDominant,
+      patientForSession,
+      Boolean(manualKg)
+    );
+
+    const cleaned = sanitizeTestSessionForSave(withIsoFinal);
 
     const sessioniTest = existing
-      ? selected.sessioniTest.map((s) =>
+      ? (patientForSession.sessioniTest || []).map((s) =>
           s.id === testSessionForm.id ? cleaned : s
         )
-      : [...(selected.sessioniTest || []), cleaned];
+      : [...(patientForSession.sessioniTest || []), cleaned];
 
-    syncSelected({ ...selected, sessioniTest });
+    syncSelected({ ...patientForSession, sessioniTest });
     setEditingTestSession(false);
   }
 
@@ -3771,6 +3806,131 @@ function PatientDetail({
                                         </tr>
                                       );
                                     })}
+                                  </tbody>
+                                </table>
+                              </>
+                            )}
+
+                            {test.type === "ISOKINETIC" && (
+                              <>
+                                <strong>
+                                  {tt("tests.isokinetic.title") ??
+                                    "Test isocinetico"}
+                                </strong>
+                                {test.noteAltro &&
+                                  String(test.noteAltro).trim() !== "" && (
+                                    <p style={{ marginTop: 6 }}>
+                                      <strong>
+                                        {tt("evaluation.otherDetailsOptional")}:
+                                      </strong>{" "}
+                                      {String(test.noteAltro).trim()}
+                                    </p>
+                                  )}
+                                <p style={{ marginTop: 8, fontSize: 12 }}>
+                                  <strong>
+                                    {tt("tests.isokinetic.injuredSideQuestion")}:
+                                  </strong>{" "}
+                                  {test.isokinetic?.injuredSide === "left"
+                                    ? `${tt("evaluation.left")} (SX)`
+                                    : test.isokinetic?.injuredSide === "right"
+                                      ? `${tt("evaluation.right")} (DX)`
+                                      : "—"}
+                                </p>
+                                <table
+                                  border="1"
+                                  cellPadding={6}
+                                  style={{
+                                    borderCollapse: "collapse",
+                                    marginTop: 8,
+                                    width: "100%",
+                                    fontSize: 12,
+                                  }}
+                                >
+                                  <thead>
+                                    <tr>
+                                      <th>{tt("tests.isokinetic.speed")}</th>
+                                      <th>{tt("tests.isokinetic.repsColumnShort")}</th>
+                                      <th>
+                                        {tt("tests.isokinetic.coupleMaxExt")} (
+                                        {tt("patient.testCharts.legShortRight")})
+                                      </th>
+                                      <th>
+                                        {tt("tests.isokinetic.coupleMaxExt")} (
+                                        {tt("patient.testCharts.legShortLeft")})
+                                      </th>
+                                      <th>
+                                        {tt("tests.isokinetic.workTotalExt")} (
+                                        {tt("patient.testCharts.legShortRight")})
+                                      </th>
+                                      <th>
+                                        {tt("tests.isokinetic.workTotalExt")} (
+                                        {tt("patient.testCharts.legShortLeft")})
+                                      </th>
+                                      <th>
+                                        {tt("tests.isokinetic.workTotalFlex")} (
+                                        {tt("patient.testCharts.legShortRight")})
+                                      </th>
+                                      <th>
+                                        {tt("tests.isokinetic.workTotalFlex")} (
+                                        {tt("patient.testCharts.legShortLeft")})
+                                      </th>
+                                      <th>{tt("tests.isokinetic.hqRightShort")}</th>
+                                      <th>{tt("tests.isokinetic.hqLeftShort")}</th>
+                                      <th>{tt("tests.isokinetic.lsiExtShort")}</th>
+                                      <th>{tt("tests.isokinetic.lsiFlexShort")}</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(test.isokinetic?.rows || []).map(
+                                      (row) => {
+                                        const m = computeRowMetrics(
+                                          row,
+                                          test.isokinetic?.injuredSide
+                                        );
+                                        return (
+                                          <tr key={row.speed}>
+                                            <td>{row.speed}</td>
+                                            <td>{fixedRepsForSpeed(row.speed)}</td>
+                                            <td>{row.right?.ptExt ?? "—"}</td>
+                                            <td>{row.left?.ptExt ?? "—"}</td>
+                                            <td>{row.right?.workExt ?? "—"}</td>
+                                            <td>{row.left?.workExt ?? "—"}</td>
+                                            <td>{row.right?.workFlex ?? "—"}</td>
+                                            <td>{row.left?.workFlex ?? "—"}</td>
+                                            <td>
+                                              {formatPct1(
+                                                hqPercent(
+                                                  parseIsokineticNum(
+                                                    row.right?.ptFlex
+                                                  ),
+                                                  parseIsokineticNum(
+                                                    row.right?.ptExt
+                                                  )
+                                                )
+                                              ) ?? "—"}
+                                            </td>
+                                            <td>
+                                              {formatPct1(
+                                                hqPercent(
+                                                  parseIsokineticNum(
+                                                    row.left?.ptFlex
+                                                  ),
+                                                  parseIsokineticNum(
+                                                    row.left?.ptExt
+                                                  )
+                                                )
+                                              ) ?? "—"}
+                                            </td>
+                                            <td>
+                                              {formatPct1(m?.lsiExt) ?? "—"}
+                                            </td>
+                                            <td>
+                                              {formatPct1(m?.lsiFlex) ?? "—"}
+                                            </td>
+                                          </tr>
+                                        );
+                                      }
+                                    )}
                                   </tbody>
                                 </table>
                               </>

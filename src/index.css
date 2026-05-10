@@ -463,6 +463,25 @@ hr.patient-sheet-divider {
   }
 }
 
+/* Test isocinetico: destro, sinistro e calcoli impilati (massima larghezza per le colonne dati) */
+.isokinetic-data-three-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.isokinetic-side-table th,
+.isokinetic-side-table td,
+.isokinetic-calc-table th,
+.isokinetic-calc-table td {
+  overflow: hidden;
+}
+
+.isokinetic-side-table input {
+  min-width: 0;
+}
+
 .pdf-root th,
 .pdf-root td {
   border: 1px solid var(--border);

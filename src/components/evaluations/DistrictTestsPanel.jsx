@@ -8,6 +8,7 @@ import {
   GripStrengthEvaluationFields,
   StrengthMaximalsEvaluationFields,
 } from "./evaluationTestFields";
+import IsokineticTestFields from "./IsokineticTestFields";
 
 function emptyTestRow() {
   return {
@@ -80,6 +81,13 @@ export default function DistrictTestsPanel({
                                     t.lifts.length > 0
                                       ? t.lifts
                                       : fresh.lifts,
+                                  isokinetic:
+                                    value === "ISOKINETIC" &&
+                                    t.type === "ISOKINETIC" &&
+                                    t.isokinetic &&
+                                    typeof t.isokinetic === "object"
+                                      ? t.isokinetic
+                                      : fresh.isokinetic,
                                 };
                               })()
                             : t
@@ -104,6 +112,10 @@ export default function DistrictTestsPanel({
                 label:
                   tt("tests.strengthMaximals.title") ??
                   "Massimali pesistica",
+              },
+              {
+                value: "ISOKINETIC",
+                label: tt("tests.isokinetic.title") ?? "Test isocinetico",
               },
             ]}
           />
@@ -227,6 +239,17 @@ export default function DistrictTestsPanel({
           {test.type === "STRENGTH_MAXIMALS" && (
             <StrengthMaximalsEvaluationFields
               tt={tt}
+              distrettoId={d.id}
+              test={test}
+              evaluationForm={evaluationForm}
+              setEvaluationForm={setEvaluationForm}
+            />
+          )}
+
+          {test.type === "ISOKINETIC" && (
+            <IsokineticTestFields
+              tt={tt}
+              patient={patient}
               distrettoId={d.id}
               test={test}
               evaluationForm={evaluationForm}

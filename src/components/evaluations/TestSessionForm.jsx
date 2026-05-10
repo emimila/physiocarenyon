@@ -4,7 +4,12 @@ import Select from "../ui/Select";
 import { distretti } from "../../data/options";
 import DistrictTestsPanel from "./DistrictTestsPanel";
 
-const TEST_TYPE_IDS = ["Y_BALANCE", "GRIP_STRENGTH", "STRENGTH_MAXIMALS"];
+const TEST_TYPE_IDS = [
+  "Y_BALANCE",
+  "GRIP_STRENGTH",
+  "STRENGTH_MAXIMALS",
+  "ISOKINETIC",
+];
 
 export default function TestSessionForm({
   tt,
@@ -128,8 +133,10 @@ export default function TestSessionForm({
                       ? tt("tests.yBalance.title") ?? "Y Balance Test"
                       : id === "GRIP_STRENGTH"
                         ? tt("tests.gripStrength.title") ?? "Grip test (Jamar)"
-                        : tt("tests.strengthMaximals.title") ??
-                          "Massimali pesistica",
+                        : id === "ISOKINETIC"
+                          ? tt("tests.isokinetic.title") ?? "Test isocinetico"
+                          : tt("tests.strengthMaximals.title") ??
+                            "Massimali pesistica",
                 })),
               ]}
             />

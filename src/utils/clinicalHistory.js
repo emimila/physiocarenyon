@@ -196,6 +196,47 @@ export function normalizeStoricoSnapshotEntry(snap) {
  * Garantisce `storicoQuadroClinico` e migra le righe.
  * Se manca lo storico ma ci sono dati clinici legacy, crea una voce iniziale.
  */
+/**
+ * Aggiorna peso sul paziente e nel `sheetContext` dell’ultimo bon,
+ * impostando la data valutazione all’esecuzione del test (sessione).
+ */
+export function patchPatientPesoFromTestSession(patient, newPesoStr, testDateIso) {
+  const p = { ...patient };
+  const pesoStr =
+    newPesoStr != null ? String(newPesoStr).trim().replace(",", ".") : "";
+  if (!pesoStr) return normalizePatientClinicalHistory(p);
+
+  let storico = Array.isArray(p.storicoQuadroClinico)
+    ? p.storicoQuadroClinico.map(normalizeStoricoSnapshotEntry).filter(Boolean)
+    : [];
+
+  if (storico.length === 0) {
+    const next = { ...p, peso: pesoStr };
+    return normalizePatientClinicalHistory(next);
+  }
+
+  const lastIdx = storico.length - 1;
+  const last = { ...storico[lastIdx] };
+  const prevCtx = buildSnapshotSheetContextFromPatientLike(last.sheetContext || {});
+  last.sheetContext = buildSnapshotSheetContextFromPatientLike({
+    ...prevCtx,
+    peso: pesoStr,
+  });
+  const dateStr =
+    testDateIso != null && String(testDateIso).trim() !== ""
+      ? String(testDateIso).trim()
+      : last.dataValutazione;
+  last.dataValutazione = dateStr;
+  storico[lastIdx] = normalizeStoricoSnapshotEntry(last);
+
+  const next = {
+    ...p,
+    storicoQuadroClinico: storico,
+    peso: pesoStr,
+  };
+  return normalizePatientClinicalHistory(next);
+}
+
 export function normalizePatientClinicalHistory(patient) {
   const p = { ...patient };
   let storico = Array.isArray(p.storicoQuadroClinico)

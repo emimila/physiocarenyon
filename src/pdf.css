@@ -217,3 +217,27 @@
   break-after: avoid-page;
   page-break-after: avoid;
 }
+
+/* Report test isocinetico (Grafici test → PDF, stesso flusso Y Balance) */
+.pdf-root.pdf-exporting .isokinetic-pdf-report {
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+}
+
+.pdf-root.pdf-exporting .isokinetic-pdf-report table {
+  font-size: 8px !important;
+}
+
+.pdf-root.pdf-exporting .isokinetic-pdf-report table th,
+.pdf-root.pdf-exporting .isokinetic-pdf-report table td {
+  padding: 3px 4px !important;
+}
+
+.pdf-root.pdf-exporting .isokinetic-pdf-header {
+  font-size: 10px !important;
+}
+
+.pdf-root.pdf-exporting .isokinetic-pdf-block {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}

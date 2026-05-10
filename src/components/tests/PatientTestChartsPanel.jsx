@@ -3,8 +3,10 @@ import Select from "../ui/Select";
 import { distrettoActiveTests } from "../../utils/sanitizeEvaluation";
 import { exportHtmlToPdf } from "../../utils/exportHtmlToPdf";
 import YBalanceTestReportCharts from "./YBalanceTestReportCharts";
+import IsokineticTestPdfReport from "./IsokineticTestPdfReport";
 
 const CHART_Y_BALANCE = "y_balance";
+const CHART_ISOKINETIC = "isokinetic";
 
 function safeFilenamePart(s) {
   return String(s ?? "").replace(/[^\w.-]+/g, "_");
@@ -24,24 +26,43 @@ export default function PatientTestChartsPanel({ selected, tt }) {
     );
   }, [selected.sessioniTest]);
 
+  const sessionsWithIso = useMemo(() => {
+    return (selected.sessioniTest || []).filter((s) =>
+      (s.distretti || []).some((d) =>
+        (distrettoActiveTests(d) || []).some((t) => t.type === "ISOKINETIC")
+      )
+    );
+  }, [selected.sessioniTest]);
+
+  const sessionsForChart = useMemo(
+    () =>
+      chartType === CHART_Y_BALANCE ? sessionsWithY : sessionsWithIso,
+    [chartType, sessionsWithY, sessionsWithIso]
+  );
+
   useEffect(() => {
-    if (!sessionsWithY.length) {
+    if (!sessionsForChart.length) {
       setSessionId("");
       return;
     }
-    if (!sessionId || !sessionsWithY.some((s) => s.id === sessionId)) {
-      setSessionId(sessionsWithY[sessionsWithY.length - 1].id);
+    if (!sessionId || !sessionsForChart.some((s) => s.id === sessionId)) {
+      setSessionId(sessionsForChart[sessionsForChart.length - 1].id);
     }
-  }, [sessionsWithY, sessionId]);
+  }, [sessionsForChart, sessionId]);
 
-  const session = sessionsWithY.find((s) => s.id === sessionId);
+  const session = useMemo(
+    () => sessionsForChart.find((s) => s.id === sessionId),
+    [sessionsForChart, sessionId]
+  );
 
   const distrettiChoices = useMemo(() => {
     if (!session) return [];
+    const testType =
+      chartType === CHART_Y_BALANCE ? "Y_BALANCE" : "ISOKINETIC";
     return (session.distretti || []).filter((d) =>
-      (distrettoActiveTests(d) || []).some((t) => t.type === "Y_BALANCE")
+      (distrettoActiveTests(d) || []).some((t) => t.type === testType)
     );
-  }, [session]);
+  }, [session, chartType]);
 
   const [distrettoId, setDistrettoId] = useState("");
   useEffect(() => {
@@ -55,12 +76,20 @@ export default function PatientTestChartsPanel({ selected, tt }) {
   }, [distrettiChoices, distrettoId]);
 
   const yTest = useMemo(() => {
-    if (!session || !distrettoId) return null;
+    if (!session || !distrettoId || chartType !== CHART_Y_BALANCE) return null;
     const d = (session.distretti || []).find((x) => x.id === distrettoId);
     if (!d) return null;
     const tests = distrettoActiveTests(d);
     return tests.find((t) => t.type === "Y_BALANCE") || null;
-  }, [session, distrettoId]);
+  }, [session, distrettoId, chartType]);
+
+  const isoTest = useMemo(() => {
+    if (!session || !distrettoId || chartType !== CHART_ISOKINETIC) return null;
+    const d = (session.distretti || []).find((x) => x.id === distrettoId);
+    if (!d) return null;
+    const tests = distrettoActiveTests(d);
+    return tests.find((t) => t.type === "ISOKINETIC") || null;
+  }, [session, distrettoId, chartType]);
 
   const districtLabel = useMemo(() => {
     if (!session || !distrettoId) return "";
@@ -70,6 +99,21 @@ export default function PatientTestChartsPanel({ selected, tt }) {
       tt(`options.distretti.${String(d.nome).toLowerCase()}`) || d.nome
     );
   }, [session, distrettoId, tt]);
+
+  async function runExportPdf(filename) {
+    const el = testPdfRef.current;
+    if (!el) return;
+    setIsExportingTestPdf(true);
+    await new Promise((r) => requestAnimationFrame(() => r()));
+    try {
+      await exportHtmlToPdf(el, { filename });
+    } catch (e) {
+      console.error(e);
+      alert(tt("patient.testCharts.saveTestPdfError"));
+    } finally {
+      setIsExportingTestPdf(false);
+    }
+  }
 
   return (
     <div>
@@ -108,10 +152,33 @@ export default function PatientTestChartsPanel({ selected, tt }) {
             {tt("patient.testCharts.optionYBalance")}
           </label>
         </li>
+        <li>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+              fontWeight: chartType === CHART_ISOKINETIC ? 600 : 400,
+            }}
+          >
+            <input
+              type="radio"
+              name="patient-test-chart"
+              checked={chartType === CHART_ISOKINETIC}
+              onChange={() => setChartType(CHART_ISOKINETIC)}
+            />
+            {tt("patient.testCharts.optionIsokinetic")}
+          </label>
+        </li>
       </ul>
 
-      {!sessionsWithY.length ? (
-        <p style={{ color: "#64748b" }}>{tt("patient.testCharts.noYBalanceSessions")}</p>
+      {!sessionsForChart.length ? (
+        <p style={{ color: "#64748b" }}>
+          {chartType === CHART_Y_BALANCE
+            ? tt("patient.testCharts.noYBalanceSessions")
+            : tt("patient.testCharts.noIsokineticSessions")}
+        </p>
       ) : (
         <>
           <div style={{ maxWidth: 420, marginBottom: 12 }}>
@@ -119,7 +186,7 @@ export default function PatientTestChartsPanel({ selected, tt }) {
               label={tt("patient.testCharts.sessionLabel")}
               value={sessionId}
               onChange={setSessionId}
-              options={sessionsWithY.map((s) => ({
+              options={sessionsForChart.map((s) => ({
                 value: s.id,
                 label:
                   `${tt("testSession.cardHeading")} ${s.numeroTest || ""} — ${s.data ? String(s.data) : ""}`.trim(),
@@ -148,22 +215,11 @@ export default function PatientTestChartsPanel({ selected, tt }) {
                 <button
                   type="button"
                   disabled={isExportingTestPdf}
-                  onClick={async () => {
-                    const el = testPdfRef.current;
-                    if (!el) return;
-                    setIsExportingTestPdf(true);
-                    await new Promise((r) => requestAnimationFrame(() => r()));
-                    try {
-                      await exportHtmlToPdf(el, {
-                        filename: `Test_YBalance_${safeFilenamePart(selected?.nome)}_${safeFilenamePart(selected?.cognome)}_${safeFilenamePart(session?.data)}.pdf`,
-                      });
-                    } catch (e) {
-                      console.error(e);
-                      alert(tt("patient.testCharts.saveTestPdfError"));
-                    } finally {
-                      setIsExportingTestPdf(false);
-                    }
-                  }}
+                  onClick={() =>
+                    runExportPdf(
+                      `Test_YBalance_${safeFilenamePart(selected?.nome)}_${safeFilenamePart(selected?.cognome)}_${safeFilenamePart(session?.data)}.pdf`
+                    )
+                  }
                 >
                   {isExportingTestPdf
                     ? tt("common.loading", "…")
@@ -184,7 +240,45 @@ export default function PatientTestChartsPanel({ selected, tt }) {
               </div>
             </>
           ) : chartType === CHART_Y_BALANCE ? (
-            <p style={{ color: "#64748b" }}>{tt("patient.testCharts.noYBalanceInPick")}</p>
+            <p style={{ color: "#64748b" }}>
+              {tt("patient.testCharts.noYBalanceInPick")}
+            </p>
+          ) : null}
+
+          {chartType === CHART_ISOKINETIC && isoTest ? (
+            <>
+              <div className="no-pdf" style={{ marginBottom: 12 }}>
+                <button
+                  type="button"
+                  disabled={isExportingTestPdf}
+                  onClick={() =>
+                    runExportPdf(
+                      `Test_Isokinetic_${safeFilenamePart(selected?.nome)}_${safeFilenamePart(selected?.cognome)}_${safeFilenamePart(session?.data)}.pdf`
+                    )
+                  }
+                >
+                  {isExportingTestPdf
+                    ? tt("common.loading", "…")
+                    : tt("patient.testCharts.saveTestPdf")}
+                </button>
+              </div>
+              <div
+                ref={testPdfRef}
+                className={`pdf-root ${isExportingTestPdf ? "pdf-exporting" : ""}`}
+              >
+                <IsokineticTestPdfReport
+                  patient={selected}
+                  session={session}
+                  test={isoTest}
+                  districtLabel={districtLabel}
+                  tt={tt}
+                />
+              </div>
+            </>
+          ) : chartType === CHART_ISOKINETIC ? (
+            <p style={{ color: "#64748b" }}>
+              {tt("patient.testCharts.noIsokineticInPick")}
+            </p>
           ) : null}
         </>
       )}
