@@ -3174,12 +3174,50 @@ function PatientSheetPdfSection({
   onDeleteBon,
   onAddBonDiagnosis,
   headerActions = null,
+  /** Solo anamnesi / storico clinico: niente logo né titolo paziente (usato sotto l’intestazione confronto nel PDF). */
+  stripPatientPdfCover = false,
 }) {
   const storicoQuadroClinico = selected.storicoQuadroClinico || [];
   const firstAppointmentDate =
     storicoQuadroClinico.length > 0
       ? storicoQuadroClinico[0].dataValutazione
       : "";
+
+  const clinicalMain =
+    storicoQuadroClinico.length === 0 ? (
+      <>
+        <PatientAnamnesisSheet data={selected} tt={tt} />
+        {onAddBonDiagnosis ? (
+          <div
+            className="no-pdf patient-bon-actions"
+            style={{
+              marginTop: 12,
+              display: "flex",
+              flexWrap: "nowrap",
+              gap: 8,
+              alignItems: "center",
+            }}
+          >
+            <button type="button" onClick={() => onAddBonDiagnosis(selected)}>
+              {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
+            </button>
+          </div>
+        ) : null}
+      </>
+    ) : (
+      <PatientClinicalHistoryBlocks
+        storico={storicoQuadroClinico}
+        selected={selected}
+        tt={tt}
+        onEditSnapshot={onEditSnapshot}
+        onDeleteBon={onDeleteBon}
+        onAddBonDiagnosis={onAddBonDiagnosis}
+      />
+    );
+
+  if (stripPatientPdfCover) {
+    return <>{clinicalMain}</>;
+  }
 
   return (
     <>
@@ -3254,36 +3292,7 @@ function PatientSheetPdfSection({
         </p>
       )}
 
-      {storicoQuadroClinico.length === 0 ? (
-        <>
-          <PatientAnamnesisSheet data={selected} tt={tt} />
-          {onAddBonDiagnosis ? (
-            <div
-              className="no-pdf patient-bon-actions"
-              style={{
-                marginTop: 12,
-                display: "flex",
-                flexWrap: "nowrap",
-                gap: 8,
-                alignItems: "center",
-              }}
-            >
-              <button type="button" onClick={() => onAddBonDiagnosis(selected)}>
-                {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
-              </button>
-            </div>
-          ) : null}
-        </>
-      ) : (
-        <PatientClinicalHistoryBlocks
-          storico={storicoQuadroClinico}
-          selected={selected}
-          tt={tt}
-          onEditSnapshot={onEditSnapshot}
-          onDeleteBon={onDeleteBon}
-          onAddBonDiagnosis={onAddBonDiagnosis}
-        />
-      )}
+      {clinicalMain}
     </>
   );
 }
@@ -4065,6 +4074,50 @@ function PatientDetail({
 
 }
 
+/** Intestazione PDF confronto Kiviat (clinica, paziente, meta confronto). */
+function KiviatComparisonPdfCoverHeader({
+  selected,
+  tt,
+  comparisonIndex,
+  distretto,
+  evA,
+  evB,
+}) {
+  return (
+    <div
+      className="pdf-avoid-break kiviat-comparison-pdf-cover-header"
+      style={{
+        marginBottom: 12,
+        padding: "10px 12px",
+        borderBottom: "1px solid #e2e8f0",
+        fontSize: 12,
+        lineHeight: 1.45,
+      }}
+    >
+      <div style={{ fontWeight: 700, color: "#0d5c68" }}>Physiocare Nyon</div>
+      <div style={{ marginTop: 6, fontWeight: 600 }}>
+        {formatPatientListDisplayName(selected) || "—"}
+      </div>
+      {selected.dataNascita ? (
+        <div style={{ color: "#64748b", fontSize: 11 }}>
+          {tt("patient.birthDate")}: {formatDateDMY(selected.dataNascita)}
+        </div>
+      ) : null}
+      <div style={{ marginTop: 8, fontSize: 11, color: "#334155" }}>
+        {tt("chart.title")} · {tt("chart.comparison")} {comparisonIndex + 1} ·{" "}
+        {tt(`options.distretti.${String(distretto).toLowerCase()}`) ||
+          distretto}
+      </div>
+      <div style={{ fontSize: 11, color: "#475569" }}>
+        {tt("chart.initialEvaluation")}:{" "}
+        {evA ? evaluationCardHeadingText(evA, tt) : "—"} ·{" "}
+        {tt("chart.finalEvaluation")}:{" "}
+        {evB ? evaluationCardHeadingText(evB, tt) : "—"}
+      </div>
+    </div>
+  );
+}
+
 function KiviatComparison({ selected, tt }) {
   const valutazioni = selected.valutazioni || [];
 
@@ -4227,45 +4280,33 @@ function KiviatComparison({ selected, tt }) {
                 }}
                 className={`kiviat-comparison-export-root pdf-root ${exportingKiviatId === c.id ? "pdf-exporting" : ""}`}
               >
-                <div className="pdf-kiviat-patient-first-page">
-                  <PatientSheetPdfSection selected={selected} tt={tt} />
+                <div className="pdf-kiviat-comparison-cover-page">
+                  <KiviatComparisonPdfCoverHeader
+                    selected={selected}
+                    tt={tt}
+                    comparisonIndex={index}
+                    distretto={c.distretto}
+                    evA={evA}
+                    evB={evB}
+                  />
+                  <div className="pdf-kiviat-comparison-patient-eval">
+                    <PatientSheetPdfSection
+                      selected={selected}
+                      tt={tt}
+                      stripPatientPdfCover
+                    />
+                  </div>
                 </div>
                 <div className="pdf-kiviat-charts-page">
-                  <div
-                    className="pdf-avoid-break"
-                    style={{
-                      marginBottom: 12,
-                      padding: "10px 12px",
-                      borderBottom: "1px solid #e2e8f0",
-                      fontSize: 12,
-                      lineHeight: 1.45,
-                    }}
-                  >
-                    <div style={{ fontWeight: 700, color: "#0d5c68" }}>
-                      Physiocare Nyon
-                    </div>
-                    <div style={{ marginTop: 6, fontWeight: 600 }}>
-                      {formatPatientListDisplayName(selected) || "—"}
-                    </div>
-                    {selected.dataNascita ? (
-                      <div style={{ color: "#64748b", fontSize: 11 }}>
-                        {tt("patient.birthDate")}:{" "}
-                        {formatDateDMY(selected.dataNascita)}
-                      </div>
-                    ) : null}
-                    <div style={{ marginTop: 8, fontSize: 11, color: "#334155" }}>
-                      {tt("chart.title")} · {tt("chart.comparison")}{" "}
-                      {index + 1} ·{" "}
-                      {tt(
-                        `options.distretti.${String(c.distretto).toLowerCase()}`
-                      ) || c.distretto}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#475569" }}>
-                      {tt("chart.initialEvaluation")}:{" "}
-                      {evA ? evaluationCardHeadingText(evA, tt) : "—"} ·{" "}
-                      {tt("chart.finalEvaluation")}:{" "}
-                      {evB ? evaluationCardHeadingText(evB, tt) : "—"}
-                    </div>
+                  <div className="kiviat-comparison-charts-screen-header">
+                    <KiviatComparisonPdfCoverHeader
+                      selected={selected}
+                      tt={tt}
+                      comparisonIndex={index}
+                      distretto={c.distretto}
+                      evA={evA}
+                      evB={evB}
+                    />
                   </div>
                   <KiviatResult
                     comparison={{ ...c, mode: "lato" }}
@@ -4291,6 +4332,17 @@ function KiviatComparison({ selected, tt }) {
 
 /** Grafici «stessa sessione»: logica conservata, non mostrata finché resta `false`. */
 const SHOW_KIVIAT_SESSIONE_GRAPHS = false;
+
+/** Legenda grafici comparativi: «Numero valutazione: N :   data». */
+function evaluationComparisonLegendLabel(ev, tt) {
+  const numRaw = ev?.numeroValutazione;
+  const num =
+    numRaw != null && String(numRaw).trim() !== ""
+      ? String(numRaw).trim()
+      : "-";
+  const dateStr = ev?.data ? formatDateDMY(ev.data) : "—";
+  return `${tt("evaluation.number")}: ${num} :   ${dateStr}`;
+}
 
 function KiviatResult({ comparison, valutazioni, tt }) {
   const evA = valutazioni.find((v) => v.id === comparison.valA);
@@ -4326,13 +4378,8 @@ const hasPainB =
   const districtLabel =
     tt(`options.distretti.${comparison.distretto}`) || comparison.distretto;
 
-  const labelA = `${tt("evaluation.number")}: ${
-    evA.numeroValutazione || "-"
-  }   ${evA.data ? formatDateDMY(evA.data) : "—"}`;
-
-  const labelB = `${tt("evaluation.number")}: ${
-    evB.numeroValutazione || "-"
-  }   ${evB.data ? formatDateDMY(evB.data) : "—"}`;
+  const labelA = evaluationComparisonLegendLabel(evA, tt);
+  const labelB = evaluationComparisonLegendLabel(evB, tt);
 
   const radarTitleLeft = `${districtLabel} ${tt("chart.leftSide")}`;
   const radarTitleRight = `${districtLabel} ${tt("chart.rightSide")}`;
@@ -4406,8 +4453,8 @@ const hasPainB =
   } 
 
   return (
-    <div className="pdf-kiviat-grid kiviat-comparison-pairs">
-      <div className="pdf-kiviat-side-row pdf-avoid-break">
+    <div className="pdf-kiviat-grid kiviat-comparison-pairs kiviat-comparison-four-grid">
+      <div className="kiviat-comparison-cell">
         <RadarChart
           title={radarTitleLeft}
           series={[
@@ -4416,6 +4463,8 @@ const hasPainB =
           ]}
           tt={tt}
         />
+      </div>
+      <div className="kiviat-comparison-cell">
         <PainBarChart
           title={painTitleLeft}
           series={[
@@ -4431,7 +4480,7 @@ const hasPainB =
           tt={tt}
         />
       </div>
-      <div className="pdf-kiviat-side-row pdf-avoid-break">
+      <div className="kiviat-comparison-cell">
         <RadarChart
           title={radarTitleRight}
           series={[
@@ -4440,6 +4489,8 @@ const hasPainB =
           ]}
           tt={tt}
         />
+      </div>
+      <div className="kiviat-comparison-cell">
         <PainBarChart
           title={painTitleRight}
           series={[
@@ -4476,12 +4527,33 @@ function kiviatPercentColor(pct) {
 
 const kiviatStrokeColors = ["#1d4ed8", "#b91c1c"];
 
+/** Legenda «Numero valutazione …»: una sola riga, identica accanto al grafico dolore. */
+function ComparisonSeriesLegend({ series }) {
+  return (
+    <div className="kiviat-chart-legend comparison-chart-legend-row">
+      {series.map((s, index) => (
+        <span key={s.name} className="comparison-chart-legend-item">
+          <span
+            className="comparison-chart-legend-swatch"
+            style={{
+              color: kiviatStrokeColors[index % kiviatStrokeColors.length],
+            }}
+          >
+            ■
+          </span>
+          <span className="comparison-chart-legend-label">{s.name}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const kiviatCardStyleMerged = {
   border: "1px solid #e2e8f0",
   borderRadius: 16,
   padding: "10px 10px 12px",
   background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-  marginTop: 12,
+  marginTop: 0,
   boxShadow: "0 4px 24px rgba(15, 23, 42, 0.06)",
 };
 
@@ -4564,10 +4636,10 @@ function RadarChart({ title, series, tt }) {
     const rData = Math.max(rOuter, 10);
     /** Parte bassa del radar: più spazio tra % e etichette assi (Mob. passiva / attiva). */
     const lowerSector = sin > 0.28;
-    const pctAlong = lowerSector ? rData + 10 : rData + 18;
-    let nameAlong = Math.max(maxRadius + 28, rData + 44);
-    if (lowerSector) nameAlong += 36;
-    if (sin > 0.5) nameAlong += 16;
+    const pctAlong = lowerSector ? rData + 14 : rData + 24;
+    let nameAlong = Math.max(maxRadius + 40, rData + 58);
+    if (lowerSector) nameAlong += 46;
+    if (sin > 0.5) nameAlong += 22;
 
     const norm = ((angleDeg % 360) + 360) % 360;
     let anchor = "middle";
@@ -4581,12 +4653,12 @@ function RadarChart({ title, series, tt }) {
     const tCos = -sin;
     const tSin = cos;
     if (i === 1) {
-      lx += tCos * 40;
-      ly += tSin * 40;
+      lx += tCos * 54;
+      ly += tSin * 54;
     }
     if (i === 4) {
-      lx -= tCos * 44;
-      ly -= tSin * 44;
+      lx -= tCos * 58;
+      ly -= tSin * 58;
     }
 
     return {
@@ -4598,17 +4670,34 @@ function RadarChart({ title, series, tt }) {
     };
   }
 
-  /** +10% rispetto a 13 per le etichette agli assi (Forza, Funzione, …). */
-  const axisLabelFont = 14.3;
-  const percentLabelFont = 12.5;
-  const percentLineGap = 15;
+  /** Etichette assi e % più leggibili; spacing in vertexLabelPositions compensa il volume del testo. */
+  const axisLabelFont = 16.5;
+  const percentLabelFont = 14.8;
+  const percentLineGap = 18;
 
   return (
     <div
       style={kiviatCardStyleMerged}
       className="pdf-figure kiviat-chart kiviat-pair-card"
     >
-      <h4 className="eval-section-heading-chart">{title}</h4>
+      <h4 className="eval-section-heading-chart kiviat-comparison-chart-title">
+        {title}
+      </h4>
+      {/* Stessa altezza del blocco titolo+sottotitolo del grafico dolore → assi Kiviat allineati orizzontalmente */}
+      <p
+        aria-hidden="true"
+        className="kiviat-comparison-header-sync"
+        style={{
+          margin: "0 0 12px",
+          fontSize: 12,
+          lineHeight: 1.45,
+          color: "transparent",
+          fontFamily:
+            'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+        }}
+      >
+        {tt("chart.painScaleHint")}
+      </p>
 
       <div className="kiviat-pair-card__body" style={{ width: "100%" }}>
         <div
@@ -4802,8 +4891,9 @@ function RadarChart({ title, series, tt }) {
         </div>
       </div>
 
-      <div style={{ marginTop: "auto", flexShrink: 0, paddingTop: 8 }}>
+      <div className="comparison-chart-footer">
         <p
+          className="comparison-chart-scale-note"
           style={{
             margin: "10px 0 0",
             fontSize: 12,
@@ -4815,38 +4905,7 @@ function RadarChart({ title, series, tt }) {
         >
           {tt("chart.kiviatScaleNote")}
         </p>
-
-        <div
-          style={{
-            marginTop: 8,
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: "12px 20px",
-            fontFamily:
-              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#334155",
-          }}
-        >
-          {series.map((s, index) => (
-            <span
-              key={s.name}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              <span
-                style={{
-                  color: kiviatStrokeColors[index % kiviatStrokeColors.length],
-                  fontSize: 15,
-                }}
-              >
-                ■
-              </span>
-              {s.name}
-            </span>
-          ))}
-        </div>
+        <ComparisonSeriesLegend series={series} />
       </div>
     </div>
   );
@@ -4885,7 +4944,7 @@ function PainBarChart({ title, series, tt }) {
       }}
       className="pdf-figure kiviat-pair-card"
     >
-      <h4 className="eval-section-heading-chart" style={{ marginTop: 0, marginBottom: 8 }}>
+      <h4 className="eval-section-heading-chart kiviat-comparison-chart-title">
         {title || tt("chart.painEvolution")}
       </h4>
       <p
@@ -5119,22 +5178,23 @@ function PainBarChart({ title, series, tt }) {
         </div>
       </div>
 
-      <div style={{ marginTop: "auto", paddingTop: 10 }}>
-        {series.map((s, index) => (
-          <div key={s.name} style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>
-            <span
-              style={{
-                color:
-                  index === 0
-                    ? c0
-                    : c1,
-              }}
-            >
-              ■
-            </span>{" "}
-            {s.name}
-          </div>
-        ))}
+      <div className="comparison-chart-footer">
+        <p
+          aria-hidden="true"
+          className="comparison-chart-scale-note kiviat-comparison-footer-sync"
+          style={{
+            margin: "10px 0 0",
+            fontSize: 12,
+            lineHeight: 1.35,
+            color: "transparent",
+            textAlign: "center",
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          }}
+        >
+          {tt("chart.kiviatScaleNote")}
+        </p>
+        <ComparisonSeriesLegend series={series} />
       </div>
     </div>
   );

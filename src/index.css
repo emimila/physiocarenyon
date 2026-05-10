@@ -358,24 +358,72 @@ hr.patient-sheet-divider {
   overflow: visible;
 }
 
-/* Grafici comparativi: su ogni riga Kiviat lato | evoluzione dolore stesso lato (come in PDF). */
-.kiviat-comparison-pairs {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(16px, 3vw, 28px);
-  margin-top: 16px;
-}
-
-.pdf-kiviat-side-row {
+/* Grafici comparativi: griglia 2×2 — colonne e righe allineate (stessa larghezza sinistra/destra). */
+.kiviat-comparison-pairs.kiviat-comparison-four-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(12px, 2.5vw, 24px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, auto);
+  column-gap: clamp(14px, 2.5vw, 22px);
+  row-gap: clamp(14px, 2.5vw, 22px);
+  margin-top: 16px;
+  width: 100%;
   align-items: stretch;
 }
 
-.pdf-kiviat-side-row > .pdf-figure,
-.pdf-kiviat-side-row > .kiviat-chart {
+.kiviat-comparison-cell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.kiviat-comparison-cell > .pdf-figure,
+.kiviat-comparison-cell > .kiviat-chart {
   margin-top: 0;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.kiviat-pair-card > .kiviat-comparison-chart-title {
+  margin: 0 0 8px;
+}
+
+/* Footer grafici comparativi: note scala + legenda serie allineati tra Kiviat e dolore */
+.comparison-chart-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+  padding-top: 10px;
+}
+
+.comparison-chart-legend-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.comparison-chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.comparison-chart-legend-label {
+  white-space: nowrap;
+}
+
+.comparison-chart-legend-swatch {
+  font-size: 12px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 /* Coppia Kiviat | dolore: stessa altezza riquadro, grafico dolore si estende. */
@@ -400,17 +448,17 @@ hr.patient-sheet-divider {
   max-width: 100%;
 }
 
-/* Prima pagina solo in export PDF grafici comparativi */
-.pdf-kiviat-patient-first-page {
+/* Copertina PDF confronto (intestazione + scheda paziente): solo durante export */
+.pdf-kiviat-comparison-cover-page {
   display: none;
 }
 
-.kiviat-comparison-export-root.pdf-exporting .pdf-kiviat-patient-first-page {
+.kiviat-comparison-export-root.pdf-exporting .pdf-kiviat-comparison-cover-page {
   display: block;
 }
 
 @media (max-width: 768px) {
-  .pdf-kiviat-side-row {
+  .kiviat-comparison-pairs.kiviat-comparison-four-grid {
     grid-template-columns: 1fr;
   }
 }
