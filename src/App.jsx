@@ -3166,69 +3166,23 @@ function PatientClinicalHistoryBlocks({
   );
 }
 
-function PatientDetail({
+/** Contenuto scheda paziente per PDF (stampa scheda + prima pagina export grafici comparativi). */
+function PatientSheetPdfSection({
   selected,
   tt,
-  editClinicalSnapshot,
-  removeStoricoBon,
-  addDiagnosisEntry,
-  startNewEvaluation,
-  startNewTestSession,
-  editEvaluation,
-  deleteEvaluation,
-  editTestSession,
-  deleteTestSession,
+  onEditSnapshot,
+  onDeleteBon,
+  onAddBonDiagnosis,
+  headerActions = null,
 }) {
-  const pdfRef = useRef(null);
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [showEvaluationsList, setShowEvaluationsList] = useState(false);
-  const [showTestsList, setShowTestsList] = useState(false);
-  const [showComparativeCharts, setShowComparativeCharts] = useState(false);
-  const [showTestCharts, setShowTestCharts] = useState(false);
-  /** Una sola valutazione / sessione test espansa alla volta (in export PDF si mostrano tutte). */
-  const [expandedEvaluationId, setExpandedEvaluationId] = useState(null);
-  const [expandedTestSessionId, setExpandedTestSessionId] = useState(null);
-  const revealEvaluations = showEvaluationsList || isExportingPdf;
-  const revealTests = showTestsList || isExportingPdf;
-  const revealComparativeCharts =
-    showComparativeCharts || isExportingPdf;
-  const revealTestChartsPanel = showTestCharts || isExportingPdf;
-
   const storicoQuadroClinico = selected.storicoQuadroClinico || [];
   const firstAppointmentDate =
     storicoQuadroClinico.length > 0
       ? storicoQuadroClinico[0].dataValutazione
       : "";
 
-  useEffect(() => {
-    if (!showEvaluationsList) setExpandedEvaluationId(null);
-  }, [showEvaluationsList]);
-
-  useEffect(() => {
-    if (!showTestsList) setExpandedTestSessionId(null);
-  }, [showTestsList]);
-
-  async function exportPdf() {
-    const element = pdfRef.current;
-    if (!element) return;
-
-    setIsExportingPdf(true);
-    await new Promise((r) => requestAnimationFrame(() => r()));
-
-    try {
-      await html2pdf()
-        .set(
-          getHtml2PdfOptions(`${selected.nome}_${selected.cognome}.pdf`)
-        )
-        .from(element)
-        .save();
-    } finally {
-      setIsExportingPdf(false);
-    }
-  }
-
   return (
-    <div ref={pdfRef} className={`pdf-root ${isExportingPdf ? "pdf-exporting" : ""}`}>
+    <>
       <header className="pdf-header">
         <div className="pdf-brand">
           <img
@@ -3243,22 +3197,18 @@ function PatientDetail({
             <div className="pdf-clinic">Physiocare Nyon</div>
           </div>
         </div>
-        <div className="pdf-header-actions no-pdf">
-          <button
-            type="button"
-            className="pdf-generate-btn"
-            onClick={exportPdf}
-            disabled={isExportingPdf}
-          >
-            {isExportingPdf
-              ? tt("common.loading", "Preparazione...")
-              : tt("common.generatePdf")}
-          </button>
-        </div>
+        <div className="pdf-header-actions no-pdf">{headerActions}</div>
       </header>
 
       <h2 style={{ lineHeight: 1.35, fontSize: "1.1rem", marginBottom: 4 }}>
-        <span style={{ display: "inline-flex", flexWrap: "wrap", gap: "0 8px", alignItems: "baseline" }}>
+        <span
+          style={{
+            display: "inline-flex",
+            flexWrap: "wrap",
+            gap: "0 8px",
+            alignItems: "baseline",
+          }}
+        >
           <span>{formatPatientListDisplayName(selected) || "-"}</span>
           {selected.bonNumero !== "" &&
           selected.bonNumero != null &&
@@ -3307,31 +3257,113 @@ function PatientDetail({
       {storicoQuadroClinico.length === 0 ? (
         <>
           <PatientAnamnesisSheet data={selected} tt={tt} />
-          <div
-            className="no-pdf patient-bon-actions"
-            style={{
-              marginTop: 12,
-              display: "flex",
-              flexWrap: "nowrap",
-              gap: 8,
-              alignItems: "center",
-            }}
-          >
-            <button type="button" onClick={() => addDiagnosisEntry(selected)}>
-              {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
-            </button>
-          </div>
+          {onAddBonDiagnosis ? (
+            <div
+              className="no-pdf patient-bon-actions"
+              style={{
+                marginTop: 12,
+                display: "flex",
+                flexWrap: "nowrap",
+                gap: 8,
+                alignItems: "center",
+              }}
+            >
+              <button type="button" onClick={() => onAddBonDiagnosis(selected)}>
+                {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
+              </button>
+            </div>
+          ) : null}
         </>
       ) : (
         <PatientClinicalHistoryBlocks
           storico={storicoQuadroClinico}
           selected={selected}
           tt={tt}
-          onEditSnapshot={editClinicalSnapshot}
-          onDeleteBon={removeStoricoBon}
-          onAddBonDiagnosis={addDiagnosisEntry}
+          onEditSnapshot={onEditSnapshot}
+          onDeleteBon={onDeleteBon}
+          onAddBonDiagnosis={onAddBonDiagnosis}
         />
       )}
+    </>
+  );
+}
+
+function PatientDetail({
+  selected,
+  tt,
+  editClinicalSnapshot,
+  removeStoricoBon,
+  addDiagnosisEntry,
+  startNewEvaluation,
+  startNewTestSession,
+  editEvaluation,
+  deleteEvaluation,
+  editTestSession,
+  deleteTestSession,
+}) {
+  const pdfRef = useRef(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [showEvaluationsList, setShowEvaluationsList] = useState(false);
+  const [showTestsList, setShowTestsList] = useState(false);
+  const [showComparativeCharts, setShowComparativeCharts] = useState(false);
+  const [showTestCharts, setShowTestCharts] = useState(false);
+  /** Una sola valutazione / sessione test espansa alla volta (in export PDF si mostrano tutte). */
+  const [expandedEvaluationId, setExpandedEvaluationId] = useState(null);
+  const [expandedTestSessionId, setExpandedTestSessionId] = useState(null);
+  const revealEvaluations = showEvaluationsList || isExportingPdf;
+  const revealTests = showTestsList || isExportingPdf;
+  const revealComparativeCharts =
+    showComparativeCharts || isExportingPdf;
+  const revealTestChartsPanel = showTestCharts || isExportingPdf;
+
+  useEffect(() => {
+    if (!showEvaluationsList) setExpandedEvaluationId(null);
+  }, [showEvaluationsList]);
+
+  useEffect(() => {
+    if (!showTestsList) setExpandedTestSessionId(null);
+  }, [showTestsList]);
+
+  async function exportPdf() {
+    const element = pdfRef.current;
+    if (!element) return;
+
+    setIsExportingPdf(true);
+    await new Promise((r) => requestAnimationFrame(() => r()));
+
+    try {
+      await html2pdf()
+        .set(
+          getHtml2PdfOptions(`${selected.nome}_${selected.cognome}.pdf`)
+        )
+        .from(element)
+        .save();
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }
+
+  return (
+    <div ref={pdfRef} className={`pdf-root ${isExportingPdf ? "pdf-exporting" : ""}`}>
+      <PatientSheetPdfSection
+        selected={selected}
+        tt={tt}
+        onEditSnapshot={editClinicalSnapshot}
+        onDeleteBon={removeStoricoBon}
+        onAddBonDiagnosis={addDiagnosisEntry}
+        headerActions={
+          <button
+            type="button"
+            className="pdf-generate-btn"
+            onClick={exportPdf}
+            disabled={isExportingPdf}
+          >
+            {isExportingPdf
+              ? tt("common.loading", "Preparazione...")
+              : tt("common.generatePdf")}
+          </button>
+        }
+      />
 
       <hr className="patient-sheet-divider" />
 
@@ -4195,45 +4227,52 @@ function KiviatComparison({ selected, tt }) {
                 }}
                 className={`kiviat-comparison-export-root pdf-root ${exportingKiviatId === c.id ? "pdf-exporting" : ""}`}
               >
-                <div
-                  className="pdf-avoid-break"
-                  style={{
-                    marginBottom: 12,
-                    padding: "10px 12px",
-                    borderBottom: "1px solid #e2e8f0",
-                    fontSize: 12,
-                    lineHeight: 1.45,
-                  }}
-                >
-                  <div style={{ fontWeight: 700, color: "#0d5c68" }}>
-                    Physiocare Nyon
-                  </div>
-                  <div style={{ marginTop: 6, fontWeight: 600 }}>
-                    {formatPatientListDisplayName(selected) || "—"}
-                  </div>
-                  {selected.dataNascita ? (
-                    <div style={{ color: "#64748b", fontSize: 11 }}>
-                      {tt("patient.birthDate")}:{" "}
-                      {formatDateDMY(selected.dataNascita)}
-                    </div>
-                  ) : null}
-                  <div style={{ marginTop: 8, fontSize: 11, color: "#334155" }}>
-                    {tt("chart.title")} · {tt("chart.comparison")} {index + 1} ·{" "}
-                    {tt(`options.distretti.${String(c.distretto).toLowerCase()}`) ||
-                      c.distretto}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#475569" }}>
-                    {tt("chart.initialEvaluation")}:{" "}
-                    {evA ? evaluationCardHeadingText(evA, tt) : "—"} ·{" "}
-                    {tt("chart.finalEvaluation")}:{" "}
-                    {evB ? evaluationCardHeadingText(evB, tt) : "—"}
-                  </div>
+                <div className="pdf-kiviat-patient-first-page">
+                  <PatientSheetPdfSection selected={selected} tt={tt} />
                 </div>
-                <KiviatResult
-                  comparison={{ ...c, mode: "lato" }}
-                  valutazioni={valutazioni}
-                  tt={tt}
-                />
+                <div className="pdf-kiviat-charts-page">
+                  <div
+                    className="pdf-avoid-break"
+                    style={{
+                      marginBottom: 12,
+                      padding: "10px 12px",
+                      borderBottom: "1px solid #e2e8f0",
+                      fontSize: 12,
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, color: "#0d5c68" }}>
+                      Physiocare Nyon
+                    </div>
+                    <div style={{ marginTop: 6, fontWeight: 600 }}>
+                      {formatPatientListDisplayName(selected) || "—"}
+                    </div>
+                    {selected.dataNascita ? (
+                      <div style={{ color: "#64748b", fontSize: 11 }}>
+                        {tt("patient.birthDate")}:{" "}
+                        {formatDateDMY(selected.dataNascita)}
+                      </div>
+                    ) : null}
+                    <div style={{ marginTop: 8, fontSize: 11, color: "#334155" }}>
+                      {tt("chart.title")} · {tt("chart.comparison")}{" "}
+                      {index + 1} ·{" "}
+                      {tt(
+                        `options.distretti.${String(c.distretto).toLowerCase()}`
+                      ) || c.distretto}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#475569" }}>
+                      {tt("chart.initialEvaluation")}:{" "}
+                      {evA ? evaluationCardHeadingText(evA, tt) : "—"} ·{" "}
+                      {tt("chart.finalEvaluation")}:{" "}
+                      {evB ? evaluationCardHeadingText(evB, tt) : "—"}
+                    </div>
+                  </div>
+                  <KiviatResult
+                    comparison={{ ...c, mode: "lato" }}
+                    valutazioni={valutazioni}
+                    tt={tt}
+                  />
+                </div>
               </div>
             </>
           )}
@@ -4297,8 +4336,12 @@ const hasPainB =
 
   const radarTitleLeft = `${districtLabel} ${tt("chart.leftSide")}`;
   const radarTitleRight = `${districtLabel} ${tt("chart.rightSide")}`;
-  const painTitleLeft = `${tt("chart.painEvolution")} ${tt("chart.leftSide")}`;
-  const painTitleRight = `${tt("chart.painEvolution")} ${tt("chart.rightSide")}`;
+  const painTitleLeft = [tt("chart.painEvolution"), tt("chart.leftSide")].join(
+    " — "
+  );
+  const painTitleRight = [tt("chart.painEvolution"), tt("chart.rightSide")].join(
+    " — "
+  );
 
   if (SHOW_KIVIAT_SESSIONE_GRAPHS && comparison.mode === "sessione") {
     return (
@@ -4363,53 +4406,55 @@ const hasPainB =
   } 
 
   return (
-    <div style={gridStyle} className="pdf-kiviat-grid">
-      <RadarChart
-        title={radarTitleLeft}
-        series={[
-          { name: labelA, data: distA.sinistro },
-          { name: labelB, data: distB.sinistro },
-        ]}
-        tt={tt}
-      />
-      <PainBarChart
-        title={painTitleLeft}
-        series={[
-          {
-            name: labelA,
-            data: painDataForChart(distA.sinistro?.dolore, distA),
-          },
-          {
-            name: labelB,
-            data: painDataForChart(distB.sinistro?.dolore, distB),
-          },
-        ]}
-        tt={tt}
-      />
-
-      <RadarChart
-        title={radarTitleRight}
-        series={[
-          { name: labelA, data: distA.destro },
-          { name: labelB, data: distB.destro },
-        ]}
-        tt={tt}
-      />
-
-      <PainBarChart
-        title={painTitleRight}
-        series={[
-          {
-            name: labelA,
-            data: painDataForChart(distA.destro?.dolore, distA),
-          },
-          {
-            name: labelB,
-            data: painDataForChart(distB.destro?.dolore, distB),
-          },
-        ]}
-        tt={tt}
-      />
+    <div className="pdf-kiviat-grid kiviat-comparison-pairs">
+      <div className="pdf-kiviat-side-row pdf-avoid-break">
+        <RadarChart
+          title={radarTitleLeft}
+          series={[
+            { name: labelA, data: distA.sinistro },
+            { name: labelB, data: distB.sinistro },
+          ]}
+          tt={tt}
+        />
+        <PainBarChart
+          title={painTitleLeft}
+          series={[
+            {
+              name: labelA,
+              data: painDataForChart(distA.sinistro?.dolore, distA),
+            },
+            {
+              name: labelB,
+              data: painDataForChart(distB.sinistro?.dolore, distB),
+            },
+          ]}
+          tt={tt}
+        />
+      </div>
+      <div className="pdf-kiviat-side-row pdf-avoid-break">
+        <RadarChart
+          title={radarTitleRight}
+          series={[
+            { name: labelA, data: distA.destro },
+            { name: labelB, data: distB.destro },
+          ]}
+          tt={tt}
+        />
+        <PainBarChart
+          title={painTitleRight}
+          series={[
+            {
+              name: labelA,
+              data: painDataForChart(distA.destro?.dolore, distA),
+            },
+            {
+              name: labelB,
+              data: painDataForChart(distB.destro?.dolore, distB),
+            },
+          ]}
+          tt={tt}
+        />
+      </div>
     </div>
   );
 }
@@ -4434,7 +4479,7 @@ const kiviatStrokeColors = ["#1d4ed8", "#b91c1c"];
 const kiviatCardStyleMerged = {
   border: "1px solid #e2e8f0",
   borderRadius: 16,
-  padding: 16,
+  padding: "10px 10px 12px",
   background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
   marginTop: 12,
   boxShadow: "0 4px 24px rgba(15, 23, 42, 0.06)",
@@ -4460,10 +4505,14 @@ function RadarChart({ title, series, tt }) {
     "qualitaMovimento",
   ];
 
-  /** Canvas e raggio dati più grandi; margini generosi per le etichette. */
-  const size = 640;
+  /**
+   * ViewBox quadrato: il pentagono usa ~68% del semi-asse (prima ~51%) così riempie il riquadro.
+   * size scelto per lasciare margine alle etichette/% ai vertici senza clip.
+   */
+  const size = 920;
   const center = size / 2;
-  const maxRadius = 164;
+  const half = size / 2;
+  const maxRadius = Math.round(half * 0.68);
   const maxValue = KIVIAT_MAX_SCORE;
   const axisCount = keys.length;
   const stepDeg = 360 / axisCount;
@@ -4513,8 +4562,12 @@ function RadarChart({ title, series, tt }) {
     const radii = series.map((s) => scoreToRadius(s.data?.[keys[i]]));
     const rOuter = Math.max(0, ...radii);
     const rData = Math.max(rOuter, 10);
-    const pctAlong = rData + 16;
-    const nameAlong = Math.max(maxRadius + 22, rData + 38);
+    /** Parte bassa del radar: più spazio tra % e etichette assi (Mob. passiva / attiva). */
+    const lowerSector = sin > 0.28;
+    const pctAlong = lowerSector ? rData + 10 : rData + 18;
+    let nameAlong = Math.max(maxRadius + 28, rData + 44);
+    if (lowerSector) nameAlong += 36;
+    if (sin > 0.5) nameAlong += 16;
 
     const norm = ((angleDeg % 360) + 360) % 360;
     let anchor = "middle";
@@ -4522,31 +4575,55 @@ function RadarChart({ title, series, tt }) {
     else if (norm > 155 && norm < 205) anchor = "middle";
     else if (norm >= 205 && norm <= 335) anchor = "end";
 
+    let lx = center + cos * nameAlong;
+    let ly = center + sin * nameAlong;
+    /** Spostamenti tangenti aggiuntivi per evitare sovrapposizione nome asse / %. */
+    const tCos = -sin;
+    const tSin = cos;
+    if (i === 1) {
+      lx += tCos * 40;
+      ly += tSin * 40;
+    }
+    if (i === 4) {
+      lx -= tCos * 44;
+      ly -= tSin * 44;
+    }
+
     return {
-      lx: center + cos * nameAlong,
-      ly: center + sin * nameAlong,
+      lx,
+      ly,
       px: center + cos * pctAlong,
       py: center + sin * pctAlong,
       anchor,
     };
   }
 
+  /** +10% rispetto a 13 per le etichette agli assi (Forza, Funzione, …). */
+  const axisLabelFont = 14.3;
+  const percentLabelFont = 12.5;
+  const percentLineGap = 15;
+
   return (
-    <div style={kiviatCardStyleMerged} className="pdf-figure kiviat-chart">
+    <div
+      style={kiviatCardStyleMerged}
+      className="pdf-figure kiviat-chart kiviat-pair-card"
+    >
       <h4 className="eval-section-heading-chart">{title}</h4>
 
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <div className="kiviat-pair-card__body" style={{ width: "100%" }}>
         <div
           style={{
             width: "100%",
-            maxWidth: size,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+        <div
+          className="kiviat-svg-size-wrap"
+          style={{
+            width: "100%",
+            maxWidth: "100%",
             aspectRatio: "1 / 1",
             margin: "0 auto",
           }}
@@ -4655,10 +4732,10 @@ function RadarChart({ title, series, tt }) {
                 key={`${s.name}-${key}`}
                 cx={p.x}
                 cy={p.y}
-                r={6.5}
+                r={7.5}
                 fill="#ffffff"
                 stroke={kiviatStrokeColors[index % kiviatStrokeColors.length]}
-                strokeWidth={2.25}
+                strokeWidth={2.5}
               />
             );
           })
@@ -4681,7 +4758,7 @@ function RadarChart({ title, series, tt }) {
                 textAnchor={vc.anchor}
                 dominantBaseline="middle"
                 fill="#1e293b"
-                fontSize={11}
+                fontSize={axisLabelFont}
                 fontWeight={700}
                 fontFamily='system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
               >
@@ -4692,7 +4769,7 @@ function RadarChart({ title, series, tt }) {
                 y={vc.py}
                 textAnchor={vc.anchor}
                 dominantBaseline="middle"
-                fontSize={11}
+                fontSize={percentLabelFont}
                 fontWeight={800}
                 fontFamily='system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
               >
@@ -4701,7 +4778,7 @@ function RadarChart({ title, series, tt }) {
                       <tspan
                         key={si}
                         x={vc.px}
-                        dy={si === 0 ? 0 : 13}
+                        dy={si === 0 ? 0 : percentLineGap}
                         fill={
                           si === 0
                             ? kiviatStrokeColors[0]
@@ -4722,48 +4799,54 @@ function RadarChart({ title, series, tt }) {
         })}
           </svg>
         </div>
+        </div>
       </div>
 
-      <p
-        style={{
-          margin: "10px 0 0",
-          fontSize: 12,
-          color: "#64748b",
-          textAlign: "center",
-          fontFamily:
-            'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-        }}
-      >
-        {tt("chart.kiviatScaleNote")}
-      </p>
+      <div style={{ marginTop: "auto", flexShrink: 0, paddingTop: 8 }}>
+        <p
+          style={{
+            margin: "10px 0 0",
+            fontSize: 12,
+            color: "#64748b",
+            textAlign: "center",
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          }}
+        >
+          {tt("chart.kiviatScaleNote")}
+        </p>
 
-      <div
-        style={{
-          marginTop: 8,
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: "12px 20px",
-          fontFamily:
-            'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-          fontSize: 13,
-          fontWeight: 600,
-          color: "#334155",
-        }}
-      >
-        {series.map((s, index) => (
-          <span key={s.name} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "12px 20px",
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#334155",
+          }}
+        >
+          {series.map((s, index) => (
             <span
-              style={{
-                color: kiviatStrokeColors[index % kiviatStrokeColors.length],
-                fontSize: 15,
-              }}
+              key={s.name}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
             >
-              ■
+              <span
+                style={{
+                  color: kiviatStrokeColors[index % kiviatStrokeColors.length],
+                  fontSize: 15,
+                }}
+              >
+                ■
+              </span>
+              {s.name}
             </span>
-            {s.name}
-          </span>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -4787,8 +4870,21 @@ function PainBarChart({ title, series, tt }) {
     return `${(v / painScaleMax) * painChartHeight}px`;
   }
 
+  const c0 = kiviatStrokeColors[0];
+  const c1 = kiviatStrokeColors[1 % kiviatStrokeColors.length];
+
   return (
-    <div style={chartCardStyle} className="pdf-figure">
+    <div
+      style={{
+        ...chartCardStyle,
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+        marginTop: 0,
+      }}
+      className="pdf-figure kiviat-pair-card"
+    >
       <h4 className="eval-section-heading-chart" style={{ marginTop: 0, marginBottom: 8 }}>
         {title || tt("chart.painEvolution")}
       </h4>
@@ -4805,130 +4901,235 @@ function PainBarChart({ title, series, tt }) {
       </p>
 
       <div
+        className="kiviat-pair-card__body"
         style={{
+          flex: 1,
+          minHeight: 0,
           display: "flex",
-          gap: 10,
-          alignItems: "stretch",
-          fontFamily:
-            'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
         <div
           style={{
-            width: 26,
-            flexShrink: 0,
-            position: "relative",
-            height: painChartHeight,
-            marginBottom: 34,
+            display: "flex",
+            gap: 10,
+            alignItems: "stretch",
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
           }}
         >
-          {[10, 8, 6, 4, 2, 0].map((n) => (
-            <span
-              key={n}
-              style={{
-                position: "absolute",
-                right: 2,
-                bottom: `${(n / painScaleMax) * painChartHeight - 4}px`,
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#64748b",
-                lineHeight: 1,
-                transform: n === 10 ? "translateY(6px)" : n === 0 ? "translateY(0)" : "translateY(4px)",
-              }}
-            >
-              {n}
-            </span>
-          ))}
+          <div style={{ width: 26, flexShrink: 0 }} aria-hidden />
+
+          <div
+            style={{
+              flex: 1,
+              display: "grid",
+              gridTemplateColumns: "repeat(5, 1fr)",
+              gap: 10,
+              minWidth: 0,
+              marginBottom: 6,
+            }}
+          >
+            {painItems.map(({ key }) => {
+              const valueA = Number(series?.[0]?.data?.[key] || 0);
+              const valueB = Number(series?.[1]?.data?.[key] || 0);
+              return (
+                <div key={`head-${key}`} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>
+                    {valueA} → {valueB}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div
           style={{
-            flex: 1,
-            display: "grid",
-            gridTemplateColumns: "repeat(5, 1fr)",
+            display: "flex",
             gap: 10,
-            alignItems: "end",
-            minWidth: 0,
+            alignItems: "stretch",
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
           }}
         >
-          {painItems.map(({ key, label }) => {
-            const valueA = Number(series?.[0]?.data?.[key] || 0);
-            const valueB = Number(series?.[1]?.data?.[key] || 0);
+          <div
+            style={{
+              width: 26,
+              flexShrink: 0,
+              position: "relative",
+              height: painChartHeight,
+              marginBottom: 34,
+            }}
+          >
+            {[10, 8, 6, 4, 2, 0].map((n) => (
+              <span
+                key={n}
+                style={{
+                  position: "absolute",
+                  right: 2,
+                  bottom: `${(n / painScaleMax) * painChartHeight - 4}px`,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#64748b",
+                  lineHeight: 1,
+                  transform:
+                    n === 10
+                      ? "translateY(6px)"
+                      : n === 0
+                        ? "translateY(0)"
+                        : "translateY(4px)",
+                }}
+              >
+                {n}
+              </span>
+            ))}
+          </div>
 
-            return (
-              <div key={key} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                  {valueA} → {valueB}
-                </div>
+          <div
+            style={{
+              flex: 1,
+              position: "relative",
+              height: painChartHeight,
+              marginBottom: 34,
+              minWidth: 0,
+            }}
+          >
+            {gridLevels.map((lvl) => (
+              <div
+                key={lvl}
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: `${(lvl / painScaleMax) * painChartHeight}px`,
+                  height: 1,
+                  background: "rgba(148, 163, 184, 0.45)",
+                  pointerEvents: "none",
+                  zIndex: 0,
+                }}
+              />
+            ))}
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 1,
+                background: "#cbd5e1",
+                zIndex: 2,
+                pointerEvents: "none",
+              }}
+            />
 
-                <div
-                  style={{
-                    position: "relative",
-                    height: painChartHeight,
-                    margin: "0 auto",
-                    maxWidth: 88,
-                  }}
-                >
-                  {gridLevels.map((lvl) => (
-                    <div
-                      key={lvl}
-                      aria-hidden
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        right: 0,
-                        bottom: `${(lvl / painScaleMax) * painChartHeight}px`,
-                        height: 1,
-                        background: "rgba(148, 163, 184, 0.45)",
-                        pointerEvents: "none",
-                      }}
-                    />
-                  ))}
-
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: 10,
+                alignItems: "end",
+                zIndex: 1,
+              }}
+            >
+              {painItems.map(({ key }) => {
+                const valueA = Number(series?.[0]?.data?.[key] || 0);
+                const valueB = Number(series?.[1]?.data?.[key] || 0);
+                return (
                   <div
+                    key={key}
                     style={{
-                      position: "relative",
-                      zIndex: 1,
-                      height: "100%",
                       display: "flex",
-                      gap: 6,
                       justifyContent: "center",
                       alignItems: "flex-end",
-                      borderBottom: "1px solid #cbd5e1",
+                      height: "100%",
                     }}
                   >
                     <div
                       style={{
-                        width: 14,
-                        height: barHeightPx(valueA),
-                        background: "#0064ff",
-                        borderRadius: "2px 2px 0 0",
+                        display: "flex",
+                        gap: 6,
+                        justifyContent: "center",
+                        alignItems: "flex-end",
                       }}
-                    />
-                    <div
-                      style={{
-                        width: 14,
-                        height: barHeightPx(valueB),
-                        background: "#ff8c00",
-                        borderRadius: "2px 2px 0 0",
-                      }}
-                    />
+                    >
+                      <div
+                        style={{
+                          width: 14,
+                          height: barHeightPx(valueA),
+                          background: c0,
+                          borderRadius: "2px 2px 0 0",
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: 14,
+                          height: barHeightPx(valueB),
+                          background: c1,
+                          borderRadius: "2px 2px 0 0",
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
-                <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6, minHeight: 30, color: "#334155" }}>
-                  {label}
-                </div>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginTop: 6,
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          }}
+        >
+          <div style={{ width: 26, flexShrink: 0 }} aria-hidden />
+          <div
+            style={{
+              flex: 1,
+              display: "grid",
+              gridTemplateColumns: "repeat(5, 1fr)",
+              gap: 10,
+              minWidth: 0,
+            }}
+          >
+            {painItems.map(({ key, label }) => (
+              <div
+                key={`foot-${key}`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textAlign: "center",
+                  minHeight: 30,
+                  color: "#334155",
+                }}
+              >
+                {label}
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
+      <div style={{ marginTop: "auto", paddingTop: 10 }}>
         {series.map((s, index) => (
           <div key={s.name} style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>
-            <span style={{ color: index === 0 ? "#0064ff" : "#ff8c00" }}>
+            <span
+              style={{
+                color:
+                  index === 0
+                    ? c0
+                    : c1,
+              }}
+            >
               ■
             </span>{" "}
             {s.name}

@@ -61,7 +61,36 @@
 
 .pdf-root.pdf-exporting .pdf-kiviat-grid {
   margin-top: 10px !important;
-  gap: 12px !important;
+}
+
+/* In PDF: sempre due colonne (Kiviat | evoluzione dolore) come a schermo desktop. */
+.pdf-root.pdf-exporting .kiviat-comparison-pairs {
+  gap: 14px !important;
+}
+
+.pdf-root.pdf-exporting .pdf-kiviat-side-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px 12px !important;
+  align-items: stretch !important;
+}
+
+.pdf-root.pdf-exporting .pdf-kiviat-side-row > .pdf-figure,
+.pdf-root.pdf-exporting .pdf-kiviat-side-row > .kiviat-chart {
+  margin-top: 0 !important;
+}
+
+.pdf-root.pdf-exporting .pdf-kiviat-patient-first-page {
+  page-break-after: always;
+  break-after: page;
+}
+
+.pdf-root.pdf-exporting .kiviat-comparison-pairs {
+  margin-top: 8px !important;
+}
+
+.pdf-root.pdf-exporting .kiviat-chart svg text {
+  font-size: 15.5px !important;
 }
 
 .pdf-root.pdf-exporting svg text {
@@ -79,6 +108,7 @@
 
 /* Riduce tagli a metà elemento tra una pagina e l’altra (html2pdf pagebreak css + avoid-all). */
 .pdf-root.pdf-exporting .pdf-avoid-break,
+.pdf-root.pdf-exporting .pdf-kiviat-side-row,
 .pdf-root.pdf-exporting .yb-chart-card,
 .pdf-root.pdf-exporting .kiviat-chart {
   break-inside: avoid-page;
