@@ -57,8 +57,10 @@ import { normalizePatientSessioniTest } from "./utils/patientNormalize";
 import {
   buildSnapshotBodyFromPatientLike,
   buildSnapshotSheetContextFromPatientLike,
+  formDiffersFromBaseline,
   normalizePatientClinicalHistory,
   normalizeStoricoSnapshotEntry,
+  patientFlatStateFromSnapshotEntry,
   spreadSnapshotToPatientTop,
   todayIsoDate,
 } from "./utils/clinicalHistory";
@@ -70,6 +72,7 @@ import {
 import { epleyOneRmKg, formatOneRmKg } from "./utils/epley1rm";
 import { PatientAnamnesisSheet } from "./components/PatientAnamnesisSheet";
 import { sportOptions, tegnerInfo } from "./data/options";
+import { bonDiffSummaryStyle } from "./utils/bonDiffSummaryStyle";
 
 /**
  * Numero incrementale per nome distretto tra valutazioni e sessioni test.
@@ -138,6 +141,8 @@ const emptyPatient = {
   farmaci: "",
   patologie: "",
   dataUltimoTestPressioneArteriosa: "",
+  /** Farmaco salvavita: Sì | No */
+  farmacoSalvavita: "",
   fumatore: "",
   epilessia: "",
   antecedentiChirurgici: "",
@@ -165,16 +170,25 @@ motivoVariazionePeso: "",
 dominioLavoro: "",
 rischiProfessionali: "",
 motivoAccesso: "",
+referralDaChi: "",
 
 sportLivello: "",
 running10km: "",
 runningMezza: "",
 runningMaratona: "",
+/** Corsa: sprint | strada | trail | altro */
+runningDisciplina: "",
+runningDisciplinaAltro: "",
 
 fitnessTipo: "",
+  /** Goofy / Regular unico per surf, snowboard, skateboard */
+  boardStanceUnified: "",
   surfStance: "",
   snowboardStance: "",
   skateboardStance: "",
+  pilatesTipo: "",
+  arrampicataLivello: "",
+  ciclismoDisciplina: "",
   tennisBackhand: "",
   tennisStringTension: "",
   tennisRacketChangedRecently: "",
@@ -228,6 +242,7 @@ export default function App() {
   const [saveClinicalAsAppend, setSaveClinicalAsAppend] = useState(false);
   /** Sincrono: evita che il salvataggio «nuova diagnosi» perda il flag prima del commit. */
   const saveClinicalAsAppendRef = useRef(false);
+  const [editingStoricoIndex, setEditingStoricoIndex] = useState(null);
   const [evaluationForm, setEvaluationForm] = useState(createEvaluation());
   const [testSessionForm, setTestSessionForm] = useState(createTestSession());
 
@@ -270,6 +285,7 @@ export default function App() {
   function newPatient() {
     setSaveClinicalAsAppend(false);
     saveClinicalAsAppendRef.current = false;
+    setEditingStoricoIndex(null);
     setForm({
       ...emptyPatient,
       id: uid(),
@@ -287,21 +303,32 @@ export default function App() {
     setEditingTestSession(false);
   }
 
-  function editPatient(p) {
+  function editClinicalSnapshot(p, storicoIndex) {
     setSaveClinicalAsAppend(false);
     saveClinicalAsAppendRef.current = false;
     const normalized = normalizePatientClinicalHistory({
       ...p,
       diagnosiRighe: migrateDiagnosiRighe(p),
     });
+    const storico = normalized.storicoQuadroClinico || [];
+    const snap = storico[storicoIndex];
+    if (!snap) return;
+    const flat = patientFlatStateFromSnapshotEntry(snap);
+    if (!flat) return;
+    setEditingStoricoIndex(storicoIndex);
     setForm({
       ...emptyPatient,
       ...normalized,
-      sportMultipli: normalized.sportMultipli || [],
+      ...flat,
+      sportMultipli: Array.isArray(flat.sportMultipli)
+        ? flat.sportMultipli
+        : normalized.sportMultipli || [],
       valutazioni: normalized.valutazioni || [],
       sessioniTest: normalized.sessioniTest || [],
-      diagnosiRighe: migrateDiagnosiRighe(normalized),
-      storicoQuadroClinico: normalized.storicoQuadroClinico || [],
+      diagnosiRighe: migrateDiagnosiRighe({
+        diagnosiRighe: flat.diagnosiRighe,
+      }),
+      storicoQuadroClinico: storico,
     });
     setSelected(normalized);
     setEditingPatient(true);
@@ -329,56 +356,71 @@ export default function App() {
       saveClinicalAsAppendRef.current || saveClinicalAsAppend;
 
     let storicoQuadroClinico;
-    if (appendClinical && exists) {
-      const prevNorm = normalizePatientClinicalHistory({
-        ...prevPatient,
-        diagnosiRighe: migrateDiagnosiRighe(prevPatient),
-      });
-      const rawBase =
-        Array.isArray(prevNorm.storicoQuadroClinico) &&
-        prevNorm.storicoQuadroClinico.length > 0
-          ? prevNorm.storicoQuadroClinico
-          : form.storicoQuadroClinico || [];
-      const base = rawBase
-        .map((s) => normalizeStoricoSnapshotEntry(s))
-        .filter(Boolean);
-      storicoQuadroClinico = [
-        ...base,
-        {
-          id: uid(),
-          dataValutazione: todayIso,
-          bonNumero: nextBonNumberForPatient(base),
-          sheetContext,
-          ...body,
-        },
-      ];
-    } else if (appendClinical && !exists) {
-      storicoQuadroClinico = [
-        {
-          id: uid(),
-          dataValutazione: todayIso,
-          bonNumero: 1,
-          sheetContext,
-          ...body,
-        },
-      ];
-    } else if (!exists) {
-      storicoQuadroClinico = [
-        {
-          id: uid(),
-          dataValutazione: todayIso,
-          bonNumero: 1,
-          sheetContext,
-          ...body,
-        },
-      ];
-    } else {
+
+    const editIdx = editingStoricoIndex;
+    if (
+      editIdx != null &&
+      Number.isInteger(editIdx) &&
+      editIdx >= 0 &&
+      exists
+    ) {
       const prev = Array.isArray(form.storicoQuadroClinico)
         ? form.storicoQuadroClinico
             .map((s) => normalizeStoricoSnapshotEntry(s))
             .filter(Boolean)
         : [];
-      if (prev.length === 0) {
+      if (editIdx < prev.length) {
+        const original = prev[editIdx];
+        storicoQuadroClinico = [
+          ...prev.slice(0, editIdx),
+          normalizeStoricoSnapshotEntry({
+            ...original,
+            ...body,
+            sheetContext,
+            id: original.id,
+            dataValutazione: original.dataValutazione,
+            bonNumero: original.bonNumero,
+          }),
+          ...prev.slice(editIdx + 1),
+        ];
+      }
+    }
+
+    if (storicoQuadroClinico == null) {
+      if (appendClinical && exists) {
+        const prevNorm = normalizePatientClinicalHistory({
+          ...prevPatient,
+          diagnosiRighe: migrateDiagnosiRighe(prevPatient),
+        });
+        const rawBase =
+          Array.isArray(prevNorm.storicoQuadroClinico) &&
+          prevNorm.storicoQuadroClinico.length > 0
+            ? prevNorm.storicoQuadroClinico
+            : form.storicoQuadroClinico || [];
+        const base = rawBase
+          .map((s) => normalizeStoricoSnapshotEntry(s))
+          .filter(Boolean);
+        storicoQuadroClinico = [
+          ...base,
+          {
+            id: uid(),
+            dataValutazione: todayIso,
+            bonNumero: nextBonNumberForPatient(base),
+            sheetContext,
+            ...body,
+          },
+        ];
+      } else if (appendClinical && !exists) {
+        storicoQuadroClinico = [
+          {
+            id: uid(),
+            dataValutazione: todayIso,
+            bonNumero: 1,
+            sheetContext,
+            ...body,
+          },
+        ];
+      } else if (!exists) {
         storicoQuadroClinico = [
           {
             id: uid(),
@@ -389,24 +431,41 @@ export default function App() {
           },
         ];
       } else {
-        const last = prev[prev.length - 1];
-        const lastBon =
-          last.bonNumero != null && last.bonNumero !== ""
-            ? Number(last.bonNumero)
-            : nextBonNumberForPatient(prev.slice(0, -1));
-        storicoQuadroClinico = [
-          ...prev.slice(0, -1),
-          normalizeStoricoSnapshotEntry({
-            ...last,
-            ...body,
-            sheetContext,
-            id: last.id,
-            dataValutazione: patientTrim(last.dataValutazione)
-              ? last.dataValutazione
-              : todayIso,
-            bonNumero: lastBon,
-          }),
-        ];
+        const prev = Array.isArray(form.storicoQuadroClinico)
+          ? form.storicoQuadroClinico
+              .map((s) => normalizeStoricoSnapshotEntry(s))
+              .filter(Boolean)
+          : [];
+        if (prev.length === 0) {
+          storicoQuadroClinico = [
+            {
+              id: uid(),
+              dataValutazione: todayIso,
+              bonNumero: 1,
+              sheetContext,
+              ...body,
+            },
+          ];
+        } else {
+          const last = prev[prev.length - 1];
+          const lastBon =
+            last.bonNumero != null && last.bonNumero !== ""
+              ? Number(last.bonNumero)
+              : nextBonNumberForPatient(prev.slice(0, -1));
+          storicoQuadroClinico = [
+            ...prev.slice(0, -1),
+            normalizeStoricoSnapshotEntry({
+              ...last,
+              ...body,
+              sheetContext,
+              id: last.id,
+              dataValutazione: patientTrim(last.dataValutazione)
+                ? last.dataValutazione
+                : todayIso,
+              bonNumero: lastBon,
+            }),
+          ];
+        }
       }
     }
 
@@ -451,6 +510,7 @@ export default function App() {
     setSelected(cleanForm);
     setSaveClinicalAsAppend(false);
     saveClinicalAsAppendRef.current = false;
+    setEditingStoricoIndex(null);
     setEditingPatient(false);
   }
 
@@ -464,6 +524,7 @@ export default function App() {
         });
     setSaveClinicalAsAppend(true);
     saveClinicalAsAppendRef.current = true;
+    setEditingStoricoIndex(null);
     setForm({
       ...emptyPatient,
       ...normalized,
@@ -492,9 +553,70 @@ export default function App() {
   }
 
   function removePatient(id) {
-    if (!confirm("Eliminare paziente?")) return;
+    if (
+      !confirm(
+        tt(
+          "patient.confirmDeletePatient",
+          "Eliminare il paziente dall’archivio?"
+        )
+      )
+    )
+      return;
     setPatients(patients.filter((p) => p.id !== id));
     setSelected(null);
+  }
+
+  function removeStoricoBon(p, storicoIndex) {
+    if (
+      !confirm(
+        tt(
+          "patient.confirmDeleteBon",
+          "Eliminare questo bon dallo storico? L’operazione non è annullabile."
+        )
+      )
+    )
+      return;
+    const norm = normalizePatientClinicalHistory({
+      ...p,
+      diagnosiRighe: migrateDiagnosiRighe(p),
+    });
+    const storico = [...(norm.storicoQuadroClinico || [])];
+    if (storicoIndex < 0 || storicoIndex >= storico.length) return;
+    storico.splice(storicoIndex, 1);
+
+    const preserve = new Set([
+      "id",
+      "nome",
+      "cognome",
+      "sesso",
+      "dataNascita",
+      "dataCreazionePaziente",
+      "bonNumero",
+      "valutazioni",
+      "sessioniTest",
+    ]);
+
+    let next;
+    if (storico.length === 0) {
+      next = { ...norm, storicoQuadroClinico: [] };
+      for (const [k, v] of Object.entries(emptyPatient)) {
+        if (!preserve.has(k)) next[k] = v;
+      }
+      next.diagnosiRighe = [
+        { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+      ];
+      next.quadroClinicoTipo = "";
+      next.infortunioChirurgicoPrevisto = "";
+      next = normalizePatientClinicalHistory(next);
+    } else {
+      next = normalizePatientClinicalHistory({
+        ...norm,
+        storicoQuadroClinico: storico,
+      });
+    }
+
+    setPatients((prev) => prev.map((x) => (x.id === next.id ? next : x)));
+    setSelected(next);
   }
 
   function startNewEvaluation() {
@@ -903,14 +1025,30 @@ export default function App() {
         <div className="app-content">
           {editingPatient && (
             <PatientForm
-            tt={tt}
+              tt={tt}
               form={form}
               update={update}
               setForm={setForm}
               savePatient={savePatient}
+              editingSnapshotNote={
+                editingStoricoIndex != null &&
+                Array.isArray(form.storicoQuadroClinico) &&
+                form.storicoQuadroClinico[editingStoricoIndex]
+                  ? (() => {
+                      const snap =
+                        form.storicoQuadroClinico[editingStoricoIndex];
+                      const bon = formatBonLabel(snap.bonNumero);
+                      const dateStr = patientTrim(snap.dataValutazione)
+                        ? formatDateDMY(snap.dataValutazione)
+                        : "—";
+                      return `${bon ? `${bon} · ` : ""}${tt("patient.appointmentOfDate", "appuntamento del")} ${dateStr}`;
+                    })()
+                  : null
+              }
               cancel={() => {
                 setSaveClinicalAsAppend(false);
                 saveClinicalAsAppendRef.current = false;
+                setEditingStoricoIndex(null);
                 setEditingPatient(false);
               }}
             />
@@ -949,9 +1087,9 @@ export default function App() {
               <PatientDetail
               selected={selected}
               tt={tt}
-              editPatient={editPatient}
+              editClinicalSnapshot={editClinicalSnapshot}
+              removeStoricoBon={removeStoricoBon}
               addDiagnosisEntry={addDiagnosisEntry}
-              removePatient={removePatient}
               startNewEvaluation={startNewEvaluation}
               startNewTestSession={startNewTestSession}
               editEvaluation={editEvaluation}
@@ -970,8 +1108,41 @@ export default function App() {
   );
 }
 
-function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
+function patientFormHasBoardSport(sportMultipli) {
+  const set = new Set(
+    (sportMultipli || []).map((x) => String(x).toLowerCase())
+  );
+  return set.has("surf") || set.has("snowboard") || set.has("skateboard");
+}
+
+function patientFormHasClimbing(sportMultipli) {
+  const set = new Set(
+    (sportMultipli || []).map((x) => String(x).toLowerCase())
+  );
+  return set.has("escalade") || set.has("arrampicata");
+}
+
+function patientFormBoardStanceValue(form) {
+  return (
+    patientTrim(form.boardStanceUnified) ||
+    patientTrim(form.surfStance) ||
+    patientTrim(form.snowboardStance) ||
+    patientTrim(form.skateboardStance) ||
+    ""
+  );
+}
+
+function PatientForm({
+  form,
+  update,
+  setForm,
+  savePatient,
+  cancel,
+  tt,
+  editingSnapshotNote = null,
+}) {
   const bmi = calcBMI(form.peso, form.altezza);
+  const diffKey = () => false;
 
   function t(path, fallback) {
     return tt(path) || fallback;
@@ -1277,23 +1448,36 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
               </button>
             </div>
           ) : null}
-          <Select
-            label={t("patient.diagnosis", "Diagnosi / problema principale")}
-            value={row.diagnosi || ""}
-            onChange={(v) => updateDiagnosiRiga(row.id, { diagnosi: v })}
-            options={diagnosisOptions}
-          />
-          <Select
-            label={tt("evaluation.district")}
-            value={row.distrettoDiagnosi || ""}
-            onChange={(v) =>
-              updateDiagnosiRiga(row.id, { distrettoDiagnosi: v })
-            }
-            options={distrettoDiagnosiOptions}
-          />
+          <div className="patient-form-row">
+            <div className="patient-form-row__field">
+              <Select
+                compact
+                fullWidth
+                highlightChange={diffKey("diagnosiRighe")}
+                label={t("patient.diagnosis", "Diagnosi / problema principale")}
+                value={row.diagnosi || ""}
+                onChange={(v) => updateDiagnosiRiga(row.id, { diagnosi: v })}
+                options={diagnosisOptions}
+              />
+            </div>
+            <div className="patient-form-row__field">
+              <Select
+                compact
+                fullWidth
+                highlightChange={diffKey("diagnosiRighe")}
+                label={tt("evaluation.district")}
+                value={row.distrettoDiagnosi || ""}
+                onChange={(v) =>
+                  updateDiagnosiRiga(row.id, { distrettoDiagnosi: v })
+                }
+                options={distrettoDiagnosiOptions}
+              />
+            </div>
+          </div>
           <Textarea
             compact
             fullWidth
+            highlightChange={diffKey("diagnosiRighe")}
             label={t("patient.diagnosisDetails", "Dettagli diagnosi")}
             value={row.dettagli || ""}
             onChange={(v) => updateDiagnosiRiga(row.id, { dettagli: v })}
@@ -1309,6 +1493,43 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
     </button>
   );
 
+  const prescribingDoctorTextarea = (
+    <Textarea
+      compact
+      fullWidth
+      highlightChange={diffKey("medicoPrescrittore")}
+      label={t("patient.regardingPrescribingDoctor", "Medico prescrittore")}
+      value={form.medicoPrescrittore || ""}
+      onChange={(v) => update("medicoPrescrittore", v)}
+    />
+  );
+
+  const clinicalOriginWithPrescriberRow = (
+    <div className="patient-form-row patient-form-row--align-start">
+      <div className="patient-form-row__field">{prescribingDoctorTextarea}</div>
+      <div className="patient-form-row__field">
+        <Select
+          compact
+          fullWidth
+          highlightChange={diffKey("quadroClinicoTipo")}
+          label={t("patient.clinicalOrigin", "Infortunio o malattia?")}
+          value={form.quadroClinicoTipo || ""}
+          onChange={(v) =>
+            setForm({
+              ...form,
+              quadroClinicoTipo: v,
+              infortunioChirurgicoPrevisto:
+                v === "infortunio"
+                  ? form.infortunioChirurgicoPrevisto || ""
+                  : "",
+            })
+          }
+          options={clinicalOriginOptions}
+        />
+      </div>
+    </div>
+  );
+
   const imagingFieldsFull = (
     <>
       <div
@@ -1322,6 +1543,7 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
       >
         <div style={{ flex: "1 1 200px", minWidth: 0 }}>
           <Select
+            highlightChange={diffKey("diagnostica")}
             label={t("patient.imaging", "Diagnostica")}
             value={form.diagnostica}
             onChange={(v) => update("diagnostica", v)}
@@ -1330,6 +1552,7 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
         </div>
         <div style={{ flex: "1 1 200px", minWidth: 0 }}>
           <Select
+            highlightChange={diffKey("diagnostica2")}
             label={t("patient.imaging2Short", "Diagnostica 2")}
             value={form.diagnostica2 || ""}
             onChange={(v) => update("diagnostica2", v)}
@@ -1338,6 +1561,9 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
         </div>
       </div>
       <Textarea
+        compact
+        fullWidth
+        highlightChange={diffKey("diagnosticaDettagli")}
         label={t("patient.imagingDetails", "Dettagli diagnostica")}
         value={form.diagnosticaDettagli}
         onChange={(v) => update("diagnosticaDettagli", v)}
@@ -1366,173 +1592,428 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
     </>
   );
 
+  const dateCompanionLabelStyle = { display: "block", marginBottom: 4 };
+  const dateCompanionSlotStyle = {
+    padding: 8,
+    margin: 0,
+    fontSize: "0.875rem",
+    lineHeight: 1.35,
+    boxSizing: "border-box",
+  };
+
   const injuryDateBlock = (
-    <>
-      <Input
-        label={t("patient.injuryDate", "Data infortunio")}
-        type="date"
-        value={form.dataInfortunio}
-        onChange={(v) => update("dataInfortunio", v)}
-      />
-      {form.dataInfortunio ? (
-        <p>
-          <strong>{t("patient.timeSinceInjury", "Tempo da infortunio")}:</strong>{" "}
-          {timeSinceYWD(form.dataInfortunio, tt)}
-        </p>
-      ) : null}
-    </>
+    <div className="patient-form-row patient-form-row--align-start">
+      <div className="patient-form-row__field">
+        <Input
+          dense
+          fullWidth
+          highlightChange={diffKey("dataInfortunio")}
+          label={t("patient.injuryDate", "Data infortunio")}
+          type="date"
+          value={form.dataInfortunio}
+          onChange={(v) => update("dataInfortunio", v)}
+        />
+      </div>
+      <div className="patient-form-row__field">
+        <label style={dateCompanionLabelStyle}>
+          <strong
+            style={{ visibility: "hidden", whiteSpace: "nowrap" }}
+            aria-hidden="true"
+          >
+            {t("patient.injuryDate", "Data infortunio")}
+          </strong>
+          <br />
+          <div style={dateCompanionSlotStyle}>
+            {form.dataInfortunio ? (
+              <>
+                <strong>
+                  {t("patient.timeSinceInjury", "Tempo da infortunio")}:
+                </strong>{" "}
+                {timeSinceYWD(form.dataInfortunio, tt)}
+              </>
+            ) : (
+              <span
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-muted)",
+                }}
+              >
+                {t(
+                  "patient.injuryDateHint",
+                  "Inserisci la data per calcolare il tempo trascorso."
+                )}
+              </span>
+            )}
+          </div>
+        </label>
+      </div>
+    </div>
   );
 
   const surgeryFieldsBlock = (
     <>
-      <Input
-        label={t("patient.surgeryDate", "Data operazione chirurgica")}
-        type="date"
-        value={form.dataOperazione}
-        onChange={(v) => update("dataOperazione", v)}
-      />
-      {form.dataOperazione ? (
-        <p>
-          <strong>
-            {t("patient.timeSinceSurgery", "Tempo post-operatorio")}:
-          </strong>{" "}
-          {timeSinceYWD(form.dataOperazione, tt)}
-        </p>
-      ) : null}
-      <Select
-        label={t("patient.operatedLimb", "Arto operato / localizzazione")}
-        value={form.artoOperato}
-        onChange={(v) => update("artoOperato", v)}
-        options={operatedLimbOptions}
-      />
-      <Select
-        label={t("patient.surgeryType", "Tipo operazione")}
-        value={form.tipoOperazione}
-        onChange={(v) => update("tipoOperazione", v)}
-        options={surgeryTypeOptions}
-      />
+      <div className="patient-form-row patient-form-row--align-start">
+        <div className="patient-form-row__field">
+          <Input
+            dense
+            fullWidth
+            highlightChange={diffKey("dataOperazione")}
+            label={t("patient.surgeryDate", "Data operazione chirurgica")}
+            type="date"
+            value={form.dataOperazione}
+            onChange={(v) => update("dataOperazione", v)}
+          />
+        </div>
+        <div className="patient-form-row__field">
+          <label style={dateCompanionLabelStyle}>
+            <strong
+              style={{ visibility: "hidden", whiteSpace: "nowrap" }}
+              aria-hidden="true"
+            >
+              {t("patient.surgeryDate", "Data operazione chirurgica")}
+            </strong>
+            <br />
+            <div style={dateCompanionSlotStyle}>
+              {form.dataOperazione ? (
+                <>
+                  <strong>
+                    {t("patient.timeSinceSurgery", "Tempo post-operatorio")}:
+                  </strong>{" "}
+                  {timeSinceYWD(form.dataOperazione, tt, {
+                    futureAsSurgeryCountdown: true,
+                  })}
+                </>
+              ) : (
+                <span
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {t(
+                    "patient.surgeryDateHint",
+                    "Inserisci la data per calcolare il tempo post-operatorio."
+                  )}
+                </span>
+              )}
+            </div>
+          </label>
+        </div>
+      </div>
+      <div className="patient-form-row">
+        <div className="patient-form-row__field">
+          <Select
+            compact
+            fullWidth
+            highlightChange={diffKey("artoOperato")}
+            label={t("patient.operatedLimb", "Arto operato / localizzazione")}
+            value={form.artoOperato}
+            onChange={(v) => update("artoOperato", v)}
+            options={operatedLimbOptions}
+          />
+        </div>
+        <div className="patient-form-row__field">
+          <Select
+            compact
+            fullWidth
+            highlightChange={diffKey("tipoOperazione")}
+            label={t("patient.surgeryType", "Tipo operazione")}
+            value={form.tipoOperazione}
+            onChange={(v) => update("tipoOperazione", v)}
+            options={surgeryTypeOptions}
+          />
+        </div>
+      </div>
     </>
   );
 
+  const pilatesEquipmentOptions = [
+    {
+      value: "",
+      label: t("patient.pilatesEquipmentPlaceholder", "—"),
+    },
+    {
+      value: "mat",
+      label: t("options.pilatesTipo.mat", "Mat"),
+    },
+    {
+      value: "reformer",
+      label: t("options.pilatesTipo.reformer", "Reformer"),
+    },
+  ];
+
+  const ciclismoTipoOptions = [
+    {
+      value: "",
+      label: t("patient.cyclingDisciplinePlaceholder", "—"),
+    },
+    {
+      value: "mtb",
+      label: t("options.ciclismoTipo.mtb", "MTB"),
+    },
+    {
+      value: "strada",
+      label: t("options.ciclismoTipo.strada", "Ciclismo su strada"),
+    },
+  ];
+
+  const boardStanceSelectOptions = [
+    {
+      value: "Regular",
+      label: t("options.boardStance.Regular", "Regular"),
+    },
+    {
+      value: "Goofy",
+      label: t("options.boardStance.Goofy", "Goofy"),
+    },
+  ];
+
+  const runningDisciplinaOptions = [
+    {
+      value: "",
+      label: t("patient.runningDisciplinePlaceholder", "—"),
+    },
+    {
+      value: "sprint",
+      label: t("options.runningDisciplina.sprint", "Sprint"),
+    },
+    {
+      value: "strada",
+      label: t("options.runningDisciplina.strada", "Strada"),
+    },
+    {
+      value: "trail",
+      label: t("options.runningDisciplina.trail", "Trail"),
+    },
+    {
+      value: "altro",
+      label: t("options.runningDisciplina.altro", "Altro"),
+    },
+  ];
+
+  function setBoardStanceUnified(v) {
+    setForm({
+      ...form,
+      boardStanceUnified: v,
+      surfStance: v,
+      snowboardStance: v,
+      skateboardStance: v,
+    });
+  }
+
   return (
-    <div>
+    <div className="patient-form-compact">
       <h2>{t("patient.title", "Scheda paziente")}</h2>
+      {editingSnapshotNote ? (
+        <p
+          style={{
+            margin: "0 0 14px",
+            padding: "10px 12px",
+            borderRadius: 8,
+            background: "var(--surface-2, #f0f4fa)",
+            border: "1px solid var(--border)",
+            fontSize: "0.9375rem",
+          }}
+        >
+          {t(
+            "patient.editingBonSheetBanner",
+            "Stai modificando la scheda di questo bon:"
+          )}{" "}
+          <strong>{editingSnapshotNote}</strong>
+        </p>
+      ) : null}
 
-      <Section title={t("patient.identity", "Identità")}>
-        <Input
-          label={t("patient.firstName", "Nome")}
-          value={form.nome}
-          onChange={(v) => update("nome", v)}
-        />
-
-        <Input
-          label={t("patient.lastName", "Cognome")}
-          value={form.cognome}
-          onChange={(v) => update("cognome", v)}
-        />
-
-        <Select
-          label={t("patient.sex", "Sesso")}
-          value={form.sesso}
-          onChange={(v) => update("sesso", v)}
-          options={sexOptions}
-        />
-
-        <Input
-          label={t("patient.birthDate", "Data di nascita")}
-          type="date"
-          value={form.dataNascita}
-          onChange={(v) => update("dataNascita", v)}
-        />
-
-        <Select
-          label={t("patient.dominantHand", "Mano dominante")}
-          value={form.manoDominante || ""}
-          onChange={(v) => update("manoDominante", v)}
-          options={dominantHandOptions}
-        />
+      <Section title={t("patient.identity", "Identità")} compact>
+        <div className="patient-form-row">
+          <div className="patient-form-row__field">
+            <Input
+              dense
+              fullWidth
+              label={t("patient.firstName", "Nome")}
+              value={form.nome}
+              onChange={(v) => update("nome", v)}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Input
+              dense
+              fullWidth
+              label={t("patient.lastName", "Cognome")}
+              value={form.cognome}
+              onChange={(v) => update("cognome", v)}
+            />
+          </div>
+        </div>
+        <div className="patient-form-row">
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("sesso")}
+              label={t("patient.sex", "Sesso")}
+              value={form.sesso}
+              onChange={(v) => update("sesso", v)}
+              options={sexOptions}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Input
+              dense
+              fullWidth
+              label={t("patient.birthDate", "Data di nascita")}
+              type="date"
+              value={form.dataNascita}
+              onChange={(v) => update("dataNascita", v)}
+            />
+          </div>
+        </div>
       </Section>
 
-      <Section title={t("patient.physicalData", "Dati fisici")}>
-        <Input
-          label={t("patient.weight", "Peso (kg)")}
-          type="number"
-          value={form.peso}
-          onChange={(v) => update("peso", v)}
-        />
-
-        <Select
-          label={t(
-            "patient.weightChange",
-            "Variazione di peso negli ultimi mesi?"
-          )}
-          value={form.variazionePeso}
-          onChange={(v) => update("variazionePeso", v)}
-          options={yesNoOptions}
-        />
-
-        {form.variazionePeso === "Sì" && (
+      <Section title={t("patient.physicalData", "Dati fisici")} compact>
+        <div className="patient-form-row">
+          <div className="patient-form-row__field">
+            <Input
+              dense
+              fullWidth
+              highlightChange={diffKey("peso")}
+              label={t("patient.weight", "Peso (kg)")}
+              type="number"
+              value={form.peso}
+              onChange={(v) => update("peso", v)}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("variazionePeso")}
+              label={t(
+                "patient.weightChange",
+                "Variazione di peso negli ultimi mesi?"
+              )}
+              value={form.variazionePeso}
+              onChange={(v) => update("variazionePeso", v)}
+              options={yesNoOptions}
+            />
+          </div>
+        </div>
+        {form.variazionePeso === "Sì" ? (
           <Textarea
+            compact
+            fullWidth
+            highlightChange={diffKey("motivoVariazionePeso")}
             label={t("patient.weightChangeReason", "Perché?")}
             value={form.motivoVariazionePeso}
             onChange={(v) => update("motivoVariazionePeso", v)}
           />
-        )}
-
-        <Input
-          label={t("patient.height", "Altezza (cm)")}
-          type="number"
-          value={form.altezza}
-          onChange={(v) => update("altezza", v)}
-        />
-
-        {bmi && (
-          <p>
+        ) : null}
+        <div className="patient-form-row">
+          <div className="patient-form-row__field">
+            <Input
+              dense
+              fullWidth
+              highlightChange={diffKey("altezza")}
+              label={t("patient.height", "Altezza (cm)")}
+              type="number"
+              value={form.altezza}
+              onChange={(v) => update("altezza", v)}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("manoDominante")}
+              label={t("patient.dominantHand", "Mano dominante")}
+              value={form.manoDominante || ""}
+              onChange={(v) => update("manoDominante", v)}
+              options={dominantHandOptions}
+            />
+          </div>
+        </div>
+        {bmi ? (
+          <p style={{ fontSize: "0.875rem", margin: "4px 0 0" }}>
             <strong>{t("patient.bmi", "BMI")}:</strong> {bmi} (
             {bmiCategory(bmi)})
           </p>
-        )}
-
+        ) : null}
       </Section>
 
-      <Section title={t("patient.medicalHistory", "Informazioni mediche")}>
+      <Section
+        title={t("patient.medicalHistory", "Informazioni mediche")}
+        compact
+      >
+        <div className="patient-form-row">
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("farmacoSalvavita")}
+              label={t("patient.lifesavingMed", "Farmaco salvavita")}
+              value={form.farmacoSalvavita || ""}
+              onChange={(v) => update("farmacoSalvavita", v)}
+              options={[{ value: "", label: "--" }, ...yesNoOptions]}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Input
+              dense
+              fullWidth
+              highlightChange={diffKey("dataUltimoTestPressioneArteriosa")}
+              type="date"
+              label={t(
+                "patient.lastBloodPressureTestDate",
+                "Ultimo test pressione arteriosa (data)"
+              )}
+              value={form.dataUltimoTestPressioneArteriosa || ""}
+              onChange={(v) => update("dataUltimoTestPressioneArteriosa", v)}
+            />
+          </div>
+        </div>
+        <div className="patient-form-row">
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("fumatore")}
+              label={t("patient.smoker", "Fumatore")}
+              value={form.fumatore || ""}
+              onChange={(v) => update("fumatore", v)}
+              options={[{ value: "", label: "--" }, ...yesNoOptions]}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("epilessia")}
+              label={t("patient.epilepsy", "Epilessia")}
+              value={form.epilessia || ""}
+              onChange={(v) => update("epilessia", v)}
+              options={yesNoOptions}
+            />
+          </div>
+        </div>
         <Textarea
+          compact
+          fullWidth
+          highlightChange={diffKey("farmaci")}
           label={t("patient.medications", "Farmaci")}
           value={form.farmaci || ""}
           onChange={(v) => update("farmaci", v)}
         />
-
         <Textarea
+          compact
+          fullWidth
+          highlightChange={diffKey("patologie")}
           label={t("patient.pathologies", "Patologie")}
           value={form.patologie || ""}
           onChange={(v) => update("patologie", v)}
         />
-
-        <Input
-          type="date"
-          label={t(
-            "patient.lastBloodPressureTestDate",
-            "Ultimo test pressione arteriosa (data)"
-          )}
-          value={form.dataUltimoTestPressioneArteriosa || ""}
-          onChange={(v) => update("dataUltimoTestPressioneArteriosa", v)}
-        />
-
-        <Select
-          label={t("patient.smoker", "Fumatore")}
-          value={form.fumatore || ""}
-          onChange={(v) => update("fumatore", v)}
-          options={[{ value: "", label: "--" }, ...yesNoOptions]}
-        />
-
-        <Select
-          label={t("patient.epilepsy", "Epilessia")}
-          value={form.epilessia || ""}
-          onChange={(v) => update("epilessia", v)}
-          options={yesNoOptions}
-        />
-
         <Textarea
+          compact
+          fullWidth
+          highlightChange={diffKey("antecedentiChirurgici")}
           label={t(
             "patient.relevantSurgeryHistory",
             "Antecedenti e operazioni chirurgiche rilevanti"
@@ -1542,18 +2023,24 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
         />
       </Section>
 
-      {form.sesso === "Donna" && (
-        <Section title={t("patient.femaleHealth", "Salute femminile")}>
+      {form.sesso === "Donna" ? (
+        <Section title={t("patient.femaleHealth", "Salute femminile")} compact>
           <Select
+            compact
+            fullWidth
+            highlightChange={diffKey("figli")}
             label={t("patient.children", "Figli")}
             value={form.figli || ""}
             onChange={(v) => update("figli", v)}
             options={[{ value: "", label: "--" }, ...yesNoOptions]}
           />
 
-          {form.figli === "Sì" && (
+          {form.figli === "Sì" ? (
             <>
               <Input
+                dense
+                fullWidth
+                highlightChange={diffKey("numeroFigli")}
                 label={t("patient.childrenCount", "Quanti")}
                 type="number"
                 value={form.numeroFigli}
@@ -1561,6 +2048,9 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
               />
 
               <Select
+                compact
+                fullWidth
+                highlightChange={diffKey("tipoParto")}
                 label={t("patient.birthMode", "Tipo di parto")}
                 value={form.tipoParto || ""}
                 onChange={(v) => update("tipoParto", v)}
@@ -1572,19 +2062,22 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
                 ]}
               />
             </>
-          )}
+          ) : null}
 
           <Select
-            label={t(
-              "patient.perinealRehab",
-              "Riabilitazione perineale"
-            )}
+            compact
+            fullWidth
+            highlightChange={diffKey("riabilitazionePerineale")}
+            label={t("patient.perinealRehab", "Riabilitazione perineale")}
             value={form.riabilitazionePerineale || ""}
             onChange={(v) => update("riabilitazionePerineale", v)}
             options={[{ value: "", label: "--" }, ...yesNoOptions]}
           />
 
           <Select
+            compact
+            fullWidth
+            highlightChange={diffKey("incontinenza")}
             label={t(
               "patient.urinaryIncontinence",
               "Problemi di incontinenza"
@@ -1594,39 +2087,74 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
             options={[{ value: "", label: "--" }, ...yesNoOptions]}
           />
         </Section>
-      )}
+      ) : null}
 
-      <Section title={t("patient.workEducation", "Dominio di lavoro / formazione")}>
-        <Input
-          label={t("patient.workEducation", "Dominio di lavoro / formazione")}
-          value={form.dominioLavoro}
-          onChange={(v) => update("dominioLavoro", v)}
-        />
-
-        <Textarea
-          label={t(
-            "patient.professionalRiskNotes",
-            "Note su eventuali rischi professionali"
-          )}
-          value={form.rischiProfessionali}
-          onChange={(v) => update("rischiProfessionali", v)}
-        />
-
-        <Select
-          label={t("patient.accessReason", "Perché sei da noi?")}
-          value={form.motivoAccesso}
-          onChange={(v) => update("motivoAccesso", v)}
-          options={accessReasonOptions}
-        />
+      <Section
+        title={t("patient.workEducation", "Dominio di lavoro / formazione")}
+        compact
+      >
+        <div className="patient-form-row patient-form-row--align-start">
+          <div className="patient-form-row__field">
+            <Input
+              dense
+              fullWidth
+              highlightChange={diffKey("dominioLavoro")}
+              label={t(
+                "patient.workEducation",
+                "Dominio di lavoro / formazione"
+              )}
+              value={form.dominioLavoro}
+              onChange={(v) => update("dominioLavoro", v)}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Textarea
+              compact
+              fullWidth
+              highlightChange={diffKey("rischiProfessionali")}
+              label={t(
+                "patient.professionalRiskNotes",
+                "Note su eventuali rischi professionali"
+              )}
+              value={form.rischiProfessionali}
+              onChange={(v) => update("rischiProfessionali", v)}
+            />
+          </div>
+        </div>
+        <div className="patient-form-row patient-form-row--align-start">
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("motivoAccesso")}
+              label={t("patient.accessReason", "Perché sei da noi?")}
+              value={form.motivoAccesso}
+              onChange={(v) => update("motivoAccesso", v)}
+              options={accessReasonOptions}
+            />
+          </div>
+          {form.motivoAccesso === "Referral" ? (
+            <div className="patient-form-row__field">
+              <Input
+                dense
+                fullWidth
+                highlightChange={diffKey("referralDaChi")}
+                label={t("patient.referralFrom", "Chi ha fatto il referral?")}
+                value={form.referralDaChi || ""}
+                onChange={(v) => update("referralDaChi", v)}
+              />
+            </div>
+          ) : null}
+        </div>
       </Section>
 
-      <Section title={t("patient.sportLevel", "Sport e livello")}>
-        <label>
+      <Section title={t("patient.sportLevel", "Sport e livello")} compact>
+        <label className="patient-form-sublabel">
           <strong>{t("patient.sports", "Sport praticati")}</strong>
         </label>
 
         <div
-          className="choice-chip-grid"
+          className="choice-chip-grid choice-chip-grid--compact"
           role="group"
           aria-label={t("patient.sports", "Sport praticati")}
         >
@@ -1651,158 +2179,257 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
         </div>
 
         <Select
+          compact
+          fullWidth
+          highlightChange={diffKey("sportLivello")}
           label={t("patient.sportPracticeLevel", "Livello sportivo")}
           value={form.sportLivello}
           onChange={(v) => update("sportLivello", v)}
           options={sportLevelOptions}
         />
 
-        {(form.sportMultipli || []).some(s => s.toLowerCase() === "running") && (
-          <>
-            <h4>{t("patient.running", "Running")}</h4>
-
-            <Input
-              label={t("patient.running10km", "Tempo sui 10 km")}
-              value={form.running10km}
-              onChange={(v) => update("running10km", v)}
-            />
-
-            <Input
-              label={t("patient.runningHalfMarathon", "Tempo mezza maratona")}
-              value={form.runningMezza}
-              onChange={(v) => update("runningMezza", v)}
-            />
-
-            <Input
-              label={t("patient.runningMarathon", "Tempo maratona")}
-              value={form.runningMaratona}
-              onChange={(v) => update("runningMaratona", v)}
-            />
-          </>
-        )}
+        {(form.sportMultipli || []).some((s) => s.toLowerCase() === "running") ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("patient.running", "Running")}
+            </div>
+            <div className="patient-form-row">
+              <div className="patient-form-row__field">
+                <Select
+                  compact
+                  fullWidth
+                  highlightChange={diffKey("runningDisciplina")}
+                  label={t(
+                    "patient.runningDiscipline",
+                    "Tipo corsa (sprint, strada, trail…)"
+                  )}
+                  value={form.runningDisciplina || ""}
+                  onChange={(v) => update("runningDisciplina", v)}
+                  options={runningDisciplinaOptions}
+                />
+              </div>
+              <div className="patient-form-row__field">
+                <Input
+                  dense
+                  fullWidth
+                  highlightChange={diffKey("runningDisciplinaAltro")}
+                  label={t(
+                    "patient.runningDisciplineOther",
+                    "Altro / specifica"
+                  )}
+                  value={form.runningDisciplinaAltro || ""}
+                  onChange={(v) => update("runningDisciplinaAltro", v)}
+                />
+              </div>
+            </div>
+            <div className="patient-form-row">
+              <div className="patient-form-row__field">
+                <Input
+                  dense
+                  fullWidth
+                  highlightChange={diffKey("running10km")}
+                  label={t("patient.running10km", "Tempo sui 10 km")}
+                  value={form.running10km}
+                  onChange={(v) => update("running10km", v)}
+                />
+              </div>
+              <div className="patient-form-row__field">
+                <Input
+                  dense
+                  fullWidth
+                  highlightChange={diffKey("runningMezza")}
+                  label={t("patient.runningHalfMarathon", "Tempo mezza maratona")}
+                  value={form.runningMezza}
+                  onChange={(v) => update("runningMezza", v)}
+                />
+              </div>
+              <div className="patient-form-row__field">
+                <Input
+                  dense
+                  fullWidth
+                  highlightChange={diffKey("runningMaratona")}
+                  label={t("patient.runningMarathon", "Tempo maratona")}
+                  value={form.runningMaratona}
+                  onChange={(v) => update("runningMaratona", v)}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {(form.sportMultipli || []).some(
           (s) => String(s).toLowerCase() === "fitness"
-        ) && (
-          <>
-            <h4>{t("patient.fitness", "Fitness")}</h4>
-
+        ) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("patient.fitness", "Fitness")}
+            </div>
             <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("fitnessTipo")}
               label={t("patient.fitnessType", "Tipo di fitness")}
               value={form.fitnessTipo}
               onChange={(v) => update("fitnessTipo", v)}
               options={fitnessTypeOptions}
             />
-
-            {form.fitnessTipo === "Pesi liberi" && (
-              <p style={{ fontSize: 13, color: "#555", marginTop: 8 }}>
+            {form.fitnessTipo === "Pesi liberi" ? (
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-muted)",
+                  margin: "6px 0 0",
+                }}
+              >
                 {t(
                   "tests.strengthMaximals.useInEvaluation",
                   "Per serie, ripetizioni, carico e 1RM stimata (Epley) usa il test «Massimali pesistica» nella valutazione."
                 )}
               </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {(form.sportMultipli || []).some(
+          (s) => String(s).toLowerCase() === "ciclismo"
+        ) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("options.sport.ciclismo", "Ciclismo")}
+            </div>
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("ciclismoDisciplina")}
+              label={t(
+                "patient.cyclingDiscipline",
+                "Disciplina (MTB o ciclismo su strada)"
+              )}
+              value={form.ciclismoDisciplina || ""}
+              onChange={(v) => update("ciclismoDisciplina", v)}
+              options={ciclismoTipoOptions}
+            />
+          </div>
+        ) : null}
+
+        {patientFormHasClimbing(form.sportMultipli) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("patient.climbing", "Arrampicata")}
+            </div>
+            <Input
+              dense
+              fullWidth
+              highlightChange={diffKey("arrampicataLivello")}
+              label={t("patient.climbingLevel", "Livello di arrampicata")}
+              value={form.arrampicataLivello || ""}
+              onChange={(v) => update("arrampicataLivello", v)}
+            />
+          </div>
+        ) : null}
+
+        {(form.sportMultipli || []).some(
+          (s) => String(s).toLowerCase() === "pilates"
+        ) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("options.sport.pilates", "Pilates")}
+            </div>
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("pilatesTipo")}
+              label={t("patient.pilatesEquipment", "Mat o Reformer?")}
+              value={form.pilatesTipo || ""}
+              onChange={(v) => update("pilatesTipo", v)}
+              options={pilatesEquipmentOptions}
+            />
+          </div>
+        ) : null}
+
+        {(form.sportMultipli || []).some(
+          (s) => String(s).toLowerCase() === "altri_sport"
+        ) ? (
+          <Textarea
+            compact
+            fullWidth
+            highlightChange={diffKey("sportAltro")}
+            label={t(
+              "patient.sportOtherNotes",
+              "Altri sport — note (specificare)"
             )}
-          </>
-        )}
+            value={form.sportAltro || ""}
+            onChange={(v) => update("sportAltro", v)}
+          />
+        ) : null}
 
-        {(form.sportMultipli || []).some(
-          (s) => String(s).toLowerCase() === "surf"
-        ) && (
-          <>
-            <h4>{t("options.sport.surf", "Surf")}</h4>
+        {patientFormHasBoardSport(form.sportMultipli) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("patient.boardSportsStance", "Surf / Snowboard / Skateboard")}
+            </div>
             <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("boardStanceUnified")}
               label={t("patient.boardStance", "Goofy o regular?")}
-              value={form.surfStance || ""}
-              onChange={(v) => update("surfStance", v)}
+              value={patientFormBoardStanceValue(form)}
+              onChange={(v) => setBoardStanceUnified(v)}
               options={[
-                {
-                  value: "Regular",
-                  label: t("options.boardStance.Regular", "Regular"),
-                },
-                {
-                  value: "Goofy",
-                  label: t("options.boardStance.Goofy", "Goofy"),
-                },
+                { value: "", label: t("patient.boardStancePlaceholder", "—") },
+                ...boardStanceSelectOptions,
               ]}
             />
-          </>
-        )}
-
-        {(form.sportMultipli || []).some(
-          (s) => String(s).toLowerCase() === "snowboard"
-        ) && (
-          <>
-            <h4>{t("options.sport.snowboard", "Snowboard")}</h4>
-            <Select
-              label={t("patient.boardStance", "Goofy o regular?")}
-              value={form.snowboardStance || ""}
-              onChange={(v) => update("snowboardStance", v)}
-              options={[
-                {
-                  value: "Regular",
-                  label: t("options.boardStance.Regular", "Regular"),
-                },
-                {
-                  value: "Goofy",
-                  label: t("options.boardStance.Goofy", "Goofy"),
-                },
-              ]}
-            />
-          </>
-        )}
-
-        {(form.sportMultipli || []).some(
-          (s) => String(s).toLowerCase() === "skateboard"
-        ) && (
-          <>
-            <h4>{t("options.sport.skateboard", "Skateboard")}</h4>
-            <Select
-              label={t("patient.boardStance", "Goofy o regular?")}
-              value={form.skateboardStance || ""}
-              onChange={(v) => update("skateboardStance", v)}
-              options={[
-                {
-                  value: "Regular",
-                  label: t("options.boardStance.Regular", "Regular"),
-                },
-                {
-                  value: "Goofy",
-                  label: t("options.boardStance.Goofy", "Goofy"),
-                },
-              ]}
-            />
-          </>
-        )}
+          </div>
+        ) : null}
 
         {(form.sportMultipli || []).some(
           (s) => String(s).toLowerCase() === "tennis"
-        ) && (
-          <>
-            <h4>{t("options.sport.tennis", "Tennis")}</h4>
+        ) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("options.sport.tennis", "Tennis")}
+            </div>
+            <div className="patient-form-row">
+              <div className="patient-form-row__field">
+                <Select
+                  compact
+                  fullWidth
+                  highlightChange={diffKey("tennisBackhand")}
+                  label={t("patient.tennisBackhand", "Rovescio")}
+                  value={form.tennisBackhand || ""}
+                  onChange={(v) => update("tennisBackhand", v)}
+                  options={[
+                    { value: "", label: t("patient.tennisBackhandPlaceholder", "—") },
+                    {
+                      value: "1 mano",
+                      label: t("options.tennisBackhand.1 mano", "A una mano"),
+                    },
+                    {
+                      value: "2 mani",
+                      label: t("options.tennisBackhand.2 mani", "A due mani"),
+                    },
+                  ]}
+                />
+              </div>
+              <div className="patient-form-row__field">
+                <Input
+                  dense
+                  fullWidth
+                  highlightChange={diffKey("tennisStringTension")}
+                  label={t(
+                    "patient.tennisStringTension",
+                    "Tensione corde (es. kg)"
+                  )}
+                  value={form.tennisStringTension || ""}
+                  onChange={(v) => update("tennisStringTension", v)}
+                />
+              </div>
+            </div>
             <Select
-              label={t("patient.tennisBackhand", "Rovescio")}
-              value={form.tennisBackhand || ""}
-              onChange={(v) => update("tennisBackhand", v)}
-              options={[
-                {
-                  value: "1 mano",
-                  label: t("options.tennisBackhand.1 mano", "A una mano"),
-                },
-                {
-                  value: "2 mani",
-                  label: t("options.tennisBackhand.2 mani", "A due mani"),
-                },
-              ]}
-            />
-            <Input
-              label={t(
-                "patient.tennisStringTension",
-                "Tensione corde (es. kg)"
-              )}
-              value={form.tennisStringTension || ""}
-              onChange={(v) => update("tennisStringTension", v)}
-            />
-            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("tennisRacketChangedRecently")}
               label={t(
                 "patient.tennisRacketChangedRecently",
                 "Racchetta cambiata di recente?"
@@ -1811,15 +2438,20 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
               onChange={(v) => update("tennisRacketChangedRecently", v)}
               options={yesNoOptions}
             />
-          </>
-        )}
+          </div>
+        ) : null}
 
         {(form.sportMultipli || []).some(
           (s) => String(s).toLowerCase() === "padel"
-        ) && (
-          <>
-            <h4>{t("options.sport.padel", "Padel")}</h4>
+        ) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("options.sport.padel", "Padel")}
+            </div>
             <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("padelRacketChangedRecently")}
               label={t(
                 "patient.padelRacketChangedRecently",
                 "Racchetta cambiata di recente?"
@@ -1828,15 +2460,20 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
               onChange={(v) => update("padelRacketChangedRecently", v)}
               options={yesNoOptions}
             />
-          </>
-        )}
+          </div>
+        ) : null}
 
         {(form.sportMultipli || []).some(
           (s) => String(s).toLowerCase() === "calcio"
-        ) && (
-          <>
-            <h4>{t("options.sport.calcio", "Calcio")}</h4>
+        ) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("options.sport.calcio", "Calcio")}
+            </div>
             <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("calcioRuolo")}
               label={t("patient.calcioFieldRole", "Ruolo in campo")}
               value={form.calcioRuolo || ""}
               onChange={(v) => update("calcioRuolo", v)}
@@ -1847,15 +2484,20 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
                 })
               )}
             />
-          </>
-        )}
+          </div>
+        ) : null}
 
         {(form.sportMultipli || []).some(
           (s) => String(s).toLowerCase() === "sci"
-        ) && (
-          <>
-            <h4>{t("options.sport.sci", "Sci")}</h4>
+        ) ? (
+          <div className="patient-form-sport-block">
+            <div className="patient-form-sport-block__title">
+              {t("options.sport.sci", "Sci")}
+            </div>
             <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("sciTipo")}
               label={t("patient.sciType", "Tipo di sci")}
               value={form.sciTipo || ""}
               onChange={(v) => update("sciTipo", v)}
@@ -1864,53 +2506,63 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
                 label: t(`options.sciTipo.${id}`, id),
               }))}
             />
-          </>
-        )}
+          </div>
+        ) : null}
 
-        <Input
-          label={t("patient.otherSports", "Altri sport / dettagli")}
-          value={form.sportAltro}
-          onChange={(v) => update("sportAltro", v)}
-        />
-
-        <Select
-          label={t("patient.tegner", "Scala Tegner")}
-          value={form.tegner}
-          onChange={(v) => update("tegner", v)}
-          options={["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
-        />
-
-{form.tegner !== "" && form.tegner != null && (
-  <p>
-    <strong>{t("patient.tegnerDefinition")}:</strong>{" "}
-    {t(`options.tegner.${form.tegner}`) || tegnerInfo[form.tegner]}
-  </p>
-)}
-
-        <div
-          style={{
-            fontSize: 13,
-            background: "#f5f5f5",
-            padding: 10,
-            borderRadius: 8,
-            marginBottom: 10,
-          }}
-        >
-          <strong>{t("patient.tegnerGuide", "Guida scala Tegner")}:</strong>
-
-          {Object.entries(tegnerInfo).map(([k, v]) => (
-            <div key={k}>
-              {k} = {t(`options.tegner.${k}`, v)}
-            </div>
-          ))}
+        <div className="patient-form-row">
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("tegner")}
+              label={t("patient.tegner", "Scala Tegner")}
+              value={form.tegner}
+              onChange={(v) => update("tegner", v)}
+              options={["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
+            />
+          </div>
+          <div className="patient-form-row__field">
+            <Select
+              compact
+              fullWidth
+              highlightChange={diffKey("oreSport")}
+              label={t("patient.weeklySportHours", "Ore settimanali di sport")}
+              value={form.oreSport}
+              onChange={(v) => update("oreSport", v)}
+              options={weeklySportOptions}
+            />
+          </div>
         </div>
 
-        <Select
-          label={t("patient.weeklySportHours", "Ore settimanali di sport")}
-          value={form.oreSport}
-          onChange={(v) => update("oreSport", v)}
-          options={weeklySportOptions}
-        />
+        {form.tegner !== "" && form.tegner != null ? (
+          <p style={{ fontSize: "0.8125rem", margin: "4px 0 6px" }}>
+            <strong>{t("patient.tegnerDefinition")}:</strong>{" "}
+            {t(`options.tegner.${form.tegner}`) || tegnerInfo[form.tegner]}
+          </p>
+        ) : null}
+
+        <details
+          className="patient-form-details"
+          style={{ fontSize: "0.8125rem", marginBottom: 8 }}
+        >
+          <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+            {t("patient.tegnerGuide", "Guida scala Tegner")}
+          </summary>
+          <div
+            style={{
+              background: "var(--surface-2, #f5f5f5)",
+              padding: 8,
+              borderRadius: 6,
+              marginTop: 6,
+            }}
+          >
+            {Object.entries(tegnerInfo).map(([k, v]) => (
+              <div key={k}>
+                {k} = {t(`options.tegner.${k}`, v)}
+              </div>
+            ))}
+          </div>
+        </details>
       </Section>
 
       {form.bonNumero !== "" &&
@@ -1922,6 +2574,7 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
       ) : null}
 
       <Section title={t("patient.clinicalFrame", "Quadro clinico")}>
+        {!isLegacyClinicalLayout ? clinicalOriginWithPrescriberRow : null}
         <p
           style={{
             margin: "0 0 10px",
@@ -1940,36 +2593,18 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
           <>
             {diagnosiRigheBlock}
             {addDiagnosiBtn}
+            {prescribingDoctorTextarea}
             {imagingLegacyGated}
             {injuryDateBlock}
             {surgeryFieldsBlock}
           </>
         ) : (
           <>
-            <Select
-              label={t(
-                "patient.clinicalOrigin",
-                "Infortunio o malattia?"
-              )}
-              value={form.quadroClinicoTipo || ""}
-              onChange={(v) =>
-                setForm({
-                  ...form,
-                  quadroClinicoTipo: v,
-                  infortunioChirurgicoPrevisto:
-                    v === "infortunio"
-                      ? form.infortunioChirurgicoPrevisto || ""
-                      : "",
-                })
-              }
-              options={clinicalOriginOptions}
-            />
-
             {form.quadroClinicoTipo === "malattia" ? (
               <>
                 {diagnosiRigheBlock}
-                {imagingFieldsFull}
                 {addDiagnosiBtn}
+                {imagingFieldsFull}
               </>
             ) : null}
 
@@ -1977,6 +2612,7 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
               <>
                 {injuryDateBlock}
                 <Select
+                  highlightChange={diffKey("infortunioChirurgicoPrevisto")}
                   label={t(
                     "patient.injurySurgeryPlanned",
                     "Intervento chirurgico (anche futuro)?"
@@ -1995,8 +2631,8 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
                 {form.infortunioChirurgicoPrevisto === "no" ? (
                   <>
                     {diagnosiRigheBlock}
-                    {imagingFieldsFull}
                     {addDiagnosiBtn}
+                    {imagingFieldsFull}
                   </>
                 ) : null}
               </>
@@ -2004,12 +2640,6 @@ function PatientForm({ form, update, setForm, savePatient, cancel, tt }) {
           </>
         )}
       </Section>
-
-      <Textarea
-        label={t("patient.regardingPrescribingDoctor", "Medico prescrittore")}
-        value={form.medicoPrescrittore || ""}
-        onChange={(v) => update("medicoPrescrittore", v)}
-      />
 
       <button onClick={savePatient}>{t("common.save", "Salva")}</button>{" "}
       <button onClick={cancel}>{t("common.cancel", "Annulla")}</button>
@@ -2161,7 +2791,17 @@ function painDataForChart(sideDolore, distretto) {
 }
 
 /** Solo quadro clinico / diagnosi di uno snapshot (senza anamnesi). */
-function PatientClinicalSnapshotFields({ snap, tt }) {
+function PatientClinicalSnapshotFields({ snap, prevSnap = null, tt }) {
+  const diff = (fieldKey) =>
+    Boolean(
+      prevSnap && formDiffersFromBaseline(snap, prevSnap, fieldKey)
+    );
+
+  function SnapHi({ show, children }) {
+    if (!show) return children;
+    return <span style={bonDiffSummaryStyle}>{children}</span>;
+  }
+
   return (
     <>
           {Object.prototype.hasOwnProperty.call(snap, "quadroClinicoTipo") &&
@@ -2170,9 +2810,11 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
               <strong>
                 {tt("patient.clinicalOrigin", "Infortunio o malattia?")}:
               </strong>{" "}
-              {snap.quadroClinicoTipo === "infortunio"
-                ? tt("patient.clinicalOriginInjury", "Infortunio")
-                : tt("patient.clinicalOriginIllness", "Malattia")}
+              <SnapHi show={diff("quadroClinicoTipo")}>
+                {snap.quadroClinicoTipo === "infortunio"
+                  ? tt("patient.clinicalOriginInjury", "Infortunio")
+                  : tt("patient.clinicalOriginIllness", "Malattia")}
+              </SnapHi>
             </p>
           ) : null}
 
@@ -2188,9 +2830,11 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
                 )}
                 :
               </strong>{" "}
-              {snap.infortunioChirurgicoPrevisto === "si"
-                ? tt("options.yesNo.Sì") || "Sì"
-                : tt("options.yesNo.No") || "No"}
+              <SnapHi show={diff("infortunioChirurgicoPrevisto")}>
+                {snap.infortunioChirurgicoPrevisto === "si"
+                  ? tt("options.yesNo.Sì") || "Sì"
+                  : tt("options.yesNo.No") || "No"}
+              </SnapHi>
             </p>
           ) : null}
 
@@ -2239,19 +2883,27 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
                         const detT = patientTrim(det);
                         return (
                           <li key={row.id}>
-                            {main ? (
-                              <>
-                                {main}
-                                {detT ? (
-                                  <span style={{ color: "var(--text-muted)" }}>
-                                    {" "}
-                                    — {det}
-                                  </span>
-                                ) : null}
-                              </>
-                            ) : detT ? (
-                              <span>{det}</span>
-                            ) : null}
+                            <SnapHi show={diff("diagnosiRighe")}>
+                              {main ? (
+                                <>
+                                  {main}
+                                  {detT ? (
+                                    <span
+                                      style={{
+                                        color: diff("diagnosiRighe")
+                                          ? undefined
+                                          : "var(--text-muted)",
+                                      }}
+                                    >
+                                      {" "}
+                                      — {det}
+                                    </span>
+                                  ) : null}
+                                </>
+                              ) : detT ? (
+                                <span>{det}</span>
+                              ) : null}
+                            </SnapHi>
                           </li>
                         );
                       })}
@@ -2270,7 +2922,8 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
                     ) : null}
                     {patientTrim(imgMain) ? (
                       <p style={{ margin: "0 0 6px" }}>
-                        <strong>{tt("patient.imaging")}:</strong> {imgMain}
+                        <strong>{tt("patient.imaging")}:</strong>{" "}
+                        <SnapHi show={diff("diagnostica")}>{imgMain}</SnapHi>
                       </p>
                     ) : null}
                     {showImaging2 ? (
@@ -2278,13 +2931,15 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
                         <strong>
                           {tt("patient.imaging2Short", "Diagnostica 2")}:
                         </strong>{" "}
-                        {imgSecond}
+                        <SnapHi show={diff("diagnostica2")}>{imgSecond}</SnapHi>
                       </p>
                     ) : null}
                     {imgDet ? (
                       <p style={{ margin: 0 }}>
                         <strong>{tt("patient.imagingDetails")}:</strong>{" "}
-                        {imgDet}
+                        <SnapHi show={diff("diagnosticaDettagli")}>
+                          {imgDet}
+                        </SnapHi>
                       </p>
                     ) : null}
                   </div>
@@ -2293,41 +2948,88 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
             );
           })()}
 
-          {patientTrim(snap.dataInfortunio) && (
-            <p>
-              <strong>{tt("patient.injuryDate")}:</strong>{" "}
-              {`${formatDateDMY(snap.dataInfortunio)} \u2026 ${timeSinceYWD(
-                snap.dataInfortunio,
-                tt
-              )}`}
-            </p>
-          )}
+          {patientTrim(snap.dataInfortunio) ? (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px 20px",
+                alignItems: "baseline",
+                marginBottom: 6,
+              }}
+            >
+              <p style={{ margin: 0 }}>
+                <strong>{tt("patient.injuryDate")}:</strong>{" "}
+                <SnapHi show={diff("dataInfortunio")}>
+                  {formatDateDMY(snap.dataInfortunio)}
+                </SnapHi>
+              </p>
+              <p style={{ margin: 0 }}>
+                <strong>{tt("patient.timeSinceInjury")}:</strong>{" "}
+                <SnapHi show={diff("dataInfortunio")}>
+                  {timeSinceYWD(snap.dataInfortunio, tt)}
+                </SnapHi>
+              </p>
+            </div>
+          ) : null}
 
-          {patientTrim(snap.dataOperazione) && (
-            <p>
-              <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
-              {`${formatDateDMY(snap.dataOperazione)} \u2026 ${timeSinceYWD(
-                snap.dataOperazione,
-                tt
-              )}`}
-            </p>
-          )}
+          {patientTrim(snap.dataOperazione) ? (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px 20px",
+                alignItems: "baseline",
+                marginBottom: 6,
+              }}
+            >
+              <p style={{ margin: 0 }}>
+                <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
+                <SnapHi show={diff("dataOperazione")}>
+                  {formatDateDMY(snap.dataOperazione)}
+                </SnapHi>
+              </p>
+              <p style={{ margin: 0 }}>
+                <strong>{tt("patient.timeSinceSurgery")}:</strong>{" "}
+                <SnapHi show={diff("dataOperazione")}>
+                  {timeSinceYWD(snap.dataOperazione, tt, {
+                    futureAsSurgeryCountdown: true,
+                  })}
+                </SnapHi>
+              </p>
+            </div>
+          ) : null}
 
-          {patientTrim(snap.artoOperato) && (
-            <p>
-              <strong>{tt("patient.operatedLimbShort")}:</strong>{" "}
-              {tt(`options.operatedLimb.${snap.artoOperato}`) ||
-                snap.artoOperato}
-            </p>
-          )}
-
-          {patientTrim(snap.tipoOperazione) && (
-            <p>
-              <strong>{tt("patient.surgeryType")}:</strong>{" "}
-              {tt(`options.surgeryType.${snap.tipoOperazione}`) ||
-                snap.tipoOperazione}
-            </p>
-          )}
+          {(patientTrim(snap.artoOperato) || patientTrim(snap.tipoOperazione)) ? (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px 20px",
+                alignItems: "baseline",
+                marginBottom: 6,
+              }}
+            >
+              {patientTrim(snap.artoOperato) ? (
+                <p style={{ margin: 0 }}>
+                  <strong>{tt("patient.operatedLimbShort")}:</strong>{" "}
+                  <SnapHi show={diff("artoOperato")}>
+                    {tt(`options.operatedLimb.${snap.artoOperato}`) ||
+                      snap.artoOperato}
+                  </SnapHi>
+                </p>
+              ) : null}
+              {patientTrim(snap.tipoOperazione) ? (
+                <p style={{ margin: 0 }}>
+                  <strong>{tt("patient.surgeryType")}:</strong>{" "}
+                  <SnapHi show={diff("tipoOperazione")}>
+                    {tt(`options.surgeryType.${snap.tipoOperazione}`) ||
+                      snap.tipoOperazione}
+                  </SnapHi>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           {patientTrim(manualTextLower(snap.medicoPrescrittore)) && (
             <p>
@@ -2335,7 +3037,9 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
                 {tt("patient.regardingPrescribingDoctor", "Medico prescrittore")}
                 :
               </strong>{" "}
-              {manualTextLower(snap.medicoPrescrittore)}
+              <SnapHi show={diff("medicoPrescrittore")}>
+                {manualTextLower(snap.medicoPrescrittore)}
+              </SnapHi>
             </p>
           )}
     </>
@@ -2346,7 +3050,14 @@ function PatientClinicalSnapshotFields({ snap, tt }) {
  * Per ogni voce di storico: anamnesi congelata al salvataggio, etichetta Bon,
  * quadro clinico (come una valutazione completa).
  */
-function PatientClinicalHistoryBlocks({ storico, selected, tt }) {
+function PatientClinicalHistoryBlocks({
+  storico,
+  selected,
+  tt,
+  onEditSnapshot,
+  onDeleteBon,
+  onAddBonDiagnosis,
+}) {
   if (!storico || storico.length === 0) return null;
 
   return (
@@ -2402,7 +3113,52 @@ function PatientClinicalHistoryBlocks({ storico, selected, tt }) {
               }
             />
 
-            <PatientClinicalSnapshotFields snap={snap} tt={tt} />
+            <PatientClinicalSnapshotFields
+              snap={snap}
+              prevSnap={idx > 0 ? storico[idx - 1] : null}
+              tt={tt}
+            />
+
+            {onEditSnapshot ? (
+              <div
+                className="no-pdf patient-bon-actions"
+                style={{
+                  marginTop: 12,
+                  display: "flex",
+                  flexWrap: "nowrap",
+                  gap: 8,
+                  alignItems: "center",
+                  overflowX: "auto",
+                  paddingBottom: 2,
+                }}
+              >
+                <button
+                  type="button"
+                  style={{ flexShrink: 0 }}
+                  onClick={() => onEditSnapshot(selected, idx)}
+                >
+                  {tt("patient.editThisBonSheet", "Modifica questa scheda bon")}
+                </button>
+                {onDeleteBon ? (
+                  <button
+                    type="button"
+                    style={{ flexShrink: 0 }}
+                    onClick={() => onDeleteBon(selected, idx)}
+                  >
+                    {tt("patient.deleteThisBon", "Elimina questo bon")}
+                  </button>
+                ) : null}
+                {onAddBonDiagnosis ? (
+                  <button
+                    type="button"
+                    style={{ flexShrink: 0 }}
+                    onClick={() => onAddBonDiagnosis(selected)}
+                  >
+                    {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         );
       })}
@@ -2413,9 +3169,9 @@ function PatientClinicalHistoryBlocks({ storico, selected, tt }) {
 function PatientDetail({
   selected,
   tt,
-  editPatient,
+  editClinicalSnapshot,
+  removeStoricoBon,
   addDiagnosisEntry,
-  removePatient,
   startNewEvaluation,
   startNewTestSession,
   editEvaluation,
@@ -2501,62 +3257,81 @@ function PatientDetail({
         </div>
       </header>
 
-      <h2 style={{ lineHeight: 1.4 }}>
-        <span>
-          {formatPatientListDisplayName(selected) || "-"}
-          {selected.dataNascita
-            ? `  ${formatDateDMY(selected.dataNascita)}`
-            : ""}
+      <h2 style={{ lineHeight: 1.35, fontSize: "1.1rem", marginBottom: 4 }}>
+        <span style={{ display: "inline-flex", flexWrap: "wrap", gap: "0 8px", alignItems: "baseline" }}>
+          <span>{formatPatientListDisplayName(selected) || "-"}</span>
           {selected.bonNumero !== "" &&
           selected.bonNumero != null &&
           Number.isFinite(Number(selected.bonNumero)) ? (
-            <>
-              {" "}
+            <span>
               {formatBonLabel(selected.bonNumero)}{" "}
               {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
               {patientTrim(firstAppointmentDate)
                 ? formatDateDMY(firstAppointmentDate)
                 : "—"}
-            </>
+            </span>
           ) : patientTrim(firstAppointmentDate) ? (
-            <>
-              {" "}
+            <span>
               {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
               {formatDateDMY(firstAppointmentDate)}
-            </>
+            </span>
           ) : null}
         </span>
       </h2>
+      {(patientTrim(selected.sesso) || patientTrim(selected.dataNascita)) && (
+        <p
+          style={{
+            fontSize: "0.875rem",
+            margin: "0 0 8px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0 14px",
+            alignItems: "baseline",
+          }}
+        >
+          {patientTrim(selected.sesso) ? (
+            <span>
+              <strong>{tt("patient.sex")}:</strong>{" "}
+              {tt(`options.sex.${selected.sesso}`) || selected.sesso}
+            </span>
+          ) : null}
+          {patientTrim(selected.dataNascita) ? (
+            <span>
+              <strong>{tt("patient.birthDate")}:</strong>{" "}
+              {formatDateDMY(selected.dataNascita)}
+            </span>
+          ) : null}
+        </p>
+      )}
 
       {storicoQuadroClinico.length === 0 ? (
-        <PatientAnamnesisSheet data={selected} tt={tt} />
+        <>
+          <PatientAnamnesisSheet data={selected} tt={tt} />
+          <div
+            className="no-pdf patient-bon-actions"
+            style={{
+              marginTop: 12,
+              display: "flex",
+              flexWrap: "nowrap",
+              gap: 8,
+              alignItems: "center",
+            }}
+          >
+            <button type="button" onClick={() => addDiagnosisEntry(selected)}>
+              {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
+            </button>
+          </div>
+        </>
       ) : (
         <PatientClinicalHistoryBlocks
           storico={storicoQuadroClinico}
           selected={selected}
           tt={tt}
+          onEditSnapshot={editClinicalSnapshot}
+          onDeleteBon={removeStoricoBon}
+          onAddBonDiagnosis={addDiagnosisEntry}
         />
       )}
-
-      <div
-        className="no-pdf patient-sheet-actions"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8,
-          alignItems: "center",
-        }}
-      >
-        <button type="button" onClick={() => addDiagnosisEntry(selected)}>
-          {tt("patient.addDiagnosisSheet", "+ Aggiungi diagnosi")}
-        </button>
-        <button type="button" onClick={() => editPatient(selected)}>
-          {tt("common.edit")}
-        </button>
-        <button type="button" onClick={() => removePatient(selected.id)}>
-          {tt("common.delete")}
-        </button>
-      </div>
 
       <hr className="patient-sheet-divider" />
 

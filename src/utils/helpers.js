@@ -77,10 +77,28 @@ function startOfLocalDay(d) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+const DAY_MS = 1000 * 60 * 60 * 24;
+
+function formatDaysUntilSurgery(totalDays, tt) {
+  const n = Math.max(1, totalDays);
+  if (n === 1) {
+    return (
+      tt("time.daysUntilSurgery_one") || "Manca 1 giorno all'operazione"
+    );
+  }
+  const tpl =
+    tt("time.daysUntilSurgery_other") ||
+    "Mancano {{count}} giorni all'operazione";
+  return tpl.replace(/\{\{count\}\}/g, String(n));
+}
+
 /**
  * Intervallo da una data a oggi: anni (se > 0), settimane, giorni — testo su una riga.
+ * @param {string} dateString
+ * @param {(key: string) => string | null} tt
+ * @param {{ futureAsSurgeryCountdown?: boolean }} [options] — se true e la data è futura, mostra i giorni mancanti all'operazione invece di «Data futura»
  */
-export function timeSinceYWD(dateString, tt) {
+export function timeSinceYWD(dateString, tt, options = {}) {
   if (!dateString) return "";
 
   const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString).trim());
@@ -89,11 +107,17 @@ export function timeSinceYWD(dateString, tt) {
   const y = Number(iso[1]);
   const mo = Number(iso[2]) - 1;
   const day = Number(iso[3]);
-  const start = new Date(y, mo, day);
+  const start = startOfLocalDay(new Date(y, mo, day));
   if (!Number.isFinite(start.getTime())) return "";
 
   const end = startOfLocalDay(new Date());
-  if (end < start) return tt("time.future") || "Future date";
+  if (end < start) {
+    if (options.futureAsSurgeryCountdown) {
+      const totalDays = Math.round((start - end) / DAY_MS);
+      return formatDaysUntilSurgery(totalDays, tt);
+    }
+    return tt("time.future") || "Future date";
+  }
 
   let years = 0;
   let cursor = new Date(start);

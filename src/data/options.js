@@ -21,13 +21,11 @@ export const distretti = [
 export const sportOptions = [
   "calcio",
   "running",
+  "hyrox",
   "ciclismo",
   "fitness",
   "tennis",
   "padel",
-  "surf",
-  "snowboard",
-  "skateboard",
   "sci",
   "nuoto",
   "basket",
@@ -36,8 +34,13 @@ export const sportOptions = [
   "danza",
   "crossfit",
   "escalade",
+  "arrampicata",
   "yoga",
   "pilates",
+  "altri_sport",
+  "surf",
+  "snowboard",
+  "skateboard",
 ];
 
 /** Esercizi selezionabili nel test «Massimali pesistica» (1RM Epley). */

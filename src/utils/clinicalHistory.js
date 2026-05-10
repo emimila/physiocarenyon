@@ -14,6 +14,7 @@ const SNAPSHOT_SHEET_CONTEXT_KEYS = [
   "motivoVariazionePeso",
   "farmaci",
   "patologie",
+  "farmacoSalvavita",
   "dataUltimoTestPressioneArteriosa",
   "fumatore",
   "epilessia",
@@ -25,16 +26,24 @@ const SNAPSHOT_SHEET_CONTEXT_KEYS = [
   "incontinenza",
   "dominioLavoro",
   "rischiProfessionali",
+  "motivoAccesso",
+  "referralDaChi",
   "sportMultipli",
   "sportAltro",
   "sportLivello",
   "running10km",
   "runningMezza",
   "runningMaratona",
+  "runningDisciplina",
+  "runningDisciplinaAltro",
   "fitnessTipo",
   "surfStance",
   "snowboardStance",
   "skateboardStance",
+  "boardStanceUnified",
+  "pilatesTipo",
+  "arrampicataLivello",
+  "ciclismoDisciplina",
   "tennisBackhand",
   "tennisStringTension",
   "tennisRacketChangedRecently",
@@ -149,6 +158,12 @@ export function legacyPatientClinicalHasVisibleData(p) {
   if (patientTrim(p.quadroClinicoTipo)) return true;
   if (patientTrim(p.infortunioChirurgicoPrevisto)) return true;
   if (patientTrim(p.medicoPrescrittore)) return true;
+  if (patientTrim(p.pilatesTipo)) return true;
+  if (patientTrim(p.ciclismoDisciplina)) return true;
+  if (patientTrim(p.arrampicataLivello)) return true;
+  if (patientTrim(p.boardStanceUnified)) return true;
+  if (patientTrim(p.referralDaChi)) return true;
+  if (patientTrim(p.farmacoSalvavita)) return true;
   return false;
 }
 
@@ -237,6 +252,77 @@ export function normalizePatientClinicalHistory(patient) {
   }
 
   return p;
+}
+
+const SNAPSHOT_BODY_KEYS = [
+  "diagnostica",
+  "diagnostica2",
+  "diagnosticaDettagli",
+  "dataInfortunio",
+  "dataOperazione",
+  "artoOperato",
+  "tipoOperazione",
+  "quadroClinicoTipo",
+  "infortunioChirurgicoPrevisto",
+  "medicoPrescrittore",
+];
+
+/** Stato piatto confrontabile (sheetContext + campi clinici dallo snapshot). */
+export function patientFlatStateFromSnapshotEntry(snap) {
+  if (!snap || typeof snap !== "object") return null;
+  const ctx =
+    snap.sheetContext && typeof snap.sheetContext === "object"
+      ? buildSnapshotSheetContextFromPatientLike(snap.sheetContext)
+      : buildSnapshotSheetContextFromPatientLike({});
+  const top = spreadSnapshotToPatientTop(snap);
+  return { ...ctx, ...top };
+}
+
+/**
+ * Baseline del bon precedente per evidenziare le modifiche in compilazione.
+ * - Aggiornamento ultimo bon: confronta con il penultimo snapshot.
+ * - Nuovo bon (append): confronta con l’ultimo snapshot salvato.
+ */
+export function previousBonBaselineForForm(form, isAppendingNewBon) {
+  const storico = Array.isArray(form?.storicoQuadroClinico)
+    ? form.storicoQuadroClinico.map(normalizeStoricoSnapshotEntry).filter(Boolean)
+    : [];
+  if (storico.length === 0) return null;
+  const idx = isAppendingNewBon
+    ? storico.length - 1
+    : storico.length >= 2
+      ? storico.length - 2
+      : -1;
+  if (idx < 0) return null;
+  return patientFlatStateFromSnapshotEntry(storico[idx]);
+}
+
+function normalizeRigheForDiff(formLike) {
+  return migrateDiagnosiRighe(formLike || {}).map((r) => ({
+    diagnosi: String(r.diagnosi ?? "").trim(),
+    distrettoDiagnosi: String(r.distrettoDiagnosi ?? "").trim(),
+    dettagli: String(r.dettagli ?? "").trim(),
+  }));
+}
+
+export function formDiffersFromBaseline(form, baseline, fieldKey) {
+  if (!baseline || !form || fieldKey == null) return false;
+  if (fieldKey === "diagnosiRighe") {
+    return (
+      JSON.stringify(normalizeRigheForDiff(form)) !==
+      JSON.stringify(normalizeRigheForDiff(baseline))
+    );
+  }
+  if (SNAPSHOT_SHEET_CONTEXT_KEYS.includes(fieldKey)) {
+    return sheetContextFieldDiffers(fieldKey, form, baseline);
+  }
+  if (SNAPSHOT_BODY_KEYS.includes(fieldKey)) {
+    return (
+      String(form[fieldKey] ?? "").trim() !==
+      String(baseline[fieldKey] ?? "").trim()
+    );
+  }
+  return false;
 }
 
 export function todayIsoDate() {

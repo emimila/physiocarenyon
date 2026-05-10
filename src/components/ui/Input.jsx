@@ -1,7 +1,19 @@
-export default function Input({ label, value, onChange, type = "text" }) {
+export default function Input({
+  label,
+  value,
+  onChange,
+  type = "text",
+  fullWidth = false,
+  dense = false,
+}) {
   const shortField = type === "number" || type === "date";
   return (
-    <label style={{ display: "block", marginBottom: 10 }}>
+    <label
+      style={{
+        display: "block",
+        marginBottom: dense ? 4 : 10,
+      }}
+    >
       <strong>{label}</strong>
       <br />
       <input
@@ -11,7 +23,7 @@ export default function Input({ label, value, onChange, type = "text" }) {
         style={{
           padding: 8,
           width: "100%",
-          maxWidth: 420,
+          maxWidth: fullWidth ? "100%" : 420,
           lineHeight: 1.35,
           boxSizing: "border-box",
           ...(shortField

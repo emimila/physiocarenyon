@@ -1415,3 +1415,67 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* Scheda paziente — modulo compatto */
+.patient-form-compact h2 {
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+}
+
+.patient-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+.patient-form-row--align-start {
+  align-items: flex-start;
+}
+
+.patient-form-row__field {
+  flex: 1 1 200px;
+  min-width: min(100%, 160px);
+}
+
+.patient-form-row--access {
+  align-items: flex-end;
+}
+
+.patient-form-sublabel {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 0.875rem;
+}
+
+.patient-form-sport-block {
+  margin: 8px 0 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border);
+  background: var(--surface, #fff);
+}
+
+.patient-form-sport-block__title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--text-h);
+}
+
+.choice-chip-grid--compact {
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+
+.choice-chip-grid--compact .choice-chip {
+  padding: 6px 8px;
+  font-size: 0.8125rem;
+  gap: 6px;
+}
+
+.choice-chip-grid--compact .choice-chip__text {
+  font-size: 0.8125rem;
+}

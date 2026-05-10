@@ -17,7 +17,9 @@ export const translations = {
       weeks: "settimane",
       months: "mesi",
       years: "anni",
-      future: "Data futura"
+      future: "Data futura",
+      daysUntilSurgery_one: "Manca 1 giorno all'operazione",
+      daysUntilSurgery_other: "Mancano {{count}} giorni all'operazione",
     },
 
     app: {
@@ -101,6 +103,24 @@ export const translations = {
       workEducation: "Dominio di lavoro / formazione",
       professionalRiskNotes: "Note su eventuali rischi professionali",
       accessReason: "Perché sei da noi?",
+      referralFrom: "Chi ha fatto il referral?",
+      lifesavingMed: "Farmaco salvavita",
+      cyclingDiscipline: "Disciplina (MTB o strada)",
+      cyclingDisciplinePlaceholder: "—",
+      climbing: "Arrampicata",
+      climbingLevel: "Livello di arrampicata",
+      pilatesEquipment: "Mat o Reformer?",
+      pilatesEquipmentPlaceholder: "—",
+      boardSportsStance: "Surf / Snowboard / Skateboard",
+      boardStancePlaceholder: "—",
+      sportOtherNotes: "Altri sport — note",
+      runningDiscipline: "Tipo corsa (sprint, strada, trail…)",
+      runningDisciplinePlaceholder: "—",
+      runningDisciplineOther: "Altro / specifica",
+      injuryDateHint: "Inserisci la data per calcolare il tempo trascorso.",
+      surgeryDateHint:
+        "Inserisci la data per calcolare il tempo post-operatorio.",
+      tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Quadro clinico",
       diagnosis: "Diagnosi / problema principale",
@@ -134,6 +154,14 @@ export const translations = {
       diagnosisOfDate: "Diagnosi del",
       appointmentOfDate: "appuntamento del",
       addDiagnosisSheet: "+ Aggiungi diagnosi",
+      addBonDiagnosis: "Aggiungi bon diagnosi",
+      deletePatient: "Elimina paziente",
+      deleteThisBon: "Elimina questo bon",
+      confirmDeleteBon:
+        "Eliminare questo bon dallo storico? L’operazione non è annullabile.",
+      confirmDeletePatient: "Eliminare il paziente dall’archivio?",
+      editThisBonSheet: "Modifica questa scheda bon",
+      editingBonSheetBanner: "Stai modificando la scheda di questo bon:",
       sheetEvaluations: "Valutazioni",
       sheetNewTest: "+ Nuovo test",
       sheetTests: "Test",
@@ -294,29 +322,35 @@ export const translations = {
       },
 
       tegner: {
+        "0":
+          "Malattia, congedo lavorativo o pensione/disabilità a causa di problemi al ginocchio.",
+        "1":
+          "Lavoro sedentario. Possibile camminare su terreno regolare/piano.",
+        "2":
+          "Lavoro leggero. Possibile camminare su terreno irregolare, ma impossibile camminare nel bosco.",
+        "3":
+          "Lavoro leggero: es. infermieristica. Sport competitivo o ricreativo: nuoto. Possibile camminare nel bosco/terreno naturale.",
+        "4":
+          "Lavoro moderatamente pesante: camionista, lavori domestici pesanti. Sport ricreativo: ciclismo, sci di fondo, jogging su terreno regolare almeno 2 volte/settimana.",
+        "5":
+          "Lavoro pesante: edilizia, lavori forestali. Sport competitivo: ciclismo, sci di fondo. Sport ricreativo: jogging su terreno irregolare almeno 2 volte/settimana.",
+        "6":
+          "Sport ricreativo: tennis o badminton, pallamano, basket, sci alpino/discesa, jogging almeno 5 volte/settimana.",
+        "7":
+          "Sport competitivo: tennis, atletica/corsa, motocross/speedway, pallamano, basket. Sport ricreativo ad alta richiesta: calcio, bandy/hockey su ghiaccio, squash, atletica con salti, cross-country/track sia ricreativo sia competitivo.",
+        "8":
+          "Sport competitivo: bandy, squash o badminton, atletica con salti, sci alpino/discesa.",
+        "9":
+          "Sport competitivo alto livello / divisioni inferiori: calcio divisioni inferiori, hockey su ghiaccio, wrestling, ginnastica.",
+        "10":
+          "Sport competitivo élite nazionale/internazionale: calcio a livello nazionale o internazionale.",
+      },
 
-        "0": "Invalidità / assenza di attività",
-    
-        "1": "Attività leggere, lavoro sedentario",
-    
-        "2": "Camminata su terreno piano",
-    
-        "3": "Camminata regolare, attività quotidiane",
-    
-        "4": "Attività moderata, lavoro leggero",
-    
-        "5": "Sport leggeri (es. ciclismo, nuoto)",
-    
-        "6": "Sport ricreativi più intensi",
-    
-        "7": "Sport competitivi non professionali",
-    
-        "8": "Sport competitivi ad alto livello",
-    
-        "9": "Sport competitivi élite",
-    
-        "10": "Sport professionistico",
-    
+      runningDisciplina: {
+        sprint: "Sprint",
+        strada: "Strada",
+        trail: "Trail",
+        altro: "Altro",
       },
 
       sex: {
@@ -331,6 +365,8 @@ export const translations = {
         Calcio: "Calcio",
         running: "Running",
         Running: "Running",
+        hyrox: "Hyrox",
+        Hyrox: "Hyrox",
         ciclismo: "Ciclismo",
         Ciclismo: "Ciclismo",
         fitness: "Fitness",
@@ -359,6 +395,10 @@ export const translations = {
         Yoga: "Yoga",
         pilates: "Pilates",
         Pilates: "Pilates",
+        arrampicata: "Arrampicata",
+        Arrampicata: "Arrampicata",
+        altri_sport: "Altri sport",
+        Altri_sport: "Altri sport",
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
@@ -380,6 +420,22 @@ export const translations = {
       boardStance: {
         Regular: "Regular",
         Goofy: "Goofy",
+      },
+
+      accessReason: {
+        Referral: "Referral",
+        "Già cliente": "Già cliente",
+        Internet: "Internet",
+      },
+
+      pilatesTipo: {
+        mat: "Mat",
+        reformer: "Reformer",
+      },
+
+      ciclismoTipo: {
+        mtb: "MTB",
+        strada: "Ciclismo su strada",
       },
 
       tennisBackhand: {
@@ -720,6 +776,24 @@ export const translations = {
       workEducation: "Domaine de travail / formation",
       professionalRiskNotes: "Notes sur les risques professionnels",
       accessReason: "Pourquoi êtes-vous chez nous ?",
+      referralFrom: "Référence par",
+      lifesavingMed: "Médicament d’urgence",
+      cyclingDiscipline: "Discipline (VTT ou route)",
+      cyclingDisciplinePlaceholder: "—",
+      climbing: "Escalade",
+      climbingLevel: "Niveau d’escalade",
+      pilatesEquipment: "Tapis ou Reformer ?",
+      pilatesEquipmentPlaceholder: "—",
+      boardSportsStance: "Surf / snowboard / skateboard",
+      boardStancePlaceholder: "—",
+      sportOtherNotes: "Autres sports — notes",
+      runningDiscipline: "Type de course (sprint, route, trail…)",
+      runningDisciplinePlaceholder: "—",
+      runningDisciplineOther: "Autre / préciser",
+      injuryDateHint: "Saisissez la date pour calculer le délai depuis la blessure.",
+      surgeryDateHint:
+        "Saisissez la date pour calculer le délai post-opératoire.",
+      tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Tableau clinique",
       diagnosis: "Diagnostic / problème principal",
@@ -753,6 +827,14 @@ export const translations = {
       diagnosisOfDate: "Diagnostic du",
       appointmentOfDate: "rendez-vous du",
       addDiagnosisSheet: "+ Ajouter un diagnostic",
+      addBonDiagnosis: "Ajouter un BON diagnostic",
+      deletePatient: "Supprimer le patient",
+      deleteThisBon: "Supprimer ce BON",
+      confirmDeleteBon:
+        "Supprimer ce BON de l’historique ? Cette action est irréversible.",
+      confirmDeletePatient: "Supprimer le patient de l’archive ?",
+      editThisBonSheet: "Modifier cette fiche BON",
+      editingBonSheetBanner: "Vous modifiez la fiche de ce rendez-vous :",
       sheetEvaluations: "Évaluations",
       sheetNewTest: "+ Nouveau test",
       sheetTests: "Tests",
@@ -830,7 +912,9 @@ export const translations = {
       weeks: "semaines",
       months: "mois",
       years: "ans",
-      future: "Date future"
+      future: "Date future",
+      daysUntilSurgery_one: "Il reste 1 jour avant l'opération",
+      daysUntilSurgery_other: "Il reste {{count}} jours avant l'opération",
     },
 
     grip: {
@@ -1021,19 +1105,37 @@ export const translations = {
         Ambidestro: "Ambidextre"
       },
 
-tegner: {
-  "0": "Invalidité / aucune activité",
-  "1": "Activité légère, travail sédentaire",
-  "2": "Marche sur terrain plat",
-  "3": "Marche régulière, activités quotidiennes",
-  "4": "Activité modérée, travail léger",
-  "5": "Sports légers (vélo, natation)",
-  "6": "Sports récréatifs plus intenses",
-  "7": "Sports compétitifs amateurs",
-  "8": "Sports compétitifs de haut niveau",
-  "9": "Sports compétitifs élite",
-  "10": "Sport professionnel",
-},
+      tegner: {
+        "0":
+          "Maladie, arrêt de travail ou pension d’invalidité pour problème de genou.",
+        "1":
+          "Travail sédentaire. Marche possible sur terrain régulier/plat.",
+        "2":
+          "Travail léger. Marche sur terrain irrégulier possible, pas en forêt.",
+        "3":
+          "Travail léger (ex. soins). Sport compétitif ou loisir : natation. Marche en forêt possible.",
+        "4":
+          "Travail modérément lourd : routier, ménage lourd. Loisir : vélo, ski de fond, jogging régulier ≥ 2×/sem.",
+        "5":
+          "Travail lourd : bâtiment, sylviculture. Compétitif : vélo, ski de fond. Loisir : jogging irrégulier ≥ 2×/sem.",
+        "6":
+          "Loisir : tennis ou badminton, handball, basket, ski alpin/descente, jogging ≥ 5×/sem.",
+        "7":
+          "Compétitif : tennis, athlétisme/course, motocross/speedway, handball, basket. Loisir intense : football, bandy/hockey sur glace, squash, sauts, cross (loisir ou compétitif).",
+        "8":
+          "Compétitif : bandy, squash ou badminton, sauts, ski alpin/descente.",
+        "9":
+          "Haut niveau / divisions inférieures : football divisions inférieures, hockey sur glace, lutte, gymnastique.",
+        "10":
+          "Élite nationale/internationale : football national ou international.",
+      },
+
+      runningDisciplina: {
+        sprint: "Sprint",
+        strada: "Route",
+        trail: "Trail",
+        altro: "Autre",
+      },
 
       sex: {
         Uomo: "Homme",
@@ -1045,6 +1147,7 @@ tegner: {
       sport: {
         calcio: "Football",
         running: "Course",
+        hyrox: "Hyrox",
         ciclismo: "Cyclisme",
         fitness: "Fitness",
         tennis: "Tennis",
@@ -1059,6 +1162,9 @@ tegner: {
         escalade: "Escalade",
         yoga: "Yoga",
         pilates: "Pilates",
+        arrampicata: "Escalade",
+        hyrox: "Hyrox",
+        altri_sport: "Autres sports",
       
         Calcio: "Football",
         Running: "Course",
@@ -1076,6 +1182,11 @@ tegner: {
         Escalade: "Escalade",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        arrampicata: "Escalade",
+        Arrampicata: "Escalade",
+        Hyrox: "Hyrox",
+        altri_sport: "Autres sports",
+        Altri_sport: "Autres sports",
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
@@ -1097,6 +1208,22 @@ tegner: {
       boardStance: {
         Regular: "Regular",
         Goofy: "Goofy",
+      },
+
+      accessReason: {
+        Referral: "Référence",
+        "Già cliente": "Déjà client",
+        Internet: "Internet",
+      },
+
+      pilatesTipo: {
+        mat: "Tapis",
+        reformer: "Reformer",
+      },
+
+      ciclismoTipo: {
+        mtb: "VTT",
+        strada: "Cyclisme sur route",
       },
 
       tennisBackhand: {
@@ -1348,6 +1475,25 @@ tegner: {
       workEducation: "Beruf / Ausbildung",
       professionalRiskNotes: "Berufsbedingte Risiken",
       accessReason: "Warum sind Sie bei uns?",
+      referralFrom: "Überweisung von",
+      lifesavingMed: "Notfallmedikament",
+      cyclingDiscipline: "Disziplin (MTB oder Straße)",
+      cyclingDisciplinePlaceholder: "—",
+      climbing: "Klettern",
+      climbingLevel: "Kletterniveau",
+      pilatesEquipment: "Matte oder Reformer?",
+      pilatesEquipmentPlaceholder: "—",
+      boardSportsStance: "Surf / Snowboard / Skateboard",
+      boardStancePlaceholder: "—",
+      sportOtherNotes: "Weitere Sportarten — Notizen",
+      runningDiscipline: "Laufdisziplin (Sprint, Straße, Trail …)",
+      runningDisciplinePlaceholder: "—",
+      runningDisciplineOther: "Sonstiges / präzisieren",
+      injuryDateHint:
+        "Datum eingeben, um die Zeit seit der Verletzung zu berechnen.",
+      surgeryDateHint:
+        "Datum eingeben, um die postoperative Zeit zu berechnen.",
+      tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Klinisches Bild",
       diagnosis: "Diagnose / Hauptproblem",
@@ -1381,6 +1527,14 @@ tegner: {
       diagnosisOfDate: "Diagnose vom",
       appointmentOfDate: "Termin vom",
       addDiagnosisSheet: "+ Diagnose hinzufügen",
+      addBonDiagnosis: "BON-Diagnose hinzufügen",
+      deletePatient: "Patient löschen",
+      deleteThisBon: "Diesen BON löschen",
+      confirmDeleteBon:
+        "Diesen BON aus dem Verlauf löschen? Dies kann nicht rückgängig gemacht werden.",
+      confirmDeletePatient: "Patient aus der Liste löschen?",
+      editThisBonSheet: "Diesen BON-Eintrag bearbeiten",
+      editingBonSheetBanner: "Sie bearbeiten den Eintrag für diesen Termin:",
       sheetEvaluations: "Beurteilungen",
       sheetNewTest: "+ Neuer Test",
       sheetTests: "Tests",
@@ -1458,7 +1612,9 @@ tegner: {
       weeks: "Wochen",
       months: "Monate",
       years: "Jahre",
-      future: "Zukünftiges Datum"
+      future: "Zukünftiges Datum",
+      daysUntilSurgery_one: "Noch 1 Tag bis zur Operation",
+      daysUntilSurgery_other: "Noch {{count}} Tage bis zur Operation",
     },
 
     grip: {
@@ -1650,17 +1806,35 @@ tegner: {
       },
 
       tegner: {
-        "0": "Invalidität / keine Aktivität",
-        "1": "Leichte Aktivität, sitzende Arbeit",
-        "2": "Gehen auf ebenem Gelände",
-        "3": "Regelmäßiges Gehen, Alltagstätigkeiten",
-        "4": "Mäßige Aktivität, leichte Arbeit",
-        "5": "Leichte Sportarten (Radfahren, Schwimmen)",
-        "6": "Freizeitsport mit höherer Intensität",
-        "7": "Amateur-Wettkampfsport",
-        "8": "Leistungssport",
-        "9": "Elite-Wettkampfsport",
-        "10": "Profisport",
+        "0":
+          "Krankheit, Arbeitsunfähigkeit oder Rente/Behinderung wegen Knieproblemen.",
+        "1":
+          "Sitzende Tätigkeit. Gehen auf regelmäßigem/flachem Untergrund möglich.",
+        "2":
+          "Leichte Arbeit. Gehen auf unebenem Untergrund möglich, nicht im Wald.",
+        "3":
+          "Leichte Arbeit (z. B. Pflege). Wettkampf oder Freizeit: Schwimmen. Gehen im Wald möglich.",
+        "4":
+          "Mäßig schwere Arbeit: LKW-Fahrer, schwere Hausarbeit. Freizeit: Radfahren, Langlauf, Jogging regelmäßig ≥ 2×/Wo.",
+        "5":
+          "Schwere Arbeit: Bau, Forst. Wettkampf: Radfahren, Langlauf. Freizeit: Joggen auf unebenem Untergrund ≥ 2×/Wo.",
+        "6":
+          "Freizeit: Tennis oder Badminton, Handball, Basketball, Alpin-/Abfahrtsski, Jogging ≥ 5×/Wo.",
+        "7":
+          "Wettkampf: Tennis, Leichtathletik/Laufen, Motocross/Speedway, Handball, Basketball. Intensive Freizeit: Fußball, Bandy/Eishockey, Squash, Sprungdisziplinen, Cross (Freizeit oder Wettkampf).",
+        "8":
+          "Wettkampf: Bandy, Squash oder Badminton, Sprungdisziplinen, Alpin-/Abfahrtsski.",
+        "9":
+          "Hohes Niveau / untere Ligen: Fußball untere Ligen, Eishockey, Ringen, Turnen.",
+        "10":
+          "Elite national/international: Fußball auf nationaler oder internationaler Ebene.",
+      },
+
+      runningDisciplina: {
+        sprint: "Sprint",
+        strada: "Straße",
+        trail: "Trail",
+        altro: "Sonstiges",
       },
 
       sex: {
@@ -1673,6 +1847,7 @@ tegner: {
       sport: {
         calcio: "Fußball",
         running: "Laufen",
+        hyrox: "Hyrox",
         ciclismo: "Radfahren",
         fitness: "Fitness",
         tennis: "Tennis",
@@ -1686,6 +1861,9 @@ tegner: {
         escalade: "Klettern",
         yoga: "Yoga",
         pilates: "Pilates",
+        arrampicata: "Klettern",
+        hyrox: "Hyrox",
+        altri_sport: "Weitere Sportarten",
       
         Calcio: "Fußball",
         Running: "Laufen",
@@ -1702,6 +1880,11 @@ tegner: {
         Escalade: "Klettern",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        arrampicata: "Klettern",
+        Arrampicata: "Klettern",
+        Hyrox: "Hyrox",
+        altri_sport: "Weitere Sportarten",
+        Altri_sport: "Weitere Sportarten",
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
@@ -1725,6 +1908,22 @@ tegner: {
       boardStance: {
         Regular: "Regular",
         Goofy: "Goofy",
+      },
+
+      accessReason: {
+        Referral: "Überweisung",
+        "Già cliente": "Bestandskunde",
+        Internet: "Internet",
+      },
+
+      pilatesTipo: {
+        mat: "Matte",
+        reformer: "Reformer",
+      },
+
+      ciclismoTipo: {
+        mtb: "MTB",
+        strada: "Straßenrad",
       },
 
       tennisBackhand: {
@@ -1963,6 +2162,25 @@ tegner: {
   workEducation: "Trabajo / formación",
   professionalRiskNotes: "Riesgos profesionales",
   accessReason: "¿Por qué estás con nosotros?",
+  referralFrom: "Referido por",
+  lifesavingMed: "Medicación de rescate",
+  cyclingDiscipline: "Disciplina (MTB o carretera)",
+  cyclingDisciplinePlaceholder: "—",
+  climbing: "Escalada",
+  climbingLevel: "Nivel de escalada",
+  pilatesEquipment: "¿Mat o Reformer?",
+  pilatesEquipmentPlaceholder: "—",
+  boardSportsStance: "Surf / snowboard / skateboard",
+  boardStancePlaceholder: "—",
+  sportOtherNotes: "Otros deportes — notas",
+  runningDiscipline: "Tipo de carrera (sprint, carretera, trail…)",
+  runningDisciplinePlaceholder: "—",
+  runningDisciplineOther: "Otro / especificar",
+  injuryDateHint:
+    "Introduce la fecha para calcular el tiempo desde la lesión.",
+  surgeryDateHint:
+    "Introduce la fecha para calcular el tiempo postoperatorio.",
+  tennisBackhandPlaceholder: "—",
 
   clinicalFrame: "Cuadro clínico",
   diagnosis: "Diagnóstico / problema principal",
@@ -1996,6 +2214,14 @@ tegner: {
   diagnosisOfDate: "Diagnóstico del",
   appointmentOfDate: "cita del",
   addDiagnosisSheet: "+ Añadir diagnóstico",
+  addBonDiagnosis: "Añadir BON diagnóstico",
+  deletePatient: "Eliminar paciente",
+  deleteThisBon: "Eliminar este BON",
+  confirmDeleteBon:
+    "¿Eliminar este BON del historial? Esta acción no se puede deshacer.",
+  confirmDeletePatient: "¿Eliminar el paciente del archivo?",
+  editThisBonSheet: "Editar esta ficha BON",
+  editingBonSheetBanner: "Está editando la ficha de esta cita:",
   sheetEvaluations: "Evaluaciones",
   sheetNewTest: "+ Nuevo test",
   sheetTests: "Tests",
@@ -2073,7 +2299,9 @@ time: {
   weeks: "semanas",
   months: "meses",
   years: "años",
-  future: "Fecha futura"
+  future: "Fecha futura",
+  daysUntilSurgery_one: "Falta 1 día para la cirugía",
+  daysUntilSurgery_other: "Faltan {{count}} días para la cirugía",
 },
 
 dominantHand: {
@@ -2176,17 +2404,35 @@ dominantHand: {
       },
       
       tegner: {
-        "0": "Invalidez / sin actividad",
-        "1": "Actividad ligera, trabajo sedentario",
-        "2": "Caminar en terreno llano",
-        "3": "Caminar regularmente, actividades diarias",
-        "4": "Actividad moderada, trabajo ligero",
-        "5": "Deportes ligeros (ciclismo, natación)",
-        "6": "Deportes recreativos más intensos",
-        "7": "Deporte competitivo amateur",
-        "8": "Deporte competitivo de alto nivel",
-        "9": "Deporte competitivo élite",
-        "10": "Deporte profesional",
+        "0":
+          "Enfermedad, baja laboral o pensión/incapacidad por problemas de rodilla.",
+        "1":
+          "Trabajo sedentario. Caminar posible en terreno regular/plano.",
+        "2":
+          "Trabajo ligero. Caminar en terreno irregular posible, no en el bosque.",
+        "3":
+          "Trabajo ligero (ej. enfermería). Competitivo o recreativo: natación. Caminar en el bosque posible.",
+        "4":
+          "Trabajo moderadamente pesado: camionero, tareas domésticas pesadas. Recreativo: ciclismo, esquí de fondo, footing regular ≥ 2×/sem.",
+        "5":
+          "Trabajo pesado: construcción, forestal. Competitivo: ciclismo, esquí de fondo. Recreativo: footing irregular ≥ 2×/sem.",
+        "6":
+          "Recreativo: tenis o bádminton, balonmano, baloncesto, esquí alpino/descenso, footing ≥ 5×/sem.",
+        "7":
+          "Competitivo: tenis, atletismo/carrera, motocross/speedway, balonmano, baloncesto. Recreativo intenso: fútbol, bandy/hockey hielo, squash, saltos, cross (recreativo o competitivo).",
+        "8":
+          "Competitivo: bandy, squash o bádminton, saltos, esquí alpino/descenso.",
+        "9":
+          "Alto nivel / divisiones inferiores: fútbol divisiones inferiores, hockey hielo, lucha, gimnasia.",
+        "10":
+          "Élite nacional/internacional: fútbol a nivel nacional o internacional.",
+      },
+
+      runningDisciplina: {
+        sprint: "Sprint",
+        strada: "Carretera",
+        trail: "Trail",
+        altro: "Otro",
       },
 
       sex: {
@@ -2199,6 +2445,7 @@ dominantHand: {
       sport: {
         calcio: "Fútbol",
         running: "Running",
+        hyrox: "Hyrox",
         ciclismo: "Ciclismo",
         fitness: "Fitness",
         tennis: "Tenis",
@@ -2212,6 +2459,9 @@ dominantHand: {
         escalade: "Escalada",
         yoga: "Yoga",
         pilates: "Pilates",
+        arrampicata: "Escalada",
+        hyrox: "Hyrox",
+        altri_sport: "Otros deportes",
       
         Calcio: "Fútbol",
         Running: "Running",
@@ -2228,6 +2478,11 @@ dominantHand: {
         Escalade: "Escalada",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        arrampicata: "Escalada",
+        Arrampicata: "Escalada",
+        Hyrox: "Hyrox",
+        altri_sport: "Otros deportes",
+        Altri_sport: "Otros deportes",
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
@@ -2251,6 +2506,22 @@ dominantHand: {
       boardStance: {
         Regular: "Regular",
         Goofy: "Goofy",
+      },
+
+      accessReason: {
+        Referral: "Referencia",
+        "Già cliente": "Cliente habitual",
+        Internet: "Internet",
+      },
+
+      pilatesTipo: {
+        mat: "Mat",
+        reformer: "Reformer",
+      },
+
+      ciclismoTipo: {
+        mtb: "MTB",
+        strada: "Ciclismo en carretera",
       },
 
       tennisBackhand: {
@@ -2583,6 +2854,23 @@ dominantHand: {
       workEducation: "Work / education",
       professionalRiskNotes: "Professional risk notes",
       accessReason: "Why are you here?",
+      referralFrom: "Referral from",
+      lifesavingMed: "Rescue / emergency medication",
+      cyclingDiscipline: "Discipline (MTB or road)",
+      cyclingDisciplinePlaceholder: "—",
+      climbing: "Climbing",
+      climbingLevel: "Climbing level",
+      pilatesEquipment: "Mat or Reformer?",
+      pilatesEquipmentPlaceholder: "—",
+      boardSportsStance: "Surf / snowboard / skateboard",
+      boardStancePlaceholder: "—",
+      sportOtherNotes: "Other sports — notes",
+      runningDiscipline: "Running type (sprint, road, trail…)",
+      runningDisciplinePlaceholder: "—",
+      runningDisciplineOther: "Other / specify",
+      injuryDateHint: "Enter the date to compute time since injury.",
+      surgeryDateHint: "Enter the date to compute post-operative time.",
+      tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Clinical picture",
       diagnosis: "Diagnosis / main problem",
@@ -2616,6 +2904,14 @@ dominantHand: {
       diagnosisOfDate: "Diagnosis of",
       appointmentOfDate: "appointment of",
       addDiagnosisSheet: "+ Add diagnosis",
+      addBonDiagnosis: "Add BON diagnosis",
+      deletePatient: "Delete patient",
+      deleteThisBon: "Delete this BON",
+      confirmDeleteBon:
+        "Remove this BON from the history? This cannot be undone.",
+      confirmDeletePatient: "Remove this patient from the archive?",
+      editThisBonSheet: "Edit this BON record",
+      editingBonSheetBanner: "You are editing the record for this appointment:",
       sheetEvaluations: "Evaluations",
       sheetNewTest: "+ New test",
       sheetTests: "Tests",
@@ -2693,7 +2989,9 @@ dominantHand: {
       weeks: "weeks",
       months: "months",
       years: "years",
-      future: "Future date"
+      future: "Future date",
+      daysUntilSurgery_one: "1 day until surgery",
+      daysUntilSurgery_other: "{{count}} days until surgery",
     },
 
     grip: {
@@ -2885,22 +3183,41 @@ dominantHand: {
         "Non specificato": "Not specified",
       },
       tegner: {
-        "0": "Disability / no activity",
-        "1": "Light activity, sedentary work",
-        "2": "Walking on flat ground",
-        "3": "Regular walking, daily activities",
-        "4": "Moderate activity, light work",
-        "5": "Light sports (cycling, swimming)",
-        "6": "More intense recreational sports",
-        "7": "Amateur competitive sports",
-        "8": "High-level competitive sports",
-        "9": "Elite competitive sports",
-        "10": "Professional sports",
+        "0":
+          "Sick leave or disability pension due to knee problems.",
+        "1":
+          "Sedentary work. Can walk on even ground.",
+        "2":
+          "Light work. Can walk on uneven ground, but not in the forest.",
+        "3":
+          "Light work (e.g. nursing). Competitive or recreational: swimming. Can walk in the forest/natural terrain.",
+        "4":
+          "Moderately heavy work: truck driver, heavy housework. Recreational: cycling, cross-country skiing, jogging on even ground at least twice/week.",
+        "5":
+          "Heavy work: construction, forestry. Competitive: cycling, cross-country skiing. Recreational: jogging on uneven ground at least twice/week.",
+        "6":
+          "Recreational: tennis or badminton, handball, basketball, alpine/downhill skiing, jogging at least 5×/week.",
+        "7":
+          "Competitive: tennis, athletics/running, motocross/speedway, handball, basketball. High-demand recreational: football, bandy/ice hockey, squash, jumping events, cross-country/track (rec. or comp.).",
+        "8":
+          "Competitive: bandy, squash or badminton, jumping events, alpine/downhill skiing.",
+        "9":
+          "Competitive high level / lower divisions: lower-tier football, ice hockey, wrestling, gymnastics.",
+        "10":
+          "National/international elite football.",
+      },
+
+      runningDisciplina: {
+        sprint: "Sprint",
+        strada: "Road",
+        trail: "Trail",
+        altro: "Other",
       },
       
       sport: {
         calcio: "Football",
         running: "Running",
+        hyrox: "Hyrox",
         ciclismo: "Cycling",
         fitness: "Fitness",
         tennis: "Tennis",
@@ -2914,6 +3231,8 @@ dominantHand: {
         escalade: "Climbing",
         yoga: "Yoga",
         pilates: "Pilates",
+        arrampicata: "Climbing",
+        altri_sport: "Other sports",
       
         Calcio: "Football",
         Running: "Running",
@@ -2930,6 +3249,12 @@ dominantHand: {
         Escalade: "Climbing",
         Yoga: "Yoga",
         Pilates: "Pilates",
+        arrampicata: "Climbing",
+        Arrampicata: "Climbing",
+        hyrox: "Hyrox",
+        Hyrox: "Hyrox",
+        altri_sport: "Other sports",
+        Altri_sport: "Other sports",
         surf: "Surf",
         snowboard: "Snowboard",
         skateboard: "Skateboard",
@@ -2953,6 +3278,22 @@ dominantHand: {
       boardStance: {
         Regular: "Regular",
         Goofy: "Goofy",
+      },
+
+      accessReason: {
+        Referral: "Referral",
+        "Già cliente": "Existing client",
+        Internet: "Internet",
+      },
+
+      pilatesTipo: {
+        mat: "Mat",
+        reformer: "Reformer",
+      },
+
+      ciclismoTipo: {
+        mtb: "MTB",
+        strada: "Road cycling",
       },
 
       tennisBackhand: {

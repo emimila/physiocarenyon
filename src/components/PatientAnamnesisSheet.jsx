@@ -1,5 +1,6 @@
 import { tegnerInfo } from "../data/options";
 import { sheetContextFieldDiffers } from "../utils/clinicalHistory";
+import { bonDiffSummaryStyle } from "../utils/bonDiffSummaryStyle";
 import {
   calcBMI,
   formatDateDMY,
@@ -7,7 +8,8 @@ import {
   patientTrim,
 } from "../utils/helpers";
 
-const DIFF_STYLE = { color: "#15803d", fontWeight: 600 };
+/** Voci anamnesi modificate rispetto al bon precedente: riepilogo / stampa. */
+const DIFF_STYLE = bonDiffSummaryStyle;
 
 function Hi({ show, children }) {
   if (!show) return children;
@@ -44,7 +46,26 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
     prev &&
     (diff("running10km") ||
       diff("runningMezza") ||
-      diff("runningMaratona"));
+      diff("runningMaratona") ||
+      diff("runningDisciplina") ||
+      diff("runningDisciplinaAltro"));
+
+  const smList = selected.sportMultipli || [];
+  const hasBoardSport = smList.some((s) =>
+    ["surf", "snowboard", "skateboard"].includes(String(s).toLowerCase())
+  );
+  const boardStanceVal =
+    patientTrim(selected.boardStanceUnified) ||
+    patientTrim(selected.surfStance) ||
+    patientTrim(selected.snowboardStance) ||
+    patientTrim(selected.skateboardStance) ||
+    "";
+  const boardStanceChanged =
+    prev &&
+    (diff("boardStanceUnified") ||
+      diff("surfStance") ||
+      diff("snowboardStance") ||
+      diff("skateboardStance"));
 
   return (
     <>
@@ -130,6 +151,11 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
         const pat = patientTrim(manualTextLower(selected.patologie));
         const bpDate = patientTrim(selected.dataUltimoTestPressioneArteriosa);
         const bpStr = bpDate ? formatDateDMY(bpDate) || bpDate : "";
+        const lifesaving =
+          selected.farmacoSalvavita &&
+          (tt(`options.yesNo.${selected.farmacoSalvavita}`) ||
+            selected.farmacoSalvavita);
+        const lifesavingStr = patientTrim(lifesaving);
         const smoke =
           selected.fumatore &&
           (tt(`options.yesNo.${selected.fumatore}`) || selected.fumatore);
@@ -138,7 +164,16 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
           selected.epilessia &&
           (tt(`options.yesNo.${selected.epilessia}`) || selected.epilessia);
         const epStr = patientTrim(ep);
-        if (!farm && !pat && !bpStr && !smokeStr && !epStr) return null;
+        if (
+          !farm &&
+          !pat &&
+          !bpStr &&
+          !lifesavingStr &&
+          !smokeStr &&
+          !epStr
+        ) {
+          return null;
+        }
         const chunks = [];
         if (farm) {
           chunks.push(
@@ -153,6 +188,16 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
             <span key="pat">
               <strong>{tt("patient.pathologies")}:</strong>{" "}
               <Hi show={diff("patologie")}>{pat}</Hi>
+            </span>
+          );
+        }
+        if (lifesavingStr) {
+          chunks.push(
+            <span key="ls">
+              <strong>
+                {tt("patient.lifesavingMed", "Farmaco salvavita")}:
+              </strong>{" "}
+              <Hi show={diff("farmacoSalvavita")}>{lifesavingStr}</Hi>
             </span>
           );
         }
@@ -250,27 +295,78 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
           );
         })()}
 
-      {patientTrim(manualTextLower(selected.dominioLavoro)) && (
-        <p>
-          <strong>{tt("patient.workEducation")}:</strong>{" "}
-          <Hi show={diff("dominioLavoro")}>
-            {manualTextLower(selected.dominioLavoro)}
-          </Hi>
+      {(patientTrim(manualTextLower(selected.dominioLavoro)) ||
+        patientTrim(manualTextLower(selected.rischiProfessionali))) && (
+        <p
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0 12px",
+            alignItems: "baseline",
+          }}
+        >
+          {patientTrim(manualTextLower(selected.dominioLavoro)) ? (
+            <span>
+              <strong>{tt("patient.workEducation")}:</strong>{" "}
+              <Hi show={diff("dominioLavoro")}>
+                {manualTextLower(selected.dominioLavoro)}
+              </Hi>
+            </span>
+          ) : null}
+          {patientTrim(manualTextLower(selected.dominioLavoro)) &&
+          patientTrim(manualTextLower(selected.rischiProfessionali))
+            ? "|"
+            : null}
+          {patientTrim(manualTextLower(selected.rischiProfessionali)) ? (
+            <span>
+              <strong>{tt("patient.professionalRiskNotes")}:</strong>{" "}
+              <Hi show={diff("rischiProfessionali")}>
+                {manualTextLower(selected.rischiProfessionali)}
+              </Hi>
+            </span>
+          ) : null}
         </p>
       )}
 
-      {patientTrim(manualTextLower(selected.rischiProfessionali)) && (
-        <p>
-          <strong>{tt("patient.professionalRiskNotes")}:</strong>{" "}
-          <Hi show={diff("rischiProfessionali")}>
-            {manualTextLower(selected.rischiProfessionali)}
-          </Hi>
+      {(patientTrim(selected.motivoAccesso) ||
+        patientTrim(manualTextLower(selected.referralDaChi))) && (
+        <p
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0 12px",
+            alignItems: "baseline",
+          }}
+        >
+          {patientTrim(manualTextLower(selected.referralDaChi)) ? (
+            <span>
+              <strong>{tt("patient.referralFrom", "Referral da")}:</strong>{" "}
+              <Hi show={diff("referralDaChi")}>
+                {manualTextLower(selected.referralDaChi)}
+              </Hi>
+            </span>
+          ) : null}
+          {patientTrim(manualTextLower(selected.referralDaChi)) &&
+          patientTrim(selected.motivoAccesso)
+            ? "|"
+            : null}
+          {patientTrim(selected.motivoAccesso) ? (
+            <span>
+              <strong>{tt("patient.accessReason", "Perché sei da noi?")}:</strong>{" "}
+              <Hi show={diff("motivoAccesso")}>
+                {tt(`options.accessReason.${selected.motivoAccesso}`) ||
+                  selected.motivoAccesso}
+              </Hi>
+            </span>
+          ) : null}
         </p>
       )}
 
       {(() => {
-        const list = (selected.sportMultipli || [])
+        const sm = selected.sportMultipli || [];
+        const list = sm
           .filter(Boolean)
+          .filter((s) => String(s).toLowerCase() !== "altri_sport")
           .map((s) => {
             const lower = String(s).toLowerCase();
             const upper =
@@ -282,15 +378,29 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
             );
           })
           .join(", ");
-        const extra = patientTrim(manualTextLower(selected.sportAltro));
-        const body =
-          list && extra ? `${list}, ${extra}` : list || extra || "";
-        if (!body) return null;
+        const showAltri =
+          sm.some((s) => String(s).toLowerCase() === "altri_sport") &&
+          patientTrim(manualTextLower(selected.sportAltro));
+        if (!list && !showAltri) return null;
         return (
-          <p>
-            <strong>{tt("patient.sports")}:</strong>{" "}
-            <Hi show={sportsLineChanged}>{body}</Hi>
-          </p>
+          <>
+            {list ? (
+              <p>
+                <strong>{tt("patient.sports")}:</strong>{" "}
+                <Hi show={sportsLineChanged}>{list}</Hi>
+              </p>
+            ) : null}
+            {showAltri ? (
+              <p>
+                <strong>
+                  {tt("patient.sportOtherNotes", "Altri sport — note")}:
+                </strong>{" "}
+                <Hi show={diff("sportAltro")}>
+                  {manualTextLower(selected.sportAltro)}
+                </Hi>
+              </p>
+            ) : null}
+          </>
         );
       })()}
 
@@ -313,6 +423,23 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
               ? manualTextLower(String(v).trim())
               : "";
           const parts = [];
+          const dKey = String(selected.runningDisciplina || "").trim();
+          const dAlt = trim(selected.runningDisciplinaAltro);
+          let discStr = "";
+          if (dKey === "altro") {
+            discStr = dAlt || tt("options.runningDisciplina.altro", "Altro");
+          } else if (dKey) {
+            discStr =
+              tt(`options.runningDisciplina.${dKey}`, dKey) || dKey;
+            if (dAlt) discStr = `${discStr} (${dAlt})`;
+          } else if (dAlt) {
+            discStr = dAlt;
+          }
+          if (discStr) {
+            parts.push(
+              `${tt("patient.runningDiscipline", "Tipo corsa")}: ${discStr}`
+            );
+          }
           const km = trim(selected.running10km);
           const mez = trim(selected.runningMezza);
           const mar = trim(selected.runningMaratona);
@@ -342,43 +469,55 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
         )}
 
       {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "surf"
+        (s) => String(s).toLowerCase() === "ciclismo"
       ) &&
-        patientTrim(selected.surfStance) && (
+        patientTrim(selected.ciclismoDisciplina) && (
           <p>
-            <strong>{tt("options.sport.surf") ?? "Surf"}:</strong>{" "}
-            <Hi show={diff("surfStance")}>
-              {tt(`options.boardStance.${selected.surfStance}`) ||
-                selected.surfStance}
+            <strong>{tt("options.sport.ciclismo", "Ciclismo")}:</strong>{" "}
+            <Hi show={diff("ciclismoDisciplina")}>
+              {tt(
+                `options.ciclismoTipo.${selected.ciclismoDisciplina}`,
+                selected.ciclismoDisciplina
+              )}
+            </Hi>
+          </p>
+        )}
+
+      {smList.some((s) =>
+        ["escalade", "arrampicata"].includes(String(s).toLowerCase())
+      ) &&
+        patientTrim(manualTextLower(selected.arrampicataLivello)) && (
+          <p>
+            <strong>{tt("patient.climbingLevel", "Livello di arrampicata")}:</strong>{" "}
+            <Hi show={diff("arrampicataLivello")}>
+              {manualTextLower(selected.arrampicataLivello)}
             </Hi>
           </p>
         )}
 
       {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "snowboard"
+        (s) => String(s).toLowerCase() === "pilates"
       ) &&
-        patientTrim(selected.snowboardStance) && (
+        patientTrim(selected.pilatesTipo) && (
           <p>
-            <strong>{tt("options.sport.snowboard") ?? "Snowboard"}:</strong>{" "}
-            <Hi show={diff("snowboardStance")}>
-              {tt(`options.boardStance.${selected.snowboardStance}`) ||
-                selected.snowboardStance}
+            <strong>{tt("options.sport.pilates", "Pilates")}:</strong>{" "}
+            <Hi show={diff("pilatesTipo")}>
+              {tt(`options.pilatesTipo.${selected.pilatesTipo}`, selected.pilatesTipo)}
             </Hi>
           </p>
         )}
 
-      {(selected.sportMultipli || []).some(
-        (s) => String(s).toLowerCase() === "skateboard"
-      ) &&
-        patientTrim(selected.skateboardStance) && (
-          <p>
-            <strong>{tt("options.sport.skateboard") ?? "Skateboard"}:</strong>{" "}
-            <Hi show={diff("skateboardStance")}>
-              {tt(`options.boardStance.${selected.skateboardStance}`) ||
-                selected.skateboardStance}
-            </Hi>
-          </p>
-        )}
+      {hasBoardSport && patientTrim(boardStanceVal) ? (
+        <p>
+          <strong>
+            {tt("patient.boardStance", "Goofy o regular?")} (
+            {tt("patient.boardSportsStance", "surf / snowboard / skateboard")}):
+          </strong>{" "}
+          <Hi show={boardStanceChanged}>
+            {tt(`options.boardStance.${boardStanceVal}`) || boardStanceVal}
+          </Hi>
+        </p>
+      ) : null}
 
       {(selected.sportMultipli || []).some(
         (s) => String(s).toLowerCase() === "tennis"

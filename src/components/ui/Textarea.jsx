@@ -4,7 +4,11 @@ export default function Textarea({
   onChange,
   fullWidth = false,
   compact = false,
+  /** 1 = stessa scala verticale di select / data (espandibile); ≥2 per più righe iniziali. */
+  minRows = 1,
 }) {
+  const rows = Math.max(1, minRows);
+  const controlLike = rows === 1;
   return (
     <label
       style={{
@@ -17,12 +21,12 @@ export default function Textarea({
       <textarea
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        rows={2}
+        rows={rows}
         style={{
           padding: 8,
           width: "100%",
           maxWidth: fullWidth ? "100%" : 600,
-          minHeight: "3.35rem",
+          minHeight: controlLike ? "2.375rem" : "3.35rem",
           lineHeight: 1.35,
           boxSizing: "border-box",
           resize: "vertical",

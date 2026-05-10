@@ -1,12 +1,14 @@
-export default function Section({ title, titleAside, children }) {
+export default function Section({ title, titleAside, children, compact }) {
   return (
     <div
-      className="section-card"
+      className={
+        compact ? "section-card section-card--compact" : "section-card"
+      }
       style={{
         border: "1px solid #ddd",
-        borderRadius: 10,
-        padding: 15,
-        marginBottom: 15,
+        borderRadius: compact ? 8 : 10,
+        padding: compact ? 10 : 15,
+        marginBottom: compact ? 10 : 15,
       }}
     >
       {titleAside != null && titleAside !== false ? (
@@ -18,14 +20,16 @@ export default function Section({ title, titleAside, children }) {
             alignItems: "center",
             justifyContent: "space-between",
             gap: 10,
-            marginBottom: 12,
+            marginBottom: compact ? 8 : 12,
           }}
         >
-          <h3 style={{ margin: 0 }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: compact ? "0.95rem" : undefined }}>
+            {title}
+          </h3>
           {titleAside}
         </div>
       ) : (
-        <h3>{title}</h3>
+        <h3 style={{ fontSize: compact ? "0.95rem" : undefined }}>{title}</h3>
       )}
       {children}
     </div>
