@@ -1,9 +1,8 @@
 /**
  * Lettura PDF Easytech (strato testo) tramite pdf.js → righe → parseEasytechPdfText.
- * File storico "Ocr": oggi non usa più Tesseract.
- *
- * Il worker DEVE essere servito dallo stesso origine del sito: un CDN esterno
- * (unpkg) viene spesso bloccato da CSP in produzione (es. Vercel) e fa crashare pdf.js.
+ * pdf.js è importato in modo statico (niente import() dinamico) per evitare errori
+ * di caricamento del chunk in produzione su Vercel.
+ * Il worker è servito dallo stesso origine tramite `?url` in Vite.
  */
 import {
   EASYTECH_FIELD_RULES,
@@ -11,12 +10,13 @@ import {
   validateField,
 } from "./easytechIsokineticImport.js";
 
+/** Import statico: evita chunk `pdf-*.js` lazy che in produzione (Vercel) danno "error loading dynamically imported module". */
+import * as pdfjs from "pdfjs-dist/build/pdf.mjs";
+
 /** URL del worker incluso nel bundle Vite (stesso dominio → niente CSP verso terzi). */
 import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
-function attachPdfWorker(pdfjs) {
-  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
-}
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
 /** Raggruppa item getTextContent in righe (stessa baseline, ordine sinistra-destra). */
 function textItemsToLines(items) {
@@ -100,9 +100,6 @@ export async function extractEasytechPdf(pdfBytes, onProgress) {
     pdfBytes instanceof Uint8Array
       ? pdfBytes
       : new Uint8Array(pdfBytes || []);
-
-  const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
-  attachPdfWorker(pdfjs);
 
   const loadingTask = pdfjs.getDocument({
     data: bytes,
