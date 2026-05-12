@@ -1,6 +1,9 @@
 /**
  * Lettura PDF Easytech (strato testo) tramite pdf.js → righe → parseEasytechPdfText.
  * File storico "Ocr": oggi non usa più Tesseract.
+ *
+ * Il worker DEVE essere servito dallo stesso origine del sito: un CDN esterno
+ * (unpkg) viene spesso bloccato da CSP in produzione (es. Vercel) e fa crashare pdf.js.
  */
 import {
   EASYTECH_FIELD_RULES,
@@ -8,9 +11,11 @@ import {
   validateField,
 } from "./easytechIsokineticImport.js";
 
-function setPdfWorker(pdfjs) {
-  const v = pdfjs.version || "5.7.284";
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${v}/build/pdf.worker.min.mjs`;
+/** URL del worker incluso nel bundle Vite (stesso dominio → niente CSP verso terzi). */
+import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+function attachPdfWorker(pdfjs) {
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 }
 
 /** Raggruppa item getTextContent in righe (stessa baseline, ordine sinistra-destra). */
@@ -91,14 +96,32 @@ function buildMeasurementColumnsFromRows(rows) {
  * @returns {Promise<{ pages: Array<object> }>}
  */
 export async function extractEasytechPdf(pdfBytes, onProgress) {
+  const bytes =
+    pdfBytes instanceof Uint8Array
+      ? pdfBytes
+      : new Uint8Array(pdfBytes || []);
+
   const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
-  setPdfWorker(pdfjs);
+  attachPdfWorker(pdfjs);
 
   const loadingTask = pdfjs.getDocument({
-    data: pdfBytes,
+    data: bytes,
     useSystemFonts: true,
+    stopAtErrors: false,
   });
-  const pdf = await loadingTask.promise;
+
+  let pdf;
+  try {
+    pdf = await loadingTask.promise;
+  } catch (e) {
+    const msg = e?.message || String(e);
+    throw new Error(
+      msg.includes("worker") || msg.includes("Worker")
+        ? `PDF worker: ${msg}`
+        : msg
+    );
+  }
+
   const n = pdf.numPages || 0;
   const pages = [];
 

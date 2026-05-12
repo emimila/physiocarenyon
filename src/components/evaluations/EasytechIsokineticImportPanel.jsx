@@ -91,7 +91,28 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
               [jsonKey]: {
                 label: m.fields[jsonKey]?.label || rule?.label || jsonKey,
                 raw,
-                value: v.normalized,
+                value: (() => {
+                  const n = v.normalized;
+                  if (!v.valid) return n;
+                  if (n == null || n === "") return "";
+                  if (typeof n === "string") return n;
+                  if (Array.isArray(n)) {
+                    if (n.length === 3) {
+                      return n.map((x) => (x == null ? "" : String(x))).join(" ");
+                    }
+                    return n
+                      .map((x) => {
+                        if (x == null) return "";
+                        if (typeof x === "number" && !Number.isInteger(x)) {
+                          return String(Math.round(x * 100) / 100);
+                        }
+                        if (typeof x === "number") return String(Math.round(x));
+                        return String(x);
+                      })
+                      .join("/");
+                  }
+                  return String(n);
+                })(),
                 valid: v.valid,
                 ...(v.message ? { message: v.message } : {}),
               },
@@ -241,7 +262,8 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
         }}
       >
         <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a" }}>
-          {tt("tests.isokinetic.easytechImportTitle")}
+          {tt("tests.isokinetic.easytechImportTitle") ||
+            "Importa PDF Easytech"}
         </div>
         <button
           type="button"
@@ -250,8 +272,8 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
           style={{ padding: "6px 12px", fontSize: 12 }}
         >
           {busy
-            ? tt("tests.isokinetic.easytechImportBusy")
-            : tt("tests.isokinetic.easytechImportPickPdf")}
+            ? tt("tests.isokinetic.easytechImportBusy") || "Lettura…"
+            : tt("tests.isokinetic.easytechImportPickPdf") || "Scegli PDF…"}
         </button>
         {fileName ? (
           <span style={{ fontSize: 12, color: "#475569" }}>{fileName}</span>
@@ -266,7 +288,8 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
       </div>
 
       <p style={{ margin: "0 0 10px", fontSize: 11, color: "#64748b" }}>
-        {tt("tests.isokinetic.easytechImportHint")}
+        {tt("tests.isokinetic.easytechImportHint") ||
+          "PDF referto Easytech con testo selezionabile (stampa in PDF)."}
       </p>
 
       {busy && progress ? (
@@ -699,11 +722,33 @@ function PageCard({
 
 /* -------------------------------------------------------------------------- */
 
+/** Valore mostrato negli input testo (mai array grezzo → evita crash React). */
+function fieldValueToString(v) {
+  if (v == null || v === "") return "";
+  if (Array.isArray(v)) {
+    if (v.length === 3) {
+      return v.map((x) => (x == null ? "" : String(x))).join(" ");
+    }
+    return v
+      .map((x) => {
+        if (x == null) return "";
+        if (typeof x === "number" && !Number.isInteger(x)) {
+          return String(Math.round(x * 100) / 100);
+        }
+        if (typeof x === "number") return String(Math.round(x));
+        return String(x);
+      })
+      .join("/");
+  }
+  if (typeof v === "object") return "";
+  return String(v);
+}
+
 function FieldCell({ field, overwrite, tt, onChange }) {
   const valid = field?.valid;
-  const value = field?.value || "";
-  const raw = field?.raw || "";
-  const display = valid ? value : raw;
+  const valueRaw = field?.value ?? "";
+  const raw = field?.raw ?? "";
+  const display = valid ? fieldValueToString(valueRaw) : fieldValueToString(raw);
   const message = field?.message || "";
   const isOverwrite = Boolean(valid && overwrite);
 
