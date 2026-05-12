@@ -1,6 +1,10 @@
 import { tegnerInfo } from "../data/options";
-import { sheetContextFieldDiffers } from "../utils/clinicalHistory";
+import {
+  normalizeAntecedentiList,
+  sheetContextFieldDiffers,
+} from "../utils/clinicalHistory";
 import { bonDiffSummaryStyle } from "../utils/bonDiffSummaryStyle";
+import { getMonthShort } from "../utils/monthNames";
 import {
   calcBMI,
   formatDateDMY,
@@ -17,7 +21,12 @@ function Hi({ show, children }) {
 }
 
 /** Blocco anamnesi / sport come in scheda paziente (stesso layout export PDF). */
-export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
+export function PatientAnamnesisSheet({
+  data,
+  tt,
+  lang = "it",
+  diffPrevious = null,
+}) {
   if (!data || typeof data !== "object") return null;
   const selected = data;
   const prev =
@@ -241,14 +250,56 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
         );
       })()}
 
-      {patientTrim(manualTextLower(selected.antecedentiChirurgici)) && (
-        <p>
-          <strong>{tt("patient.relevantSurgeryHistory")}:</strong>{" "}
-          <Hi show={diff("antecedentiChirurgici")}>
-            {manualTextLower(selected.antecedentiChirurgici)}
-          </Hi>
-        </p>
-      )}
+      {(() => {
+        const surgicalRows = normalizeAntecedentiList(
+          selected.antecedentiChirurgici
+        );
+        if (surgicalRows.length === 0) return null;
+        const showHi = diff("antecedentiChirurgici");
+        return (
+          <div style={{ margin: "0 0 10px" }}>
+            <p style={{ margin: "0 0 4px" }}>
+              <strong>{tt("patient.relevantSurgeryHistory")}:</strong>
+            </p>
+            <ul
+              style={{
+                margin: "0 0 0 18px",
+                padding: 0,
+                lineHeight: 1.45,
+              }}
+            >
+              {surgicalRows.map((row, i) => {
+                const yearStr = row.year || "—";
+                const monthStr = row.month
+                  ? getMonthShort(lang, row.month) || row.month
+                  : "—";
+                const textStr = manualTextLower(row.text);
+                const kindStr = row.kind
+                  ? tt(
+                      `patient.surgeryKind${row.kind.charAt(0).toUpperCase() + row.kind.slice(1)}`
+                    ) || row.kind
+                  : "";
+                const kindDetailStr = manualTextLower(row.kindDetail);
+                const prefixParts = [];
+                if (kindStr) prefixParts.push(kindStr);
+                if (kindDetailStr) prefixParts.push(kindDetailStr);
+                const prefix = prefixParts.length
+                  ? `${prefixParts.join(" — ")} · `
+                  : "";
+                return (
+                  <li key={`surg-li-${i}`}>
+                    <Hi show={showHi}>
+                      {prefix}
+                      {yearStr} – {monthStr}
+                      {textStr ? `: ${textStr}` : ""}
+                    </Hi>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })()}
 
       {selected.sesso === "Donna" &&
         (() => {
@@ -307,7 +358,7 @@ export function PatientAnamnesisSheet({ data, tt, diffPrevious = null }) {
         >
           {patientTrim(manualTextLower(selected.dominioLavoro)) ? (
             <span>
-              <strong>{tt("patient.workEducation")}:</strong>{" "}
+              <strong>{tt("patient.professionOrFormation")}:</strong>{" "}
               <Hi show={diff("dominioLavoro")}>
                 {manualTextLower(selected.dominioLavoro)}
               </Hi>

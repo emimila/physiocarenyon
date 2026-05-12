@@ -8,6 +8,7 @@ const TEST_TYPE_IDS = [
   "Y_BALANCE",
   "GRIP_STRENGTH",
   "STRENGTH_MAXIMALS",
+  "HOP_BATTERY",
   "ISOKINETIC",
 ];
 
@@ -135,8 +136,10 @@ export default function TestSessionForm({
                         ? tt("tests.gripStrength.title") ?? "Grip test (Jamar)"
                         : id === "ISOKINETIC"
                           ? tt("tests.isokinetic.title") ?? "Test isocinetico"
-                          : tt("tests.strengthMaximals.title") ??
-                            "Massimali pesistica",
+                          : id === "HOP_BATTERY"
+                            ? tt("tests.hopBattery.title") ?? "Hop test battery"
+                            : tt("tests.strengthMaximals.title") ??
+                              "Massimali pesistica",
                 })),
               ]}
             />

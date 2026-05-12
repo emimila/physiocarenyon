@@ -12,6 +12,13 @@ import {
   ISOKINETIC_FIELD_I18N,
   ISOKINETIC_SIDE_TABLE_FIELDS,
 } from "../evaluations/IsokineticTestFields";
+import {
+  IsokineticCommentList,
+  IsokineticContralateralPanel,
+  IsokineticReferencePanel,
+  metricsForClinicalFocusRow,
+} from "../evaluations/IsokineticClinicalPanels";
+import IsokineticMaxTorqueGridChart from "../evaluations/IsokineticMaxTorqueGridChart";
 
 function disp(v) {
   if (v === "" || v == null) return "—";
@@ -36,21 +43,6 @@ const tdPdf = {
   verticalAlign: "middle",
 };
 
-const thRef = {
-  border: "1px solid #cbd5e1",
-  padding: 4,
-  fontSize: 9,
-  fontWeight: 600,
-  textAlign: "left",
-  background: "#e2e8f0",
-};
-
-const tdRef = {
-  border: "1px solid #cbd5e1",
-  padding: 4,
-  fontSize: 9,
-};
-
 /**
  * Report isocinetico per export PDF (stesso flusso di Y Balance / html2pdf).
  */
@@ -64,6 +56,8 @@ export default function IsokineticTestPdfReport({
   const iso = test?.isokinetic || {};
   const rows = normalizeIsokineticRowsForReport(iso);
   const injured = iso.injuredSide;
+  const { metrics: clinicalSel, speed: clinicalSpeed } =
+    metricsForClinicalFocusRow(rows, injured, iso.clinicalFocusSpeed);
 
   const headerSubtitle = [
     tt("tests.isokinetic.title"),
@@ -110,8 +104,7 @@ export default function IsokineticTestPdfReport({
           lineHeight: 1.45,
         }}
       >
-        <div style={{ fontWeight: 700, color: "#0d5c68" }}>Physiocare Nyon</div>
-        <div style={{ marginTop: 6, fontWeight: 600 }}>
+        <div style={{ fontWeight: 600 }}>
           {formatPatientListDisplayName(patient) || "—"}
         </div>
         {patient?.dataNascita ? (
@@ -144,6 +137,22 @@ export default function IsokineticTestPdfReport({
       >
         {tt("patient.testCharts.isokineticReportHeading")}
       </h4>
+
+      <p
+        className="isokinetic-pdf-table-legend pdf-avoid-break"
+        style={{
+          margin: "0 0 12px",
+          padding: "8px 10px",
+          fontSize: 10,
+          lineHeight: 1.45,
+          color: "#334155",
+          background: "#f8fafc",
+          border: "1px solid #e2e8f0",
+          borderRadius: 8,
+        }}
+      >
+        {tt("tests.isokinetic.tableMeasuresLegend")}
+      </p>
 
       {["right", "left"].map((side) => (
         <div
@@ -265,129 +274,85 @@ export default function IsokineticTestPdfReport({
       </div>
 
       <div
+        className="pdf-avoid-break isokinetic-pdf-torque-chart-wide"
+        style={{
+          width: "100%",
+          maxWidth: "100%",
+          marginTop: 10,
+          marginBottom: 12,
+          boxSizing: "border-box",
+        }}
+      >
+        <IsokineticMaxTorqueGridChart rows={rows} tt={tt} variant="form" />
+      </div>
+
+      <div
         className="isokinetic-pdf-clinical pdf-avoid-break"
         style={{ marginTop: 10, marginBottom: 12 }}
       >
-        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 11 }}>
-          {tt("patient.testCharts.isokineticPdfClinicalTitle")}
-        </div>
-        {rows.map((row) => {
-          const m = computeRowMetrics(row, injured);
-          return (
-            <div
-              key={`clin-${row.speed}`}
-              style={{
-                marginBottom: 8,
-                fontSize: 9,
-                lineHeight: 1.45,
-                padding: "6px 8px",
-                background: "#f8fafc",
-                borderRadius: 6,
-                border: "1px solid #e2e8f0",
-              }}
-            >
-              <strong>{row.speed}°/s</strong>
-              {!injured || !m ? (
-                <div style={{ marginTop: 4 }}>
-                  {tt("tests.isokinetic.needInjuredSide")}
-                </div>
-              ) : (
-                <ul style={{ margin: "4px 0 0", paddingLeft: 16 }}>
-                  <li>
-                    {tt("tests.isokinetic.extensors")} (LSI):{" "}
-                    {formatPct1(m.lsiExt) ?? "—"}
-                  </li>
-                  <li>
-                    {tt("tests.isokinetic.flexors")} (LSI):{" "}
-                    {formatPct1(m.lsiFlex) ?? "—"}
-                  </li>
-                  <li>
-                    H/Q ({tt("tests.isokinetic.injuredSideShort")}):{" "}
-                    {formatPct1(m.hqInjured) ?? "—"}
-                  </li>
-                  <li>
-                    {tt("tests.isokinetic.diffAngleExt")}:{" "}
-                    {m.diffAngleExt != null && Number.isFinite(m.diffAngleExt)
-                      ? `${m.diffAngleExt.toFixed(1)}°`
-                      : "—"}
-                  </li>
-                  <li>
-                    {tt("tests.isokinetic.diffAngleFlex")}:{" "}
-                    {m.diffAngleFlex != null && Number.isFinite(m.diffAngleFlex)
-                      ? `${m.diffAngleFlex.toFixed(1)}°`
-                      : "—"}
-                  </li>
-                  <li>
-                    {tt("tests.isokinetic.diffRomExt")}:{" "}
-                    {m.diffRomExt != null && Number.isFinite(m.diffRomExt)
-                      ? `${m.diffRomExt.toFixed(1)}°`
-                      : "—"}
-                  </li>
-                  <li>
-                    {tt("tests.isokinetic.diffRomFlex")}:{" "}
-                    {m.diffRomFlex != null && Number.isFinite(m.diffRomFlex)
-                      ? `${m.diffRomFlex.toFixed(1)}°`
-                      : "—"}
-                  </li>
-                </ul>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="pdf-avoid-break" style={{ marginTop: 8 }}>
-        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 11 }}>
-          {tt("tests.isokinetic.referenceTitle")}
-        </div>
-        <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 600 }}>
-          {tt("tests.isokinetic.hqRefTitle")}
-        </p>
-        <table
+        <div
           style={{
-            width: "100%",
-            maxWidth: 400,
-            borderCollapse: "collapse",
+            fontWeight: 700,
             marginBottom: 10,
+            fontSize: 11,
+            color: "#0f172a",
           }}
         >
-          <thead>
-            <tr>
-              <th style={thRef}>°/s</th>
-              <th style={thRef}>{tt("tests.isokinetic.hqLow")}</th>
-              <th style={thRef}>{tt("tests.isokinetic.hqExpected")}</th>
-              <th style={thRef}>{tt("tests.isokinetic.hqHigh")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={tdRef}>60</td>
-              <td style={tdRef}>&lt;55%</td>
-              <td style={tdRef}>55–65%</td>
-              <td style={tdRef}>&gt;70%</td>
-            </tr>
-            <tr>
-              <td style={tdRef}>180</td>
-              <td style={tdRef}>&lt;60%</td>
-              <td style={tdRef}>60–75%</td>
-              <td style={tdRef}>&gt;80%</td>
-            </tr>
-            <tr>
-              <td style={tdRef}>300</td>
-              <td style={tdRef}>&lt;65%</td>
-              <td style={tdRef}>65–85%</td>
-              <td style={tdRef}>&gt;90%</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 600 }}>
-          {tt("tests.isokinetic.lsiRefTitle")}
-        </p>
-        <ul style={{ margin: 0, paddingLeft: 16, fontSize: 9, lineHeight: 1.45 }}>
-          <li>{tt("tests.isokinetic.lsiRefOptimal")}</li>
-          <li>{tt("tests.isokinetic.lsiRefAcceptable")}</li>
-          <li>{tt("tests.isokinetic.lsiRefDeficit")}</li>
-        </ul>
+          {tt("patient.testCharts.isokineticPdfClinicalTitle")}{" "}
+          <span style={{ fontWeight: 500, color: "#64748b" }}>
+            ({clinicalSpeed}°/s)
+          </span>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 12,
+            alignItems: "start",
+          }}
+        >
+          <div
+            style={{
+              border: "1px solid #e2e8f0",
+              borderRadius: 8,
+              padding: 12,
+              background: "#fafafa",
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 13 }}>
+              {tt("tests.isokinetic.commentSelected")}{" "}
+              <span style={{ color: "#64748b", fontWeight: 500 }}>
+                ({clinicalSpeed}°/s)
+              </span>
+            </div>
+            <IsokineticCommentList
+              injuredSide={injured}
+              sel={clinicalSel}
+              tt={tt}
+            />
+          </div>
+          <div
+            style={{
+              border: "1px solid #e2e8f0",
+              borderRadius: 8,
+              padding: 12,
+              background: "#fafafa",
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 13 }}>
+              {tt("tests.isokinetic.contralateralTitle")}
+            </div>
+            <IsokineticContralateralPanel
+              injuredSide={injured}
+              sel={clinicalSel}
+              tt={tt}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="pdf-avoid-break" style={{ marginTop: 12, width: "100%" }}>
+        <IsokineticReferencePanel tt={tt} />
       </div>
 
       {test?.noteAltro && String(test.noteAltro).trim() !== "" ? (

@@ -9,6 +9,7 @@ import {
   StrengthMaximalsEvaluationFields,
 } from "./evaluationTestFields";
 import IsokineticTestFields from "./IsokineticTestFields";
+import HopBatteryTestFields from "./HopBatteryTestFields";
 
 function emptyTestRow() {
   return {
@@ -19,6 +20,7 @@ function emptyTestRow() {
     left: {},
     right: {},
     lifts: [],
+    hopBattery: {},
   };
 }
 
@@ -88,6 +90,13 @@ export default function DistrictTestsPanel({
                                     typeof t.isokinetic === "object"
                                       ? t.isokinetic
                                       : fresh.isokinetic,
+                                  hopBattery:
+                                    value === "HOP_BATTERY" &&
+                                    t.type === "HOP_BATTERY" &&
+                                    t.hopBattery &&
+                                    typeof t.hopBattery === "object"
+                                      ? t.hopBattery
+                                      : fresh.hopBattery,
                                 };
                               })()
                             : t
@@ -116,6 +125,10 @@ export default function DistrictTestsPanel({
               {
                 value: "ISOKINETIC",
                 label: tt("tests.isokinetic.title") ?? "Test isocinetico",
+              },
+              {
+                value: "HOP_BATTERY",
+                label: tt("tests.hopBattery.title") ?? "Hop test battery",
               },
             ]}
           />
@@ -254,6 +267,22 @@ export default function DistrictTestsPanel({
               test={test}
               evaluationForm={evaluationForm}
               setEvaluationForm={setEvaluationForm}
+            />
+          )}
+
+          {test.type === "HOP_BATTERY" && (
+            <HopBatteryTestFields
+              tt={tt}
+              distrettoId={d.id}
+              test={test}
+              setEvaluationForm={setEvaluationForm}
+              patient={patient}
+              sessionDate={evaluationForm?.data}
+              numeroTest={evaluationForm?.numeroTest}
+              districtLabel={
+                tt(`options.distretti.${String(d.nome).toLowerCase()}`) ||
+                d.nome
+              }
             />
           )}
 

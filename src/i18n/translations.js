@@ -33,6 +33,7 @@ export const translations = {
 
     patient: {
       title: "Scheda paziente",
+      historyEntryLabel: "Visita {{n}}",
       identity: "Identità",
       firstName: "Nome",
       lastName: "Cognome",
@@ -78,6 +79,20 @@ export const translations = {
       epilepsy: "Epilessia",
       relevantSurgeryHistory:
         "Antecedenti e operazioni chirurgiche rilevanti",
+      year: "Anno",
+      month: "Mese",
+      surgeryDescription: "Descrizione",
+      surgeryKind: "Tipo",
+      surgeryKindGenerico: "Generico",
+      surgeryKindRicorrente: "Ricorrente",
+      surgeryKindAltro: "Altro",
+      surgeryKindDetail: "Specifica",
+      addRow: "+ Aggiungi riga",
+      removeRow: "Rimuovi riga",
+      confirmDiscardLegacyAntecedenti:
+        "Convertire i dati esistenti? Il testo libero attuale verra' scartato per usare il nuovo formato a righe.",
+      legacyAntecedentiBannerTitle: "Testo originale (formato precedente)",
+      discardLegacyButton: "Scarta e usa nuovo formato",
       femaleHealth: "Salute femminile",
       children: "Figli",
       childrenCount: "Quanti",
@@ -101,7 +116,28 @@ export const translations = {
       trial3: "Prova 3",
     
       workEducation: "Dominio di lavoro / formazione",
+      workEducationSection: "Lavoro / formazione",
+      professionOrFormation: "Professione / formazione",
       professionalRiskNotes: "Note su eventuali rischi professionali",
+      tabIdentity: "Identità",
+      tabPhysical: "Dati fisici",
+      tabMedical: "Informazioni mediche",
+      tabWork: "Lavoro / formazione",
+      tabSport: "Sport",
+      tabClinical: "Quadro clinico",
+      tabDiagnosis: "Diagnosi / intervento",
+      tabEvaluations: "Valutazioni / test",
+      formTabsAria: "Sezioni della scheda paziente",
+      evaluationsTabPlaceholder:
+        "Valutazioni e test si gestiscono dalla vista paziente dopo il salvataggio.",
+      diagnosisInterventionSection: "Diagnosi / intervento",
+      surgeryStatusLabel: "Stato intervento",
+      surgeryStatusPreOp: "pre-operatorio",
+      timeUntilSurgeryLabel: "Tempo all’operazione",
+      reportBlockPhysicalSport:
+        "Dati fisici, salute, lavoro e contesto sportivo",
+      reportBlockClinicalDx: "Quadro clinico, diagnosi e intervento",
+      reportBlockEvaluationsTests: "Valutazioni e test",
       accessReason: "Perché sei da noi?",
       referralFrom: "Chi ha fatto il referral?",
       lifesavingMed: "Farmaco salvavita",
@@ -119,11 +155,12 @@ export const translations = {
       runningDisciplineOther: "Altro / specifica",
       injuryDateHint: "Inserisci la data per calcolare il tempo trascorso.",
       surgeryDateHint:
-        "Inserisci la data per calcolare il tempo post-operatorio.",
+        "Inserisci la data per vedere il tempo post-operatorio o, se futura, lo stato pre-operatorio.",
       tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Quadro clinico",
-      diagnosis: "Diagnosi / problema principale",
+      diagnosis: "Diagnosi",
+      involvedDistrict: "Distretto coinvolto",
       diagnosisShort: "Diagnosi",
       diagnosisDetails: "Dettagli diagnosi",
       diagnosesIntro:
@@ -148,20 +185,32 @@ export const translations = {
       timeSinceSurgery: "Tempo post-operatorio",
       operatedLimb: "Arto operato / localizzazione",
       operatedLimbShort: "Arto operato",
+      operatedDistrict: "Distretto operato",
+      surgerySide: "Lato",
+      surgeryName: "Intervento",
+      surgeryDetails: "Dettagli operazione",
+      surgeryProtocol: "Protocollo riabilitazione",
+      surgeryProtocolUpload: "Carica protocollo (PDF)",
+      surgeryProtocolReplace: "Sostituisci PDF",
+      surgeryProtocolView: "Visualizza protocollo",
+      surgeryProtocolRemove: "Rimuovi PDF",
+      surgeryProtocolFileTooLarge:
+        "Il file supera la dimensione massima consentita (10 MB).",
+      surgeryDistrictOther: "Altro",
       surgeryType: "Tipo operazione",
       regardingPrescribingDoctor: "Medico prescrittore",
       evaluationOf: "valutazione del",
       diagnosisOfDate: "Diagnosi del",
       appointmentOfDate: "appuntamento del",
       addDiagnosisSheet: "+ Aggiungi diagnosi",
-      addBonDiagnosis: "Aggiungi bon diagnosi",
+      addBonDiagnosis: "Aggiungi diagnosi",
       deletePatient: "Elimina paziente",
-      deleteThisBon: "Elimina questo bon",
+      deleteThisBon: "Elimina voce dallo storico",
       confirmDeleteBon:
-        "Eliminare questo bon dallo storico? L’operazione non è annullabile.",
+        "Eliminare questa voce dallo storico? L’operazione non è annullabile.",
       confirmDeletePatient: "Eliminare il paziente dall’archivio?",
-      editThisBonSheet: "Modifica questa scheda bon",
-      editingBonSheetBanner: "Stai modificando la scheda di questo bon:",
+      editThisBonSheet: "Modifica scheda",
+      editingBonSheetBanner: "Stai modificando la scheda di:",
       sheetEvaluations: "Valutazioni",
       sheetNewTest: "+ Nuovo test",
       sheetTests: "Test",
@@ -173,17 +222,42 @@ export const translations = {
         panelTitle: "Grafici test",
         pickChart: "Seleziona il tipo di grafico dall’elenco.",
         optionYBalance: "Y Balance Test – risultati",
-        optionIsokinetic: "Test isocinetico — report PDF",
+        optionIsokinetic: "Test isocinetico — grafici e report PDF",
+        optionHopBattery: "Hop test battery — grafico e report PDF",
         noYBalanceSessions: "Non ci sono sessioni test con Y Balance.",
         noIsokineticSessions:
           "Non ci sono sessioni test con test isocinetico.",
+        noHopSessions: "Non ci sono sessioni test con Hop test battery.",
         sessionLabel: "Sessione test",
         noYBalanceInPick: "Nessun Y Balance per questa combinazione.",
         noIsokineticInPick:
           "Nessun test isocinetico per questa combinazione.",
+        noHopInPick: "Nessun Hop test battery per questa combinazione.",
         yBalanceReportHeading: "Y-BALANCE TEST – RISULTATI",
         isokineticReportHeading: "TEST ISOCINETICO — REPORT",
         isokineticPdfClinicalTitle: "Sintesi numerica per velocità",
+        isokineticChartsHeading: "Grafici comparativi isocinetici (DX / SX)",
+        isokineticChartMaxTitle:
+          "Coppia massimale — estensori e flessori (Nm)",
+        isokineticChartMeanTitle:
+          "Coppia media stimata — estensori e flessori (Nm)",
+        isokineticChartMeanFootnote:
+          "Stima: lavoro ÷ (ripetizioni × ROM in radianti). Serve ROM e lavoro coerenti; interpretare con cautela.",
+        isokineticChartWorkTitle:
+          "Lavoro totale — somma estensione + flessione (per lato)",
+        isokineticChartLegendExtDx: "Estensori DX",
+        isokineticChartLegendExtSx: "Estensori SX",
+        isokineticChartLegendFlexDx: "Flessori DX",
+        isokineticChartLegendFlexSx: "Flessori SX",
+        isokineticChartLegendWorkDx: "Totale lavoro DX",
+        isokineticChartLegendWorkSx: "Totale lavoro SX",
+        isokineticChartYNm: "Nm",
+        isokineticChartYWork: "J (o u.d.)",
+        isokineticChartNoData: "Nessun dato di coppia massima per tracciare il grafico.",
+        isokineticChartNoMeanData:
+          "Per la coppia media servono lavoro e ROM: compilare ROM e lavoro per estensione/flessione.",
+        isokineticChartNoWorkData:
+          "Nessun dato di lavoro (ext/flex) per tracciare il grafico.",
         metaAthlete: "Atleta",
         metaSport: "Sport",
         metaDate: "Data",
@@ -254,6 +328,7 @@ export const translations = {
       removeDistrict: "Rimuovi distretto",
       right: "Destro",
       left: "Sinistro",
+      bilateral: "Bilaterale",
       strength: "Forza",
       function: "Funzione",
       passiveMobility: "Mobilità passiva",
@@ -577,6 +652,7 @@ export const translations = {
     },
 
     tests: {
+      useOperatedSide: "Usa lato operato",
       gripStrength: {
         title: "Test di prensione (Jamar)",
         summary: "Risultato",
@@ -636,6 +712,75 @@ export const translations = {
           backSquat: "Back squat",
           benchPress: "Panca piana",
           deadlift: "Deadlift",
+        },
+      },
+      hopBattery: {
+        title: "Hop test battery (4 test)",
+        intro:
+          "Quattro test funzionali: per ogni prova inserire destro (DX) e sinistro (SX). Triple hop, single hop e crossover hop: distanza in cm. Side hop: numero di salti laterali in 30 s. Indicando il lato lesionato si mostrano le LSI e la media.",
+        injuredSideLabel: "Lato lesionato (per LSI)",
+        injuredSidePlaceholder: "— Non indicato —",
+        injuredRight: "Destro (DX)",
+        injuredLeft: "Sinistro (SX)",
+        dominantSideLabel: "Lato dominante (arto inferiore)",
+        dominantSidePlaceholder: "— Non indicato —",
+        unitCm: "cm",
+        unitReps: "ripetizioni",
+        tripleHop: "Triple hop for distance",
+        singleHop: "Single hop for distance",
+        sideHop: "Side hop (30 s)",
+        crossoverHop: "Crossover hop for distance",
+        lsiLabel: "LSI",
+        meanLsi: "Media LSI (4 test)",
+        chartShort: {
+          tripleHop: "Triple",
+          singleHop: "Single",
+          sideHop: "Side",
+          crossoverHop: "Cross",
+        },
+        pdfSectionMeasures: "Risultati per test (DX / SX)",
+        pdfColUnit: "Unità",
+        pdfSectionChart: "Confronto grafico DX / SX",
+        pdfChartCaption:
+          "Barre proporzionali al valore migliore in ogni prova (scala interna al singolo test).",
+        pdfSectionLsi: "Indice di simmetria degli arti (LSI)",
+        pdfLsiFormula:
+          "LSI = (arto lesionato / arto sano) × 100. Tratteggio verticale: 90% e 95%.",
+        pdfLegendTitle: "Legenda LSI",
+        legendOptimal: "Verde (≥ 95%): eccellente",
+        legendGood: "Giallo (90–94%): buono",
+        legendAttention: "Arancione (85–89%): attenzione",
+        legendDeficit: "Rosso (< 85%): deficit significativo",
+        pdfRtSportNote:
+          "Soglia di riferimento per return-to-sport spesso citata in letteratura: LSI ≥ 90%.",
+        unitRepsShort: "rip.",
+        pdfDominantPlaceholder: "—",
+        pdfMainTitle: "HOP TEST BATTERY",
+        pdfMainSubtitle: "Valutazione funzionale — arti inferiori",
+        pdfPatient: "Paziente",
+        pdfTestDate: "Data test",
+        pdfDominantSide: "Lato dominante",
+        pdfSportActivity: "Sport / attività",
+        pdfSoglia90Short: "SOGLIA 90%",
+        pdfSoglia90Label: "Soglia 90%",
+        pdfSidebarTitle: "Risultati complessivi",
+        pdfSidebarFormula:
+          "LSI = (arto lesionato / arto sano) × 100. La linea arancione verticale indica il 90% del valore del lato sano.",
+        pdfConsultNote:
+          "Interpretare sempre nel contesto clinico; in caso di dubbi rivolgersi al fisioterapista.",
+        pdfFooterShield:
+          "In letteratura sportiva un LSI ≥ 90% è spesso considerato soglia minima per il rientro in campo.",
+        pdfFooterClipboard:
+          "Integrare con la valutazione di forza muscolare e controllo motorio.",
+        pdfFooterHeart:
+          "Proseguire con costanza il percorso riabilitativo.",
+        pdfQuadDesc: {
+          tripleHop:
+            "Tre salti consecutivi in avanti: distanza totale (cm).",
+          singleHop: "Un solo salto in avanti: distanza (cm).",
+          sideHop: "Salti laterali in 30 secondi: numero di ripetizioni.",
+          crossoverHop:
+            "Salti in avanti con attraversamenti: distanza totale (cm).",
         },
       },
       isokinetic: {
@@ -736,6 +881,53 @@ export const translations = {
         cmPerKgLeftFlexHint:
           "Coppia massima flessione / peso (Nm·kg⁻¹) — sinistro",
         pdfWeightUsed: "Peso usato per CM/peso",
+        torqueCompareChartSubtitle:
+          "Coppia massimale (Nm) — confronto destro / sinistro per velocità",
+        torqueChartShortD: "D",
+        torqueChartShortS: "S",
+        torqueChartRowFlex: "FLEX",
+        torqueChartRowExt: "EXT",
+        torqueChartLegendD: "Destro (D)",
+        torqueChartLegendS: "Sinistro (S)",
+        torqueCompareChartUnit: "Scala: Nm",
+        torqueCompareWideTitle:
+          "Istogramma coppia massimale — confronto destro / sinistro",
+        torqueAxisNm: "Nm",
+        torqueAxisHint:
+          "Linee orizzontali tratteggiate = riferimento su scala verticale (Nm); linea più marcata = zero.",
+        torqueHistogramMainTitle: "Grafico coppia massimale",
+        workHistogramWideTitle: "Grafico lavoro totale",
+        workCompareChartSubtitle:
+          "Lavoro totale estensione e flessione (J) — destro e sinistro per ogni velocità (60°, 180°, 300°/s)",
+        workAxisHint:
+          "Linee orizzontali tratteggiate = scala verticale in joule (J); linea più marcata = zero.",
+        workCompareChartUnit: "Scala: J",
+        workChartRowExt: "Lavoro totale — estensione",
+        workChartRowFlex: "Lavoro totale — flessione",
+        tableMeasuresLegend:
+          "Legenda tabelle: °/s = velocità; Contr. = tipo di contrazione; Conc. = concentrica; N = numero ripetizioni. Colonne dati: coppia massima est/flex (Nm), angolo al CM (°), ROM (°), lavoro totale est/flex (J) per il lato del titolo (destro/sinistro). In «Calcoli automatici»: H/Q, LSI e coppia per kg se è indicato il lato interessato.",
+        easytechImportTitle: "Importa PDF Easytech",
+        easytechImportHint:
+          "Trascina o seleziona un report Easytech (PDF)…",
+        easytechImportLoading: "Lettura del PDF in corso…",
+        easytechImportError: "Errore durante la lettura del PDF: {msg}",
+        easytechImportSpeed: "Velocità",
+        easytechImportSwapSides: "↔ Inverti DX/SX",
+        easytechImportSwapSidesHint:
+          "Inverte la colonna DROITE con GAUCHE (utile se il referto è letto in modo speculare).",
+        easytechImportReset: "↻ Ricomincia",
+        easytechImportRemove: "✕ Rimuovi",
+        easytechImportApplyDroite: "Importa DROITE → DX",
+        easytechImportApplyGauche: "Importa GAUCHE → SX",
+        easytechImportInvalidCellsWarning:
+          "Correggi le celle in rosso prima di importare",
+        easytechImportOverwrite: "Sovrascrive «{prev}»",
+        easytechImportColLabel: "Misura",
+        easytechImportColDroite: "DROITE",
+        easytechImportColGauche: "GAUCHE",
+        easytechImportColRapport: "Rapport",
+        easytechImportMultiPageWarning:
+          "Il PDF contiene più pagine. Verrà importata solo la prima.",
       },
     },
 
@@ -811,6 +1003,7 @@ export const translations = {
 
     patient: {
       title: "Fiche patient",
+      historyEntryLabel: "Visite {{n}}",
       identity: "Identité",
       firstName: "Prénom",
       lastName: "Nom",
@@ -863,6 +1056,20 @@ export const translations = {
       epilepsy: "Épilepsie",
       relevantSurgeryHistory:
         "Antécédents et chirurgies pertinentes",
+      year: "Année",
+      month: "Mois",
+      surgeryDescription: "Description",
+      surgeryKind: "Type",
+      surgeryKindGenerico: "Générique",
+      surgeryKindRicorrente: "Récurrent",
+      surgeryKindAltro: "Autre",
+      surgeryKindDetail: "Préciser",
+      addRow: "+ Ajouter une ligne",
+      removeRow: "Supprimer la ligne",
+      confirmDiscardLegacyAntecedenti:
+        "Convertir les données existantes ? Le texte libre actuel sera écarté au profit du nouveau format en lignes.",
+      legacyAntecedentiBannerTitle: "Texte original (ancien format)",
+      discardLegacyButton: "Abandonner et utiliser le nouveau format",
       femaleHealth: "Santé féminine",
       children: "Enfants",
       childrenCount: "Combien",
@@ -880,7 +1087,28 @@ export const translations = {
       calcioFieldRole: "Rôle sur le terrain",
     
       workEducation: "Domaine de travail / formation",
+      workEducationSection: "Travail / formation",
+      professionOrFormation: "Profession / formation",
       professionalRiskNotes: "Notes sur les risques professionnels",
+      tabIdentity: "Identité",
+      tabPhysical: "Données physiques",
+      tabMedical: "Informations médicales",
+      tabWork: "Travail / formation",
+      tabSport: "Sport",
+      tabClinical: "Tableau clinique",
+      tabDiagnosis: "Diagnostic / intervention",
+      tabEvaluations: "Évaluations / tests",
+      formTabsAria: "Sections du dossier patient",
+      evaluationsTabPlaceholder:
+        "Les évaluations et les tests se gèrent depuis la fiche patient après enregistrement.",
+      diagnosisInterventionSection: "Diagnostic / intervention",
+      surgeryStatusLabel: "Statut de l’intervention",
+      surgeryStatusPreOp: "préopératoire",
+      timeUntilSurgeryLabel: "Temps avant l’intervention",
+      reportBlockPhysicalSport:
+        "Données physiques, santé, travail et contexte sportif",
+      reportBlockClinicalDx: "Tableau clinique, diagnostic et intervention",
+      reportBlockEvaluationsTests: "Évaluations et tests",
       accessReason: "Pourquoi êtes-vous chez nous ?",
       referralFrom: "Référence par",
       lifesavingMed: "Médicament d’urgence",
@@ -902,7 +1130,8 @@ export const translations = {
       tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Tableau clinique",
-      diagnosis: "Diagnostic / problème principal",
+      diagnosis: "Diagnostic",
+      involvedDistrict: "Région concernée",
       diagnosisShort: "Diagnostic",
       diagnosisDetails: "Détails du diagnostic",
       diagnosesIntro:
@@ -927,6 +1156,18 @@ export const translations = {
       timeSinceSurgery: "Temps postopératoire",
       operatedLimb: "Membre opéré",
       operatedLimbShort: "Membre opéré",
+      operatedDistrict: "Région opérée",
+      surgerySide: "Côté",
+      surgeryName: "Intervention",
+      surgeryDetails: "Détails de l’intervention",
+      surgeryProtocol: "Protocole de rééducation",
+      surgeryProtocolUpload: "Charger le protocole (PDF)",
+      surgeryProtocolReplace: "Remplacer le PDF",
+      surgeryProtocolView: "Voir le protocole",
+      surgeryProtocolRemove: "Supprimer le PDF",
+      surgeryProtocolFileTooLarge:
+        "Le fichier dépasse la taille maximale autorisée (10 Mo).",
+      surgeryDistrictOther: "Autre",
       surgeryType: "Type d’intervention",
       regardingPrescribingDoctor: "Médecin prescripteur",
       evaluationOf: "évaluation du",
@@ -952,17 +1193,43 @@ export const translations = {
         panelTitle: "Graphiques tests",
         pickChart: "Choisissez le type de graphique dans la liste.",
         optionYBalance: "Y Balance Test – résultats",
-        optionIsokinetic: "Test isocinétique — rapport PDF",
+        optionIsokinetic: "Test isocinétique — graphiques et rapport PDF",
+        optionHopBattery: "Hop test battery — graphique et rapport PDF",
         noYBalanceSessions: "Aucune séance de tests avec Y Balance.",
         noIsokineticSessions:
           "Aucune séance de tests avec test isocinétique.",
+        noHopSessions: "Aucune séance de tests avec Hop test battery.",
         sessionLabel: "Séance de tests",
         noYBalanceInPick: "Aucun Y Balance pour cette combinaison.",
         noIsokineticInPick:
           "Aucun test isocinétique pour cette combinaison.",
+        noHopInPick: "Aucun Hop test battery pour cette combinaison.",
         yBalanceReportHeading: "Y-BALANCE TEST – RÉSULTATS",
         isokineticReportHeading: "TEST ISOCINÉTIQUE — RAPPORT",
         isokineticPdfClinicalTitle: "Synthèse numérique par vitesse",
+        isokineticChartsHeading: "Graphiques isocinétiques comparés (D / G)",
+        isokineticChartMaxTitle:
+          "Couple maximal — extenseurs et fléchisseurs (Nm)",
+        isokineticChartMeanTitle:
+          "Couple moyen estimé — extenseurs et fléchisseurs (Nm)",
+        isokineticChartMeanFootnote:
+          "Estimation : travail ÷ (répétitions × ROM en radians). Nécessite ROM et travail cohérents ; interpréter avec prudence.",
+        isokineticChartWorkTitle:
+          "Travail total — somme extension + flexion (par côté)",
+        isokineticChartLegendExtDx: "Extenseurs D",
+        isokineticChartLegendExtSx: "Extenseurs G",
+        isokineticChartLegendFlexDx: "Fléchisseurs D",
+        isokineticChartLegendFlexSx: "Fléchisseurs G",
+        isokineticChartLegendWorkDx: "Travail total D",
+        isokineticChartLegendWorkSx: "Travail total G",
+        isokineticChartYNm: "Nm",
+        isokineticChartYWork: "J (ou u.)",
+        isokineticChartNoData:
+          "Aucune donnée de couple maximal pour tracer le graphique.",
+        isokineticChartNoMeanData:
+          "Pour le couple moyen, il faut travail et ROM : renseigner ROM et travail en extension/flexion.",
+        isokineticChartNoWorkData:
+          "Aucune donnée de travail (ext/fl) pour tracer le graphique.",
         metaAthlete: "Athlète",
         metaSport: "Sport",
         metaDate: "Date",
@@ -1062,6 +1329,7 @@ export const translations = {
     },
 
     tests: {
+      useOperatedSide: "Utiliser le côté opéré",
       gripStrength: {
         title: "Test de préhension (Jamar)",
         summary: "Résultat",
@@ -1121,6 +1389,75 @@ export const translations = {
           backSquat: "Back squat",
           benchPress: "Développé couché",
           deadlift: "Soulevé de terre",
+        },
+      },
+      hopBattery: {
+        title: "Hop test battery (4 tests)",
+        intro:
+          "Quatre tests : saisir droit (DX) et gauche (SX). Triple hop, single hop et crossover : distance en cm. Side hop : nombre de sauts latéraux en 30 s. Le côté lésé permet d’afficher les LSI et la moyenne.",
+        injuredSideLabel: "Côté lésé (pour LSI)",
+        injuredSidePlaceholder: "— Non indiqué —",
+        injuredRight: "Droit (DX)",
+        injuredLeft: "Gauche (SX)",
+        dominantSideLabel: "Membre inférieur dominant",
+        dominantSidePlaceholder: "— Non indiqué —",
+        unitCm: "cm",
+        unitReps: "répétitions",
+        tripleHop: "Triple hop for distance",
+        singleHop: "Single hop for distance",
+        sideHop: "Side hop (30 s)",
+        crossoverHop: "Crossover hop for distance",
+        lsiLabel: "LSI",
+        meanLsi: "LSI moyenne (4 tests)",
+        chartShort: {
+          tripleHop: "Triple",
+          singleHop: "Single",
+          sideHop: "Side",
+          crossoverHop: "Cross",
+        },
+        pdfSectionMeasures: "Résultats par test (DX / SX)",
+        pdfColUnit: "Unité",
+        pdfSectionChart: "Graphique comparatif DX / SX",
+        pdfChartCaption:
+          "Hauteurs proportionnelles au meilleur résultat de chaque test (échelle propre au test).",
+        pdfSectionLsi: "Indice de symétrie des membres (LSI)",
+        pdfLsiFormula:
+          "LSI = (membre lésé / membre sain) × 100. Lignes : 90 % et 95 %.",
+        pdfLegendTitle: "Légende LSI",
+        legendOptimal: "Vert (≥ 95 %) : excellent",
+        legendGood: "Jaune (90–94 %) : bon",
+        legendAttention: "Orange (85–89 %) : attention",
+        legendDeficit: "Rouge (< 85 %) : déficit significatif",
+        pdfRtSportNote:
+          "Seuil souvent utilisé pour le retour au sport : LSI ≥ 90 %.",
+        unitRepsShort: "rép.",
+        pdfDominantPlaceholder: "—",
+        pdfMainTitle: "HOP TEST BATTERY",
+        pdfMainSubtitle: "Évaluation fonctionnelle — membres inférieurs",
+        pdfPatient: "Patient",
+        pdfTestDate: "Date du test",
+        pdfDominantSide: "Côté dominant",
+        pdfSportActivity: "Sport / activité",
+        pdfSoglia90Short: "SEUIL 90 %",
+        pdfSoglia90Label: "Seuil 90 %",
+        pdfSidebarTitle: "Résultats globaux",
+        pdfSidebarFormula:
+          "LSI = (membre lésé / membre sain) × 100. La ligne orange verticale indique 90 % de la valeur du côté sain.",
+        pdfConsultNote:
+          "À interpréter dans le contexte clinique ; en cas de doute consulter un physiothérapeute.",
+        pdfFooterShield:
+          "Dans la littérature, un LSI ≥ 90 % est souvent cité comme seuil minimal pour le retour au sport.",
+        pdfFooterClipboard:
+          "À croiser avec la force musculaire et le contrôle moteur.",
+        pdfFooterHeart:
+          "Poursuivre le parcours de rééducation avec régularité.",
+        pdfQuadDesc: {
+          tripleHop:
+            "Trois sauts consécutifs vers l’avant : distance totale (cm).",
+          singleHop: "Un seul saut vers l’avant : distance (cm).",
+          sideHop: "Sauts latéraux en 30 secondes : nombre de répétitions.",
+          crossoverHop:
+            "Sauts en avant avec croisements : distance totale (cm).",
         },
       },
       isokinetic: {
@@ -1226,6 +1563,53 @@ export const translations = {
         cmPerKgLeftFlexHint:
           "Couple max flexion / poids (Nm·kg⁻¹) — gauche",
         pdfWeightUsed: "Poids utilisé (couple/poids)",
+        torqueCompareChartSubtitle:
+          "Couple maximal (Nm) — comparaison droit / gauche par vitesse",
+        torqueChartShortD: "D",
+        torqueChartShortS: "G",
+        torqueChartRowFlex: "FLEX",
+        torqueChartRowExt: "EXT",
+        torqueChartLegendD: "Droit (D)",
+        torqueChartLegendS: "Gauche (G)",
+        torqueCompareChartUnit: "Échelle : Nm",
+        torqueCompareWideTitle:
+          "Histogramme du couple maximal — droit / gauche",
+        torqueAxisNm: "Nm",
+        torqueAxisHint:
+          "Lignes horizontales en pointillés = repères sur l’axe vertical (Nm) ; trait plus marqué = zéro.",
+        torqueHistogramMainTitle: "Graphique couple maximal",
+        workHistogramWideTitle: "Graphique travail total",
+        workCompareChartSubtitle:
+          "Travail total extension et flexion (J) — droit et gauche par vitesse (60°, 180°, 300°/s)",
+        workAxisHint:
+          "Lignes en pointillés = échelle verticale en joules (J) ; trait plus marqué = zéro.",
+        workCompareChartUnit: "Échelle : J",
+        workChartRowExt: "Travail total — extension",
+        workChartRowFlex: "Travail total — flexion",
+        tableMeasuresLegend:
+          "Légende des tableaux : °/s = vitesse ; Contr. = type de contraction ; Conc. = concentrique ; N = nombre de répétitions. Colonnes : couple max ext/flex (Nm), angle au CM (°), ROM (°), travail total ext/flex (J) pour le côté du titre. Dans « Calculs automatiques » : H/Q, LSI et couple par kg si le côté concerné est renseigné.",
+        easytechImportTitle: "Importer le PDF Easytech",
+        easytechImportHint:
+          "Glisser-déposer ou sélectionner un rapport Easytech (PDF)…",
+        easytechImportLoading: "Lecture du PDF en cours…",
+        easytechImportError: "Erreur lors de la lecture du PDF : {msg}",
+        easytechImportSpeed: "Vitesse",
+        easytechImportSwapSides: "↔ Inverser D/G",
+        easytechImportSwapSidesHint:
+          "Inverse les colonnes DROITE et GAUCHE (utile si le rapport est lu en miroir).",
+        easytechImportReset: "↻ Recommencer",
+        easytechImportRemove: "✕ Retirer",
+        easytechImportApplyDroite: "Importer DROITE → D",
+        easytechImportApplyGauche: "Importer GAUCHE → G",
+        easytechImportInvalidCellsWarning:
+          "Corrigez les cellules en rouge avant d’importer",
+        easytechImportOverwrite: "Remplace « {prev} »",
+        easytechImportColLabel: "Mesure",
+        easytechImportColDroite: "DROITE",
+        easytechImportColGauche: "GAUCHE",
+        easytechImportColRapport: "Rapport",
+        easytechImportMultiPageWarning:
+          "Le PDF contient plusieurs pages. Seule la première sera importée.",
       },
     },
 
@@ -1242,6 +1626,7 @@ export const translations = {
       removeDistrict: "Supprimer la région",
       right: "Droit",
       left: "Gauche",
+      bilateral: "Bilatéral",
       strength: "Force",
       function: "Fonction",
       passiveMobility: "Mobilité passive",
@@ -1621,6 +2006,7 @@ export const translations = {
 
     patient: {
       title: "Patientenblatt",
+      historyEntryLabel: "Termin {{n}}",
       identity: "Identität",
       firstName: "Vorname",
       lastName: "Nachname",
@@ -1673,6 +2059,20 @@ export const translations = {
       epilepsy: "Epilepsie",
       relevantSurgeryHistory:
         "Relevante Vorgeschichte / Operationen",
+      year: "Jahr",
+      month: "Monat",
+      surgeryDescription: "Beschreibung",
+      surgeryKind: "Art",
+      surgeryKindGenerico: "Allgemein",
+      surgeryKindRicorrente: "Wiederkehrend",
+      surgeryKindAltro: "Andere",
+      surgeryKindDetail: "Angabe",
+      addRow: "+ Zeile hinzufügen",
+      removeRow: "Zeile entfernen",
+      confirmDiscardLegacyAntecedenti:
+        "Vorhandene Daten konvertieren? Der aktuelle Freitext wird zugunsten des neuen Zeilenformats verworfen.",
+      legacyAntecedentiBannerTitle: "Originaltext (vorheriges Format)",
+      discardLegacyButton: "Verwerfen und neues Format verwenden",
       femaleHealth: "Frauengesundheit",
       children: "Kinder",
       childrenCount: "Wie viele",
@@ -1690,7 +2090,28 @@ export const translations = {
       calcioFieldRole: "Position auf dem Platz",
     
       workEducation: "Beruf / Ausbildung",
+      workEducationSection: "Arbeit / Ausbildung",
+      professionOrFormation: "Beruf / Ausbildung",
       professionalRiskNotes: "Berufsbedingte Risiken",
+      tabIdentity: "Identität",
+      tabPhysical: "Körperdaten",
+      tabMedical: "Medizinische Angaben",
+      tabWork: "Arbeit / Ausbildung",
+      tabSport: "Sport",
+      tabClinical: "Klinisches Bild",
+      tabDiagnosis: "Diagnose / Eingriff",
+      tabEvaluations: "Bewertungen / Tests",
+      formTabsAria: "Abschnitte der Patientenakte",
+      evaluationsTabPlaceholder:
+        "Bewertungen und Tests werden in der Patientenansicht nach dem Speichern verwaltet.",
+      diagnosisInterventionSection: "Diagnose / Eingriff",
+      surgeryStatusLabel: "Eingriffsstatus",
+      surgeryStatusPreOp: "präoperativ",
+      timeUntilSurgeryLabel: "Zeit bis zum Eingriff",
+      reportBlockPhysicalSport:
+        "Körperdaten, Gesundheit, Arbeit und sportlicher Kontext",
+      reportBlockClinicalDx: "Klinisches Bild, Diagnose und Eingriff",
+      reportBlockEvaluationsTests: "Bewertungen und Tests",
       accessReason: "Warum sind Sie bei uns?",
       referralFrom: "Überweisung von",
       lifesavingMed: "Notfallmedikament",
@@ -1713,7 +2134,8 @@ export const translations = {
       tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Klinisches Bild",
-      diagnosis: "Diagnose / Hauptproblem",
+      diagnosis: "Diagnose",
+      involvedDistrict: "Betroffene Region",
       diagnosisShort: "Diagnose",
       diagnosisDetails: "Details Diagnose",
       diagnosesIntro:
@@ -1738,6 +2160,18 @@ export const translations = {
       timeSinceSurgery: "Postoperative Zeit",
       operatedLimb: "Operierte Extremität",
       operatedLimbShort: "Operierte Extremität",
+      operatedDistrict: "Operierte Region",
+      surgerySide: "Seite",
+      surgeryName: "Eingriff",
+      surgeryDetails: "Eingriffsdetails",
+      surgeryProtocol: "Reha-Protokoll",
+      surgeryProtocolUpload: "Protokoll hochladen (PDF)",
+      surgeryProtocolReplace: "PDF ersetzen",
+      surgeryProtocolView: "Protokoll ansehen",
+      surgeryProtocolRemove: "PDF entfernen",
+      surgeryProtocolFileTooLarge:
+        "Die Datei überschreitet die maximal zulässige Größe (10 MB).",
+      surgeryDistrictOther: "Andere",
       surgeryType: "Operationsart",
       regardingPrescribingDoctor: "Verordnender Arzt",
       evaluationOf: "Beurteilung vom",
@@ -1763,17 +2197,43 @@ export const translations = {
         panelTitle: "Testdiagramme",
         pickChart: "Wählen Sie den Diagrammtyp aus der Liste.",
         optionYBalance: "Y-Balance-Test – Ergebnisse",
-        optionIsokinetic: "Isokinetischer Test — PDF-Bericht",
+        optionIsokinetic: "Isokinetischer Test — Diagramme und PDF-Bericht",
+        optionHopBattery: "Hop-Test-Batterie — Diagramm und PDF-Bericht",
         noYBalanceSessions: "Keine Test-Sitzungen mit Y-Balance.",
         noIsokineticSessions:
           "Keine Test-Sitzungen mit isokinetischem Test.",
+        noHopSessions: "Keine Test-Sitzungen mit Hop-Test-Batterie.",
         sessionLabel: "Test-Sitzung",
         noYBalanceInPick: "Kein Y-Balance für diese Auswahl.",
         noIsokineticInPick:
           "Kein isokinetischer Test für diese Auswahl.",
+        noHopInPick: "Keine Hop-Test-Batterie für diese Auswahl.",
         yBalanceReportHeading: "Y-BALANCE-TEST – ERGEBNISSE",
         isokineticReportHeading: "ISOKINETISCHER TEST — BERICHT",
         isokineticPdfClinicalTitle: "Numerische Übersicht pro Geschwindigkeit",
+        isokineticChartsHeading: "Isokinetische Vergleichsdiagramme (R / L)",
+        isokineticChartMaxTitle:
+          "Maximales Moment — Extensoren und Flexoren (Nm)",
+        isokineticChartMeanTitle:
+          "Geschätztes mittleres Moment — Extensoren und Flexoren (Nm)",
+        isokineticChartMeanFootnote:
+          "Schätzung: Arbeit ÷ (Wiederholungen × ROM in Radiant). ROM und Arbeit müssen passen; vorsichtig interpretieren.",
+        isokineticChartWorkTitle:
+          "Gesamtarbeit — Summe Extension + Flexion (pro Seite)",
+        isokineticChartLegendExtDx: "Extensoren R",
+        isokineticChartLegendExtSx: "Extensoren L",
+        isokineticChartLegendFlexDx: "Flexoren R",
+        isokineticChartLegendFlexSx: "Flexoren L",
+        isokineticChartLegendWorkDx: "Gesamtarbeit R",
+        isokineticChartLegendWorkSx: "Gesamtarbeit L",
+        isokineticChartYNm: "Nm",
+        isokineticChartYWork: "J (o. Ä.)",
+        isokineticChartNoData:
+          "Keine Maximalmoment-Daten für das Diagramm.",
+        isokineticChartNoMeanData:
+          "Für mittleres Moment braucht es Arbeit und ROM: ROM und Arbeit für Extension/Flexion eintragen.",
+        isokineticChartNoWorkData:
+          "Keine Arbeitsdaten (Ext/Flex) für das Diagramm.",
         metaAthlete: "Athlet",
         metaSport: "Sport",
         metaDate: "Datum",
@@ -1873,6 +2333,7 @@ export const translations = {
     },
 
     tests: {
+      useOperatedSide: "Operierte Seite verwenden",
       gripStrength: {
         title: "Greifkrafttest (Jamar)",
         summary: "Ergebnis",
@@ -1932,6 +2393,75 @@ export const translations = {
           backSquat: "Back Squat",
           benchPress: "Bankdrücken",
           deadlift: "Kreuzheben",
+        },
+      },
+      hopBattery: {
+        title: "Hop-Test-Batterie (4 Tests)",
+        intro:
+          "Vier Tests: rechts (DX) und links (SX) eintragen. Triple Hop, Single Hop und Crossover: Strecke in cm. Side Hop: seitliche Sprünge in 30 s. Mit betroffener Seite werden LSI und Mittelwert angezeigt.",
+        injuredSideLabel: "Betroffene Seite (für LSI)",
+        injuredSidePlaceholder: "— Keine Angabe —",
+        injuredRight: "Rechts (DX)",
+        injuredLeft: "Links (SX)",
+        dominantSideLabel: "Dominante untere Extremität",
+        dominantSidePlaceholder: "— Keine Angabe —",
+        unitCm: "cm",
+        unitReps: "Wiederholungen",
+        tripleHop: "Triple hop for distance",
+        singleHop: "Single hop for distance",
+        sideHop: "Side hop (30 s)",
+        crossoverHop: "Crossover hop for distance",
+        lsiLabel: "LSI",
+        meanLsi: "Mittlere LSI (4 Tests)",
+        chartShort: {
+          tripleHop: "Triple",
+          singleHop: "Single",
+          sideHop: "Side",
+          crossoverHop: "Cross",
+        },
+        pdfSectionMeasures: "Ergebnisse pro Test (DX / SX)",
+        pdfColUnit: "Einheit",
+        pdfSectionChart: "Balkendiagramm DX / SX",
+        pdfChartCaption:
+          "Balkenhöhe relativ zum jeweils besseren Wert (Skala pro Test).",
+        pdfSectionLsi: "Gliedmaßen-Symmetrie-Index (LSI)",
+        pdfLsiFormula:
+          "LSI = (betroffene Seite / gesunde Seite) × 100. Linien: 90 % und 95 %.",
+        pdfLegendTitle: "LSI-Legende",
+        legendOptimal: "Grün (≥ 95 %): exzellent",
+        legendGood: "Gelb (90–94 %): gut",
+        legendAttention: "Orange (85–89 %): Achtung",
+        legendDeficit: "Rot (< 85 %): signifikantes Defizit",
+        pdfRtSportNote:
+          "Häufig genannte Schwelle für Return-to-Sport: LSI ≥ 90 %.",
+        unitRepsShort: "Wh.",
+        pdfDominantPlaceholder: "—",
+        pdfMainTitle: "HOP TEST BATTERY",
+        pdfMainSubtitle: "Funktionelle Bewertung — untere Extremitäten",
+        pdfPatient: "Patient",
+        pdfTestDate: "Testdatum",
+        pdfDominantSide: "Dominante Seite",
+        pdfSportActivity: "Sport / Aktivität",
+        pdfSoglia90Short: "SCHWELLE 90 %",
+        pdfSoglia90Label: "Schwelle 90 %",
+        pdfSidebarTitle: "Gesamtergebnisse",
+        pdfSidebarFormula:
+          "LSI = (betroffene Seite / gesunde Seite) × 100. Die orange vertikale Linie markiert 90 % des Wertes der gesunden Seite.",
+        pdfConsultNote:
+          "Immer im klinischen Kontext interpretieren; bei Unsicherheit Physiotherapeut konsultieren.",
+        pdfFooterShield:
+          "In der Literatur wird LSI ≥ 90 % oft als Mindestschwelle für Return-to-Sport genannt.",
+        pdfFooterClipboard:
+          "Mit Kraft und motorischer Kontrolle abgleichen.",
+        pdfFooterHeart:
+          "Rehabilitation konsequent fortsetzen.",
+        pdfQuadDesc: {
+          tripleHop:
+            "Drei aufeinanderfolgende Sprünge vorwärts: Gesamtstrecke (cm).",
+          singleHop: "Ein Sprung vorwärts: Strecke (cm).",
+          sideHop: "Seitliche Sprünge in 30 s: Anzahl Wiederholungen.",
+          crossoverHop:
+            "Vorwärtssprünge mit Kreuzschritten: Gesamtstrecke (cm).",
         },
       },
       isokinetic: {
@@ -2037,6 +2567,53 @@ export const translations = {
         cmPerKgLeftFlexHint:
           "Max. Moment Flexion / Gewicht (Nm·kg⁻¹) — links",
         pdfWeightUsed: "Gewicht für Moment/Gewicht",
+        torqueCompareChartSubtitle:
+          "Max. Moment (Nm) — Vergleich rechts / links pro Geschwindigkeit",
+        torqueChartShortD: "R",
+        torqueChartShortS: "L",
+        torqueChartRowFlex: "FLEX",
+        torqueChartRowExt: "EXT",
+        torqueChartLegendD: "Rechts (R)",
+        torqueChartLegendS: "Links (L)",
+        torqueCompareChartUnit: "Skala: Nm",
+        torqueCompareWideTitle:
+          "Histogramm maximales Moment — rechts / links",
+        torqueAxisNm: "Nm",
+        torqueAxisHint:
+          "Gestrichelte horizontale Linien = Skala vertikal (Nm); kräftigere Linie = Null.",
+        torqueHistogramMainTitle: "Diagramm maximales Moment",
+        workHistogramWideTitle: "Diagramm Gesamtarbeit",
+        workCompareChartSubtitle:
+          "Gesamtarbeit Extension und Flexion (J) — rechts und links pro Geschwindigkeit (60°, 180°, 300°/s)",
+        workAxisHint:
+          "Gestrichelte Linien = vertikale Skala in Joule (J); kräftigere Linie = Null.",
+        workCompareChartUnit: "Skala: J",
+        workChartRowExt: "Gesamtarbeit — Extension",
+        workChartRowFlex: "Gesamtarbeit — Flexion",
+        tableMeasuresLegend:
+          "Tabellenlegende: °/s = Geschwindigkeit; Ktr. = Kontraktionstyp; Konz. = konzentrisch; N = Wiederholungen. Spalten: max. Moment ext/flex (Nm), Winkel am CM (°), ROM (°), Gesamtarbeit ext/flex (J) für die im Titel genannte Seite. Unter « Automatische Berechnungen »: H/Q, LSI und Moment pro kg, wenn die betroffene Seite gesetzt ist.",
+        easytechImportTitle: "Easytech-PDF importieren",
+        easytechImportHint:
+          "Easytech-Bericht (PDF) ablegen oder auswählen…",
+        easytechImportLoading: "PDF wird gelesen…",
+        easytechImportError: "Fehler beim Lesen des PDFs: {msg}",
+        easytechImportSpeed: "Geschwindigkeit",
+        easytechImportSwapSides: "↔ R/L tauschen",
+        easytechImportSwapSidesHint:
+          "Vertauscht die Spalten DROITE und GAUCHE (falls der Bericht gespiegelt gelesen wird).",
+        easytechImportReset: "↻ Zurücksetzen",
+        easytechImportRemove: "✕ Entfernen",
+        easytechImportApplyDroite: "DROITE → R importieren",
+        easytechImportApplyGauche: "GAUCHE → L importieren",
+        easytechImportInvalidCellsWarning:
+          "Korrigieren Sie die rot markierten Zellen, bevor Sie importieren.",
+        easytechImportOverwrite: "Überschreibt « {prev} »",
+        easytechImportColLabel: "Messwert",
+        easytechImportColDroite: "DROITE",
+        easytechImportColGauche: "GAUCHE",
+        easytechImportColRapport: "Verhältnis",
+        easytechImportMultiPageWarning:
+          "Das PDF enthält mehrere Seiten. Nur die erste wird importiert.",
       },
     },
 
@@ -2053,6 +2630,7 @@ export const translations = {
       removeDistrict: "Region entfernen",
       right: "Rechts",
       left: "Links",
+      bilateral: "Beidseitig",
       strength: "Kraft",
       function: "Funktion",
       passiveMobility: "Passive Mobilität",
@@ -2419,6 +2997,7 @@ export const translations = {
 
     patient: {
   title: "Ficha del paciente",
+  historyEntryLabel: "Visita {{n}}",
   identity: "Identidad",
   firstName: "Nombre",
   lastName: "Apellido",
@@ -2471,6 +3050,20 @@ export const translations = {
   epilepsy: "Epilepsia",
   relevantSurgeryHistory:
     "Antecedentes y cirugías relevantes",
+  year: "Año",
+  month: "Mes",
+  surgeryDescription: "Descripción",
+  surgeryKind: "Tipo",
+  surgeryKindGenerico: "Genérico",
+  surgeryKindRicorrente: "Recurrente",
+  surgeryKindAltro: "Otro",
+  surgeryKindDetail: "Especificar",
+  addRow: "+ Añadir fila",
+  removeRow: "Quitar fila",
+  confirmDiscardLegacyAntecedenti:
+    "¿Convertir los datos existentes? El texto libre actual se descartará para usar el nuevo formato por filas.",
+  legacyAntecedentiBannerTitle: "Texto original (formato anterior)",
+  discardLegacyButton: "Descartar y usar el nuevo formato",
   femaleHealth: "Salud femenina",
   children: "Hijos",
   childrenCount: "Cuántos",
@@ -2488,7 +3081,28 @@ export const translations = {
   calcioFieldRole: "Rol en el campo",
 
   workEducation: "Trabajo / formación",
+  workEducationSection: "Trabajo / formación",
+  professionOrFormation: "Profesión / formación",
   professionalRiskNotes: "Riesgos profesionales",
+  tabIdentity: "Identidad",
+  tabPhysical: "Datos físicos",
+  tabMedical: "Información médica",
+  tabWork: "Trabajo / formación",
+  tabSport: "Deporte",
+  tabClinical: "Cuadro clínico",
+  tabDiagnosis: "Diagnóstico / intervención",
+  tabEvaluations: "Evaluaciones / pruebas",
+  formTabsAria: "Secciones de la ficha del paciente",
+  evaluationsTabPlaceholder:
+    "Las evaluaciones y las pruebas se gestionan desde la vista del paciente después de guardar.",
+  diagnosisInterventionSection: "Diagnóstico / intervención",
+  surgeryStatusLabel: "Estado de la intervención",
+  surgeryStatusPreOp: "preoperatorio",
+  timeUntilSurgeryLabel: "Tiempo hasta la intervención",
+  reportBlockPhysicalSport:
+    "Datos físicos, salud, trabajo y contexto deportivo",
+  reportBlockClinicalDx: "Cuadro clínico, diagnóstico e intervención",
+  reportBlockEvaluationsTests: "Evaluaciones y pruebas",
   accessReason: "¿Por qué estás con nosotros?",
   referralFrom: "Referido por",
   lifesavingMed: "Medicación de rescate",
@@ -2511,7 +3125,8 @@ export const translations = {
   tennisBackhandPlaceholder: "—",
 
   clinicalFrame: "Cuadro clínico",
-  diagnosis: "Diagnóstico / problema principal",
+  diagnosis: "Diagnóstico",
+  involvedDistrict: "Región afectada",
   diagnosisShort: "Diagnóstico",
   diagnosisDetails: "Detalles del diagnóstico",
   diagnosesIntro:
@@ -2536,6 +3151,18 @@ export const translations = {
   timeSinceSurgery: "Tiempo postoperatorio",
   operatedLimb: "Miembro operado",
   operatedLimbShort: "Miembro operado",
+  operatedDistrict: "Región operada",
+  surgerySide: "Lado",
+  surgeryName: "Intervención",
+  surgeryDetails: "Detalles de la intervención",
+  surgeryProtocol: "Protocolo de rehabilitación",
+  surgeryProtocolUpload: "Cargar protocolo (PDF)",
+  surgeryProtocolReplace: "Sustituir PDF",
+  surgeryProtocolView: "Ver protocolo",
+  surgeryProtocolRemove: "Eliminar PDF",
+  surgeryProtocolFileTooLarge:
+    "El archivo supera el tamaño máximo permitido (10 MB).",
+  surgeryDistrictOther: "Otro",
   surgeryType: "Tipo de cirugía",
   regardingPrescribingDoctor: "Médico prescriptor",
   evaluationOf: "evaluación del",
@@ -2561,17 +3188,43 @@ export const translations = {
     panelTitle: "Gráficos de tests",
     pickChart: "Seleccione el tipo de gráfico en la lista.",
     optionYBalance: "Y Balance Test – resultados",
-    optionIsokinetic: "Test isocinético — informe PDF",
+    optionIsokinetic: "Test isocinético — gráficos e informe PDF",
+    optionHopBattery: "Hop test battery — gráfico e informe PDF",
     noYBalanceSessions: "No hay sesiones de test con Y Balance.",
     noIsokineticSessions:
       "No hay sesiones de test con test isocinético.",
+    noHopSessions: "No hay sesiones de test con Hop test battery.",
     sessionLabel: "Sesión de tests",
     noYBalanceInPick: "No hay Y Balance para esta combinación.",
     noIsokineticInPick:
       "No hay test isocinético para esta combinación.",
+    noHopInPick: "No hay Hop test battery para esta combinación.",
     yBalanceReportHeading: "Y-BALANCE TEST – RESULTADOS",
     isokineticReportHeading: "TEST ISOCINÉTICO — INFORME",
     isokineticPdfClinicalTitle: "Síntesis numérica por velocidad",
+    isokineticChartsHeading: "Gráficos isocinéticos comparativos (D / I)",
+    isokineticChartMaxTitle:
+      "Par máximo — extensores y flexores (Nm)",
+    isokineticChartMeanTitle:
+      "Par medio estimado — extensores y flexores (Nm)",
+    isokineticChartMeanFootnote:
+      "Estimación: trabajo ÷ (repeticiones × ROM en radianes). Requiere ROM y trabajo coherentes; interpretar con cautela.",
+    isokineticChartWorkTitle:
+      "Trabajo total — suma extensión + flexión (por lado)",
+    isokineticChartLegendExtDx: "Extensores D",
+    isokineticChartLegendExtSx: "Extensores I",
+    isokineticChartLegendFlexDx: "Flexores D",
+    isokineticChartLegendFlexSx: "Flexores I",
+    isokineticChartLegendWorkDx: "Trabajo total D",
+    isokineticChartLegendWorkSx: "Trabajo total I",
+    isokineticChartYNm: "Nm",
+    isokineticChartYWork: "J (o u.)",
+    isokineticChartNoData:
+      "No hay datos de par máximo para el gráfico.",
+    isokineticChartNoMeanData:
+      "Para el par medio hacen falta trabajo y ROM: rellene ROM y trabajo en extensión/flexión.",
+    isokineticChartNoWorkData:
+      "No hay datos de trabajo (ext/flex) para el gráfico.",
     metaAthlete: "Atleta",
     metaSport: "Deporte",
     metaDate: "Fecha",
@@ -2658,6 +3311,7 @@ dominantHand: {
       removeDistrict: "Eliminar región",
       right: "Derecho",
       left: "Izquierdo",
+      bilateral: "Bilateral",
       strength: "Fuerza",
       function: "Función",
       passiveMobility: "Movilidad pasiva",
@@ -2989,6 +3643,7 @@ dominantHand: {
     },
 
     tests: {
+      useOperatedSide: "Usar lado operado",
       gripStrength: {
         title: "Test de prensión (Jamar)",
         summary: "Resultado",
@@ -3048,6 +3703,75 @@ dominantHand: {
           backSquat: "Back squat",
           benchPress: "Press banca",
           deadlift: "Peso muerto",
+        },
+      },
+      hopBattery: {
+        title: "Hop test battery (4 pruebas)",
+        intro:
+          "Cuatro pruebas: introducir derecho (DX) e izquierdo (SX). Triple hop, single hop y crossover: distancia en cm. Side hop: saltos laterales en 30 s. Con el lado lesionado se muestran las LSI y la media.",
+        injuredSideLabel: "Lado lesionado (para LSI)",
+        injuredSidePlaceholder: "— Sin indicar —",
+        injuredRight: "Derecho (DX)",
+        injuredLeft: "Izquierdo (SX)",
+        dominantSideLabel: "Miembro inferior dominante",
+        dominantSidePlaceholder: "— Sin indicar —",
+        unitCm: "cm",
+        unitReps: "repeticiones",
+        tripleHop: "Triple hop for distance",
+        singleHop: "Single hop for distance",
+        sideHop: "Side hop (30 s)",
+        crossoverHop: "Crossover hop for distance",
+        lsiLabel: "LSI",
+        meanLsi: "LSI media (4 pruebas)",
+        chartShort: {
+          tripleHop: "Triple",
+          singleHop: "Single",
+          sideHop: "Side",
+          crossoverHop: "Cross",
+        },
+        pdfSectionMeasures: "Resultados por prueba (DX / SX)",
+        pdfColUnit: "Unidad",
+        pdfSectionChart: "Gráfico comparativo DX / SX",
+        pdfChartCaption:
+          "Barras proporcionales al mejor valor en cada prueba (escala por prueba).",
+        pdfSectionLsi: "Índice de simetría de miembros (LSI)",
+        pdfLsiFormula:
+          "LSI = (miembro lesionado / miembro sano) × 100. Líneas: 90 % y 95 %.",
+        pdfLegendTitle: "Leyenda LSI",
+        legendOptimal: "Verde (≥ 95 %): excelente",
+        legendGood: "Amarillo (90–94 %): bueno",
+        legendAttention: "Naranja (85–89 %): atención",
+        legendDeficit: "Rojo (< 85 %): déficit significativo",
+        pdfRtSportNote:
+          "Umbral habitual para retorno al deporte: LSI ≥ 90 %.",
+        unitRepsShort: "rep.",
+        pdfDominantPlaceholder: "—",
+        pdfMainTitle: "HOP TEST BATTERY",
+        pdfMainSubtitle: "Evaluación funcional — miembros inferiores",
+        pdfPatient: "Paciente",
+        pdfTestDate: "Fecha del test",
+        pdfDominantSide: "Lado dominante",
+        pdfSportActivity: "Deporte / actividad",
+        pdfSoglia90Short: "UMBRAL 90 %",
+        pdfSoglia90Label: "Umbral 90 %",
+        pdfSidebarTitle: "Resultados globales",
+        pdfSidebarFormula:
+          "LSI = (miembro lesionado / miembro sano) × 100. La línea naranja vertical marca el 90 % del valor del lado sano.",
+        pdfConsultNote:
+          "Interpretar siempre en contexto clínico; ante dudas consultar al fisioterapeuta.",
+        pdfFooterShield:
+          "En la bibliografía, LSI ≥ 90 % suele citarse como umbral mínimo para el retorno al deporte.",
+        pdfFooterClipboard:
+          "Cruzar con fuerza muscular y control motor.",
+        pdfFooterHeart:
+          "Continuar el proceso de readaptación con constancia.",
+        pdfQuadDesc: {
+          tripleHop:
+            "Tres saltos consecutivos hacia delante: distancia total (cm).",
+          singleHop: "Un solo salto hacia delante: distancia (cm).",
+          sideHop: "Saltos laterales en 30 s: número de repeticiones.",
+          crossoverHop:
+            "Saltos hacia delante con cruces: distancia total (cm).",
         },
       },
       isokinetic: {
@@ -3153,6 +3877,53 @@ dominantHand: {
         cmPerKgLeftFlexHint:
           "Par máx. flexión / peso (Nm·kg⁻¹) — izquierdo",
         pdfWeightUsed: "Peso usado (par/peso)",
+        torqueCompareChartSubtitle:
+          "Par máximo (Nm) — comparación derecho / izquierdo por velocidad",
+        torqueChartShortD: "D",
+        torqueChartShortS: "I",
+        torqueChartRowFlex: "FLEX",
+        torqueChartRowExt: "EXT",
+        torqueChartLegendD: "Derecho (D)",
+        torqueChartLegendS: "Izquierdo (I)",
+        torqueCompareChartUnit: "Escala: Nm",
+        torqueCompareWideTitle:
+          "Histograma par máximo — derecho / izquierdo",
+        torqueAxisNm: "Nm",
+        torqueAxisHint:
+          "Líneas horizontales discontinuas = referencia en eje vertical (Nm); línea más marcada = cero.",
+        torqueHistogramMainTitle: "Gráfico par máximo",
+        workHistogramWideTitle: "Gráfico trabajo total",
+        workCompareChartSubtitle:
+          "Trabajo total extensión y flexión (J) — derecho e izquierdo por velocidad (60°, 180°, 300°/s)",
+        workAxisHint:
+          "Líneas discontinuas = eje vertical en julios (J); línea más marcada = cero.",
+        workCompareChartUnit: "Escala: J",
+        workChartRowExt: "Trabajo total — extensión",
+        workChartRowFlex: "Trabajo total — flexión",
+        tableMeasuresLegend:
+          "Leyenda de tablas: °/s = velocidad; Contr. = tipo de contracción; Conc. = concéntrica; N = repeticiones. Columnas: par máx. ext/flex (Nm), ángulo en CM (°), ROM (°), trabajo total ext/flex (J) para el lado del título. En «Cálculos automáticos»: H/Q, LSI y par por kg si se indica el lado afectado.",
+        easytechImportTitle: "Importar PDF Easytech",
+        easytechImportHint:
+          "Arrastra o selecciona un informe Easytech (PDF)…",
+        easytechImportLoading: "Leyendo el PDF…",
+        easytechImportError: "Error al leer el PDF: {msg}",
+        easytechImportSpeed: "Velocidad",
+        easytechImportSwapSides: "↔ Invertir DCH/IZQ",
+        easytechImportSwapSidesHint:
+          "Intercambia las columnas DROITE y GAUCHE (útil si el informe se lee en espejo).",
+        easytechImportReset: "↻ Reiniciar",
+        easytechImportRemove: "✕ Quitar",
+        easytechImportApplyDroite: "Importar DROITE → DCH",
+        easytechImportApplyGauche: "Importar GAUCHE → IZQ",
+        easytechImportInvalidCellsWarning:
+          "Corrige las celdas en rojo antes de importar",
+        easytechImportOverwrite: "Sobrescribe «{prev}»",
+        easytechImportColLabel: "Medida",
+        easytechImportColDroite: "DROITE",
+        easytechImportColGauche: "GAUCHE",
+        easytechImportColRapport: "Relación",
+        easytechImportMultiPageWarning:
+          "El PDF contiene varias páginas. Solo se importará la primera.",
       },
     },
 
@@ -3223,6 +3994,7 @@ dominantHand: {
 
     patient: {
       title: "Patient file",
+      historyEntryLabel: "Visit {{n}}",
       identity: "Identity",
       firstName: "First name",
       lastName: "Last name",
@@ -3274,6 +4046,20 @@ dominantHand: {
       pathologies: "Conditions / comorbidities",
       epilepsy: "Epilepsy",
       relevantSurgeryHistory: "Relevant past surgery / procedures",
+      year: "Year",
+      month: "Month",
+      surgeryDescription: "Description",
+      surgeryKind: "Type",
+      surgeryKindGenerico: "Generic",
+      surgeryKindRicorrente: "Recurrent",
+      surgeryKindAltro: "Other",
+      surgeryKindDetail: "Specify",
+      addRow: "+ Add row",
+      removeRow: "Remove row",
+      confirmDiscardLegacyAntecedenti:
+        "Convert existing data? The current free text will be discarded in favor of the new row-based format.",
+      legacyAntecedentiBannerTitle: "Original text (previous format)",
+      discardLegacyButton: "Discard and use new format",
       femaleHealth: "Women’s health",
       children: "Children",
       childrenCount: "How many",
@@ -3291,7 +4077,28 @@ dominantHand: {
       calcioFieldRole: "Position on the pitch",
     
       workEducation: "Work / education",
+      workEducationSection: "Work / education",
+      professionOrFormation: "Profession / education",
       professionalRiskNotes: "Professional risk notes",
+      tabIdentity: "Identity",
+      tabPhysical: "Physical data",
+      tabMedical: "Medical information",
+      tabWork: "Work / education",
+      tabSport: "Sport",
+      tabClinical: "Clinical picture",
+      tabDiagnosis: "Diagnosis / procedure",
+      tabEvaluations: "Evaluations / tests",
+      formTabsAria: "Patient file sections",
+      evaluationsTabPlaceholder:
+        "Evaluations and tests are managed from the patient view after saving.",
+      diagnosisInterventionSection: "Diagnosis / procedure",
+      surgeryStatusLabel: "Procedure status",
+      surgeryStatusPreOp: "pre-operative",
+      timeUntilSurgeryLabel: "Time until procedure",
+      reportBlockPhysicalSport:
+        "Physical data, health, work and sport context",
+      reportBlockClinicalDx: "Clinical picture, diagnosis and procedure",
+      reportBlockEvaluationsTests: "Evaluations and tests",
       accessReason: "Why are you here?",
       referralFrom: "Referral from",
       lifesavingMed: "Rescue / emergency medication",
@@ -3308,11 +4115,13 @@ dominantHand: {
       runningDisciplinePlaceholder: "—",
       runningDisciplineOther: "Other / specify",
       injuryDateHint: "Enter the date to compute time since injury.",
-      surgeryDateHint: "Enter the date to compute post-operative time.",
+      surgeryDateHint:
+        "Enter the date to see post-operative time, or pre-operative status if the date is in the future.",
       tennisBackhandPlaceholder: "—",
     
       clinicalFrame: "Clinical picture",
-      diagnosis: "Diagnosis / main problem",
+      diagnosis: "Diagnosis",
+      involvedDistrict: "Involved district",
       diagnosisShort: "Diagnosis",
       diagnosisDetails: "Diagnosis details",
       diagnosesIntro:
@@ -3337,6 +4146,18 @@ dominantHand: {
       timeSinceSurgery: "Post-operative time",
       operatedLimb: "Operated limb",
       operatedLimbShort: "Operated limb",
+      operatedDistrict: "Operated district",
+      surgerySide: "Side",
+      surgeryName: "Procedure",
+      surgeryDetails: "Surgery details",
+      surgeryProtocol: "Rehab protocol",
+      surgeryProtocolUpload: "Upload protocol (PDF)",
+      surgeryProtocolReplace: "Replace PDF",
+      surgeryProtocolView: "View protocol",
+      surgeryProtocolRemove: "Remove PDF",
+      surgeryProtocolFileTooLarge:
+        "File exceeds the maximum allowed size (10 MB).",
+      surgeryDistrictOther: "Other",
       surgeryType: "Surgery type",
       regardingPrescribingDoctor: "Prescribing physician",
       evaluationOf: "assessment of",
@@ -3362,17 +4183,43 @@ dominantHand: {
         panelTitle: "Test charts",
         pickChart: "Select a chart type from the list.",
         optionYBalance: "Y Balance Test – results",
-        optionIsokinetic: "Isokinetic test — PDF report",
+        optionIsokinetic: "Isokinetic test — charts and PDF report",
+        optionHopBattery: "Hop test battery — chart and PDF report",
         noYBalanceSessions: "No test sessions include Y Balance.",
         noIsokineticSessions:
           "No test sessions include the isokinetic test.",
+        noHopSessions: "No test sessions include the hop test battery.",
         sessionLabel: "Test session",
         noYBalanceInPick: "No Y Balance for this selection.",
         noIsokineticInPick:
           "No isokinetic test for this selection.",
+        noHopInPick: "No hop test battery for this selection.",
         yBalanceReportHeading: "Y-BALANCE TEST – RESULTS",
         isokineticReportHeading: "ISOKINETIC TEST — REPORT",
         isokineticPdfClinicalTitle: "Numeric summary by speed",
+        isokineticChartsHeading: "Isokinetic comparison charts (R / L)",
+        isokineticChartMaxTitle:
+          "Peak torque — extensors and flexors (Nm)",
+        isokineticChartMeanTitle:
+          "Estimated mean torque — extensors and flexors (Nm)",
+        isokineticChartMeanFootnote:
+          "Estimate: work ÷ (repetitions × ROM in radians). Requires consistent ROM and work; interpret cautiously.",
+        isokineticChartWorkTitle:
+          "Total work — extension + flexion sum (per side)",
+        isokineticChartLegendExtDx: "Extensors R",
+        isokineticChartLegendExtSx: "Extensors L",
+        isokineticChartLegendFlexDx: "Flexors R",
+        isokineticChartLegendFlexSx: "Flexors L",
+        isokineticChartLegendWorkDx: "Total work R",
+        isokineticChartLegendWorkSx: "Total work L",
+        isokineticChartYNm: "Nm",
+        isokineticChartYWork: "J (or a.u.)",
+        isokineticChartNoData:
+          "No peak torque data to plot.",
+        isokineticChartNoMeanData:
+          "Mean torque needs work and ROM: enter ROM and work for extension/flexion.",
+        isokineticChartNoWorkData:
+          "No work data (ext/flex) to plot.",
         metaAthlete: "Athlete",
         metaSport: "Sport",
         metaDate: "Date",
@@ -3472,6 +4319,7 @@ dominantHand: {
     },
 
     tests: {
+      useOperatedSide: "Use operated side",
       gripStrength: {
         title: "Grip strength test (Jamar)",
         summary: "Result",
@@ -3531,6 +4379,75 @@ dominantHand: {
           backSquat: "Back squat",
           benchPress: "Bench press",
           deadlift: "Deadlift",
+        },
+      },
+      hopBattery: {
+        title: "Hop test battery (4 tests)",
+        intro:
+          "Four tests: enter right (DX) and left (SX). Triple hop, single hop, and crossover hop: distance in cm. Side hop: lateral hops in 30 s. Selecting the injured side shows LSI values and the mean.",
+        injuredSideLabel: "Injured side (for LSI)",
+        injuredSidePlaceholder: "— Not specified —",
+        injuredRight: "Right (DX)",
+        injuredLeft: "Left (SX)",
+        dominantSideLabel: "Dominant lower limb",
+        dominantSidePlaceholder: "— Not specified —",
+        unitCm: "cm",
+        unitReps: "repetitions",
+        tripleHop: "Triple hop for distance",
+        singleHop: "Single hop for distance",
+        sideHop: "Side hop (30 s)",
+        crossoverHop: "Crossover hop for distance",
+        lsiLabel: "LSI",
+        meanLsi: "Mean LSI (4 tests)",
+        chartShort: {
+          tripleHop: "Triple",
+          singleHop: "Single",
+          sideHop: "Side",
+          crossoverHop: "Cross",
+        },
+        pdfSectionMeasures: "Results per test (DX / SX)",
+        pdfColUnit: "Unit",
+        pdfSectionChart: "DX / SX bar comparison",
+        pdfChartCaption:
+          "Bar height is proportional to the better side within each test (per-test scale).",
+        pdfSectionLsi: "Limb symmetry index (LSI)",
+        pdfLsiFormula:
+          "LSI = (injured limb / healthy limb) × 100. Vertical ticks: 90% and 95%.",
+        pdfLegendTitle: "LSI legend",
+        legendOptimal: "Green (≥ 95%): excellent",
+        legendGood: "Yellow (90–94%): good",
+        legendAttention: "Orange (85–89%): caution",
+        legendDeficit: "Red (< 85%): significant deficit",
+        pdfRtSportNote:
+          "Common return-to-sport threshold cited in the literature: LSI ≥ 90%.",
+        unitRepsShort: "reps",
+        pdfDominantPlaceholder: "—",
+        pdfMainTitle: "HOP TEST BATTERY",
+        pdfMainSubtitle: "Functional assessment — lower limbs",
+        pdfPatient: "Patient",
+        pdfTestDate: "Test date",
+        pdfDominantSide: "Dominant side",
+        pdfSportActivity: "Sport / activity",
+        pdfSoglia90Short: "90% THRESHOLD",
+        pdfSoglia90Label: "90% threshold",
+        pdfSidebarTitle: "Overall results",
+        pdfSidebarFormula:
+          "LSI = (injured limb / healthy limb) × 100. The vertical orange line marks 90% of the healthy-side value.",
+        pdfConsultNote:
+          "Always interpret in clinical context; if unsure, consult a physiotherapist.",
+        pdfFooterShield:
+          "In the sports medicine literature, LSI ≥ 90% is often cited as a minimum benchmark for return to sport.",
+        pdfFooterClipboard:
+          "Combine with muscle strength and motor control assessment.",
+        pdfFooterHeart:
+          "Keep progressing steadily through rehabilitation.",
+        pdfQuadDesc: {
+          tripleHop:
+            "Three consecutive forward hops: total distance (cm).",
+          singleHop: "Single forward hop: distance (cm).",
+          sideHop: "Lateral hops in 30 s: repetition count.",
+          crossoverHop:
+            "Forward hops with crossovers: total distance (cm).",
         },
       },
       isokinetic: {
@@ -3636,6 +4553,53 @@ dominantHand: {
         cmPerKgLeftFlexHint:
           "Max torque flexion / weight (Nm·kg⁻¹) — left",
         pdfWeightUsed: "Weight used (torque/body weight)",
+        torqueCompareChartSubtitle:
+          "Peak torque (Nm) — right / left comparison by speed",
+        torqueChartShortD: "R",
+        torqueChartShortS: "L",
+        torqueChartRowFlex: "FLEX",
+        torqueChartRowExt: "EXT",
+        torqueChartLegendD: "Right (R)",
+        torqueChartLegendS: "Left (L)",
+        torqueCompareChartUnit: "Scale: Nm",
+        torqueCompareWideTitle:
+          "Peak torque bar chart — right / left comparison",
+        torqueAxisNm: "Nm",
+        torqueAxisHint:
+          "Dashed horizontal lines = scale on vertical axis (Nm); stronger line = zero.",
+        torqueHistogramMainTitle: "Peak torque chart",
+        workHistogramWideTitle: "Total work chart",
+        workCompareChartSubtitle:
+          "Total work extension and flexion (J) — right and left at each speed (60°, 180°, 300°/s)",
+        workAxisHint:
+          "Dashed lines = vertical scale in joules (J); stronger line = zero.",
+        workCompareChartUnit: "Scale: J",
+        workChartRowExt: "Total work — extension",
+        workChartRowFlex: "Total work — flexion",
+        tableMeasuresLegend:
+          "Table legend: °/s = speed; Contr. = contraction type; Con. = concentric; N = repetitions. Columns: peak torque ext/flex (Nm), angle at peak torque (°), ROM (°), total work ext/flex (J) for the side in the block title. Under « Automatic calculations »: H/Q, LSI and torque per kg when involved side is set.",
+        easytechImportTitle: "Import Easytech PDF",
+        easytechImportHint:
+          "Drop or pick an Easytech report (PDF)…",
+        easytechImportLoading: "Reading the PDF…",
+        easytechImportError: "Error while reading the PDF: {msg}",
+        easytechImportSpeed: "Speed",
+        easytechImportSwapSides: "↔ Swap R/L",
+        easytechImportSwapSidesHint:
+          "Swaps the DROITE and GAUCHE columns (useful if the report is read mirrored).",
+        easytechImportReset: "↻ Reset",
+        easytechImportRemove: "✕ Remove",
+        easytechImportApplyDroite: "Import DROITE → R",
+        easytechImportApplyGauche: "Import GAUCHE → L",
+        easytechImportInvalidCellsWarning:
+          "Fix the red cells before importing",
+        easytechImportOverwrite: "Overwrites «{prev}»",
+        easytechImportColLabel: "Measure",
+        easytechImportColDroite: "DROITE",
+        easytechImportColGauche: "GAUCHE",
+        easytechImportColRapport: "Ratio",
+        easytechImportMultiPageWarning:
+          "The PDF has multiple pages. Only the first will be imported.",
       },
     },
     
@@ -3652,6 +4616,7 @@ dominantHand: {
       removeDistrict: "Remove region",
       right: "Right",
       left: "Left",
+      bilateral: "Bilateral",
       strength: "Strength",
       function: "Function",
       passiveMobility: "Passive mobility",

@@ -43,7 +43,18 @@ export function migratePatientsBonNumbers(patients) {
   });
 }
 
-export function formatBonLabel(n) {
+/**
+ * Etichetta progressivo storico (ex «Bon N»).
+ * Con `tt` si usa la stringa localizzata `patient.historyEntryLabel` (`{{n}}` = numero).
+ */
+export function formatBonLabel(n, tt) {
   if (n == null || n === "" || !Number.isFinite(Number(n))) return "";
-  return `Bon ${Number(n)}`;
+  const num = Number(n);
+  if (typeof tt === "function") {
+    const tpl = tt("patient.historyEntryLabel");
+    if (tpl && String(tpl).includes("{{n}}")) {
+      return String(tpl).replace(/\{\{n\}\}/g, String(num));
+    }
+  }
+  return `Visita ${num}`;
 }

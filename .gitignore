@@ -28,3 +28,7 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Temp / OCR artefatti locali
+tmp_pdf_inspect/
+*.traineddata

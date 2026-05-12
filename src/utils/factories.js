@@ -100,6 +100,7 @@ export function createActiveTestByType(type, patient = null) {
     });
     base.isokinetic = {
       injuredSide: "",
+      clinicalFocusSpeed: 60,
       weightConfirmation: "pending",
       manualWeightKg: "",
       bodyWeightKgUsed: "",
@@ -109,6 +110,17 @@ export function createActiveTestByType(type, patient = null) {
         left: side(),
         right: side(),
       })),
+    };
+  }
+  if (type === "HOP_BATTERY") {
+    const z = () => ({ dx: "", sx: "" });
+    base.hopBattery = {
+      injuredSide: "",
+      dominantSide: "",
+      tripleHop: z(),
+      singleHop: z(),
+      sideHop: z(),
+      crossoverHop: z(),
     };
   }
   return base;
@@ -127,6 +139,7 @@ export function createDistrettoTestOnly(nome, patient = null, initialTestType = 
           left: {},
           right: {},
           lifts: [],
+          hopBattery: {},
         },
       ];
   return {

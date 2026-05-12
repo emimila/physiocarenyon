@@ -1,30 +1,27 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Select from "../ui/Select";
 import {
   ISOKINETIC_SPEEDS,
   computeRowMetrics,
   effectiveIsokineticBodyWeightKg,
+  ensureIsokineticShape,
   fixedRepsForSpeed,
-  formatDeg1,
   formatPct1,
   formatTorquePerWeight,
   hqPercent,
+  normalizeIsokineticRowsForReport,
   parseIsokineticNum,
   torquePerBodyWeightNmPerKg,
 } from "../../utils/isokineticCalculations";
+import IsokineticMaxTorqueGridChart from "./IsokineticMaxTorqueGridChart";
+import {
+  IsokineticCommentList,
+  IsokineticContralateralPanel,
+  IsokineticReferencePanel,
+} from "./IsokineticClinicalPanels";
 import { patientTrim } from "../../utils/helpers";
 import Input from "../ui/Input";
-
-const STATUS_COLOR = {
-  optimal: "#16a34a",
-  acceptable: "#ca8a04",
-  deficit: "#dc2626",
-  critical: "#b91c1c",
-  ok: "#16a34a",
-  attention: "#ca8a04",
-  warn: "#ea580c",
-};
-
+import UseOperatedSideRecall from "./UseOperatedSideRecall";
 /** Ordine colonne dati lato (condiviso con export PDF). */
 export const ISOKINETIC_SIDE_TABLE_FIELDS = [
   "ptExt",
@@ -49,51 +46,12 @@ export const ISOKINETIC_FIELD_I18N = {
   workFlex: "workTotalFlex",
 };
 
-function normalizeIsokineticRow(existing, speed) {
-  const ex = existing && Number(existing.speed) === speed ? existing : null;
-  return {
-    ...(ex || {}),
-    speed,
-    reps: fixedRepsForSpeed(speed),
-    left: {
-      ptExt: "",
-      ptFlex: "",
-      anglePtExt: "",
-      anglePtFlex: "",
-      romExt: "",
-      romFlex: "",
-      workExt: "",
-      workFlex: "",
-      ...(ex?.left || {}),
-    },
-    right: {
-      ptExt: "",
-      ptFlex: "",
-      anglePtExt: "",
-      anglePtFlex: "",
-      romExt: "",
-      romFlex: "",
-      workExt: "",
-      workFlex: "",
-      ...(ex?.right || {}),
-    },
-  };
-}
-
-function ensureIsokineticShape(iso) {
-  const wc = iso?.weightConfirmation;
-  const weightConfirmation =
-    wc === "chart" || wc === "manual" || wc === "pending" ? wc : "pending";
-  return {
-    injuredSide: iso?.injuredSide ?? "",
-    weightConfirmation,
-    manualWeightKg: iso?.manualWeightKg ?? "",
-    bodyWeightKgUsed: iso?.bodyWeightKgUsed ?? "",
-    rows: ISOKINETIC_SPEEDS.map((speed) => {
-      const existing = (iso?.rows || []).find((r) => Number(r.speed) === speed);
-      return normalizeIsokineticRow(existing, speed);
-    }),
-  };
+function clinicalFocusRowIndex(isoLike) {
+  const rows = isoLike?.rows || [];
+  const raw = Number(isoLike?.clinicalFocusSpeed);
+  const speed = [60, 180, 300].includes(raw) ? raw : 60;
+  const i = rows.findIndex((r) => Number(r.speed) === speed);
+  return i >= 0 ? i : 0;
 }
 
 function mergeIso(test, iso) {
@@ -124,124 +82,6 @@ function sideCell(iso, rowIndex, side, field, value, setEvaluationForm, evaluati
   });
 }
 
-function lsiBarWidthPct(lsi) {
-  if (lsi == null || !Number.isFinite(lsi)) return 0;
-  return Math.min(100, Math.max(0, lsi));
-}
-
-function LsiBar({ label, value, statusClass, tt }) {
-  const w = lsiBarWidthPct(value);
-  const color =
-    statusClass === "optimal"
-      ? STATUS_COLOR.optimal
-      : statusClass === "acceptable"
-        ? STATUS_COLOR.acceptable
-        : statusClass === "deficit"
-          ? STATUS_COLOR.deficit
-          : "#94a3b8";
-  const statusLabel =
-    statusClass === "optimal"
-      ? tt("tests.isokinetic.statusOptimal")
-      : statusClass === "acceptable"
-        ? tt("tests.isokinetic.statusAcceptable")
-        : statusClass === "deficit"
-          ? tt("tests.isokinetic.statusDeficit")
-          : "—";
-  return (
-    <div style={{ marginBottom: 10 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: 12,
-          marginBottom: 4,
-        }}
-      >
-        <span>{label}</span>
-        <span style={{ fontWeight: 600 }}>
-          {value != null && Number.isFinite(value) ? formatPct1(value) : "—"}{" "}
-          <span style={{ color, fontSize: 11 }}>({statusLabel})</span>
-        </span>
-      </div>
-      <div
-        style={{
-          height: 8,
-          background: "#e2e8f0",
-          borderRadius: 4,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${w}%`,
-            height: "100%",
-            background: color,
-            transition: "width 0.2s",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function DiffBar({ label, valueDeg, tt }) {
-  const v = valueDeg;
-  const isBad =
-    v != null && Number.isFinite(v) && Math.abs(v) >= 10;
-  const isMid =
-    v != null && Number.isFinite(v) && Math.abs(v) >= 5 && Math.abs(v) < 10;
-  const color = isBad
-    ? STATUS_COLOR.critical
-    : isMid
-      ? STATUS_COLOR.attention
-      : STATUS_COLOR.ok;
-  const statusLabel = isBad
-    ? tt("tests.isokinetic.statusCritical")
-    : isMid
-      ? tt("tests.isokinetic.statusAttention")
-      : v != null && Number.isFinite(v)
-        ? tt("tests.isokinetic.statusOk")
-        : "—";
-  const w =
-    v != null && Number.isFinite(v)
-      ? Math.min(100, (Math.abs(v) / 30) * 100)
-      : 0;
-  return (
-    <div style={{ marginBottom: 10 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: 12,
-          marginBottom: 4,
-        }}
-      >
-        <span>{label}</span>
-        <span style={{ fontWeight: 600 }}>
-          {formatDeg1(v) ?? "—"}{" "}
-          <span style={{ color, fontSize: 11 }}>({statusLabel})</span>
-        </span>
-      </div>
-      <div
-        style={{
-          height: 8,
-          background: "#e2e8f0",
-          borderRadius: 4,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${w}%`,
-            height: "100%",
-            background: color,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export default function IsokineticTestFields({
   tt,
   patient,
@@ -251,11 +91,16 @@ export default function IsokineticTestFields({
   setEvaluationForm,
 }) {
   const iso = useMemo(() => ensureIsokineticShape(test.isokinetic), [test.isokinetic]);
-  const [selectedRow, setSelectedRow] = useState(0);
+  const selectedRow = clinicalFocusRowIndex(iso);
 
   const metricsByRow = useMemo(() => {
     return iso.rows.map((row) => computeRowMetrics(row, iso.injuredSide));
   }, [iso.rows, iso.injuredSide]);
+
+  const chartRows = useMemo(
+    () => normalizeIsokineticRowsForReport(iso),
+    [iso]
+  );
 
   const bodyWeightKg = useMemo(
     () => effectiveIsokineticBodyWeightKg(patient, iso),
@@ -283,6 +128,15 @@ export default function IsokineticTestFields({
     });
   }
 
+  function selectRow(ri) {
+    const r = iso.rows[ri];
+    if (!r) return;
+    const s = Number(r.speed);
+    if ([60, 180, 300].includes(s)) {
+      patchIso({ clinicalFocusSpeed: s });
+    }
+  }
+
   function setInjuredSide(v) {
     const cleared =
       !v
@@ -300,14 +154,6 @@ export default function IsokineticTestFields({
     const r = torquePerBodyWeightNmPerKg(tq, bodyWeightKg);
     return formatTorquePerWeight(r) ?? "—";
   }
-
-  const hqComment = (band) => {
-    if (!band) return null;
-    if (band === "low") return tt("tests.isokinetic.hqCommentLow");
-    if (band === "high") return tt("tests.isokinetic.hqCommentHigh");
-    if (band === "transition") return tt("tests.isokinetic.hqCommentTransition");
-    return tt("tests.isokinetic.hqCommentExpected");
-  };
 
   return (
     <div className="isokinetic-test-fields" style={{ marginTop: 12 }}>
@@ -336,6 +182,12 @@ export default function IsokineticTestFields({
                 label: `${tt("evaluation.right")} (DX)`,
               },
             ]}
+          />
+          <UseOperatedSideRecall
+            tt={tt}
+            patient={patient}
+            currentSide={iso.injuredSide}
+            onPick={setInjuredSide}
           />
           <p style={{ margin: "6px 0 0", fontSize: 12, color: "#64748b" }}>
             {tt("tests.isokinetic.injuredSideHint")}
@@ -468,6 +320,21 @@ export default function IsokineticTestFields({
       <h4 style={{ margin: "16px 0 8px", fontSize: "1rem" }}>
         {tt("tests.isokinetic.dataTitle")}
       </h4>
+      <p
+        className="isokinetic-table-measures-legend"
+        style={{
+          margin: "0 0 10px",
+          fontSize: 12,
+          lineHeight: 1.45,
+          color: "#475569",
+          padding: "8px 10px",
+          background: "#f8fafc",
+          borderRadius: 8,
+          border: "1px solid #e2e8f0",
+        }}
+      >
+        {tt("tests.isokinetic.tableMeasuresLegend")}
+      </p>
       <div className="isokinetic-data-three-columns" style={{ marginBottom: 8 }}>
         {[
           {
@@ -557,7 +424,7 @@ export default function IsokineticTestFields({
                     return (
                       <tr
                         key={`${block.key}-${row.speed}`}
-                        onClick={() => setSelectedRow(ri)}
+                        onClick={() => selectRow(ri)}
                         style={{
                           background: selected ? "#e0f2fe" : undefined,
                           cursor: "pointer",
@@ -688,7 +555,7 @@ export default function IsokineticTestFields({
                   return (
                     <tr
                       key={`calc-${row.speed}`}
-                      onClick={() => setSelectedRow(ri)}
+                      onClick={() => selectRow(ri)}
                       style={{
                         background: selected ? "#e0f2fe" : undefined,
                         cursor: "pointer",
@@ -743,6 +610,21 @@ export default function IsokineticTestFields({
       >
         <div
           style={{
+            gridColumn: "1 / -1",
+            width: "100%",
+            minWidth: 0,
+            border: "1px solid #cbd5e1",
+            borderRadius: 10,
+            padding: "14px 16px 16px",
+            background: "#fff",
+            boxSizing: "border-box",
+          }}
+        >
+          <IsokineticMaxTorqueGridChart rows={chartRows} tt={tt} variant="form" />
+        </div>
+
+        <div
+          style={{
             border: "1px solid #e2e8f0",
             borderRadius: 8,
             padding: 12,
@@ -755,164 +637,11 @@ export default function IsokineticTestFields({
               ({selRow?.speed}°/s)
             </span>
           </div>
-          {!iso.injuredSide ? (
-            <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>
-              {tt("tests.isokinetic.needInjuredSide")}
-            </p>
-          ) : !sel ? (
-            <p style={{ margin: 0, fontSize: 12 }}>—</p>
-          ) : (
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: 18,
-                fontSize: 12,
-                lineHeight: 1.5,
-                color: "#334155",
-              }}
-            >
-              <li style={{ marginBottom: 6 }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background:
-                      sel.lsiExtClass === "optimal"
-                        ? STATUS_COLOR.optimal
-                        : sel.lsiExtClass === "acceptable"
-                          ? STATUS_COLOR.acceptable
-                          : STATUS_COLOR.deficit,
-                    marginRight: 6,
-                    verticalAlign: "middle",
-                  }}
-                />
-                <strong>{tt("tests.isokinetic.extensors")} (LSI):</strong>{" "}
-                {formatPct1(sel.lsiExt) ?? "—"} —{" "}
-                {sel.lsiExtClass === "optimal"
-                  ? tt("tests.isokinetic.lsiLineOptimal")
-                  : sel.lsiExtClass === "acceptable"
-                    ? tt("tests.isokinetic.lsiLineAcceptable")
-                    : tt("tests.isokinetic.lsiLineDeficit")}
-              </li>
-              <li style={{ marginBottom: 6 }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background:
-                      sel.lsiFlexClass === "optimal"
-                        ? STATUS_COLOR.optimal
-                        : sel.lsiFlexClass === "acceptable"
-                          ? STATUS_COLOR.acceptable
-                          : STATUS_COLOR.deficit,
-                    marginRight: 6,
-                    verticalAlign: "middle",
-                  }}
-                />
-                <strong>{tt("tests.isokinetic.flexors")} (LSI):</strong>{" "}
-                {formatPct1(sel.lsiFlex) ?? "—"} —{" "}
-                {sel.lsiFlexClass === "optimal"
-                  ? tt("tests.isokinetic.lsiLineOptimal")
-                  : sel.lsiFlexClass === "acceptable"
-                    ? tt("tests.isokinetic.lsiLineAcceptable")
-                    : tt("tests.isokinetic.lsiLineDeficit")}
-              </li>
-              <li style={{ marginBottom: 6 }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background:
-                      sel.hqBandInjured === "low" || sel.hqBandInjured === "high"
-                        ? STATUS_COLOR.attention
-                        : STATUS_COLOR.ok,
-                    marginRight: 6,
-                    verticalAlign: "middle",
-                  }}
-                />
-                <strong>H/Q ({tt("tests.isokinetic.injuredSideShort")}):</strong>{" "}
-                {formatPct1(sel.hqInjured) ?? "—"} — {hqComment(sel.hqBandInjured)}
-              </li>
-              <li style={{ marginBottom: 6 }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background:
-                      sel.diffAngleExt != null && Math.abs(sel.diffAngleExt) >= 8
-                        ? STATUS_COLOR.attention
-                        : STATUS_COLOR.ok,
-                    marginRight: 6,
-                    verticalAlign: "middle",
-                  }}
-                />
-                <strong>{tt("tests.isokinetic.diffAngleExt")}:</strong>{" "}
-                {formatDeg1(sel.diffAngleExt) ?? "—"}
-              </li>
-              <li style={{ marginBottom: 6 }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background:
-                      sel.diffAngleFlex != null && Math.abs(sel.diffAngleFlex) >= 8
-                        ? STATUS_COLOR.attention
-                        : STATUS_COLOR.ok,
-                    marginRight: 6,
-                    verticalAlign: "middle",
-                  }}
-                />
-                <strong>{tt("tests.isokinetic.diffAngleFlex")}:</strong>{" "}
-                {formatDeg1(sel.diffAngleFlex) ?? "—"}
-              </li>
-              <li>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background:
-                      sel.diffRomExt != null && Math.abs(sel.diffRomExt) >= 5
-                        ? STATUS_COLOR.deficit
-                        : STATUS_COLOR.ok,
-                    marginRight: 6,
-                    verticalAlign: "middle",
-                  }}
-                />
-                <strong>{tt("tests.isokinetic.diffRomExt")}:</strong>{" "}
-                {formatDeg1(sel.diffRomExt) ?? "—"}
-              </li>
-              <li style={{ marginTop: 6 }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background:
-                      sel.diffRomFlex != null && Math.abs(sel.diffRomFlex) >= 5
-                        ? STATUS_COLOR.deficit
-                        : STATUS_COLOR.ok,
-                    marginRight: 6,
-                    verticalAlign: "middle",
-                  }}
-                />
-                <strong>{tt("tests.isokinetic.diffRomFlex")}:</strong>{" "}
-                {formatDeg1(sel.diffRomFlex) ?? "—"}
-              </li>
-            </ul>
-          )}
+          <IsokineticCommentList
+            injuredSide={iso.injuredSide}
+            sel={sel}
+            tt={tt}
+          />
         </div>
 
         <div
@@ -926,100 +655,14 @@ export default function IsokineticTestFields({
           <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 13 }}>
             {tt("tests.isokinetic.contralateralTitle")}
           </div>
-          {!iso.injuredSide || !sel ? (
-            <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>—</p>
-          ) : (
-            <>
-              <LsiBar
-                label={tt("tests.isokinetic.lsiExtShort")}
-                value={sel.lsiExt}
-                statusClass={sel.lsiExtClass}
-                tt={tt}
-              />
-              <LsiBar
-                label={tt("tests.isokinetic.lsiFlexShort")}
-                value={sel.lsiFlex}
-                statusClass={sel.lsiFlexClass}
-                tt={tt}
-              />
-              <DiffBar
-                label={tt("tests.isokinetic.diffAngleExt")}
-                valueDeg={sel.diffAngleExt}
-                tt={tt}
-              />
-              <DiffBar
-                label={tt("tests.isokinetic.diffAngleFlex")}
-                valueDeg={sel.diffAngleFlex}
-                tt={tt}
-              />
-              <DiffBar
-                label={tt("tests.isokinetic.diffRomExt")}
-                valueDeg={sel.diffRomExt}
-                tt={tt}
-              />
-              <DiffBar
-                label={tt("tests.isokinetic.diffRomFlex")}
-                valueDeg={sel.diffRomFlex}
-                tt={tt}
-              />
-            </>
-          )}
+          <IsokineticContralateralPanel
+            injuredSide={iso.injuredSide}
+            sel={sel}
+            tt={tt}
+          />
         </div>
 
-        <div
-          style={{
-            border: "1px solid #e2e8f0",
-            borderRadius: 8,
-            padding: 12,
-            background: "#fafafa",
-            fontSize: 11,
-          }}
-        >
-          <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 13 }}>
-            {tt("tests.isokinetic.referenceTitle")}
-          </div>
-          <p style={{ margin: "0 0 8px", fontWeight: 600 }}>
-            {tt("tests.isokinetic.hqRefTitle")}
-          </p>
-          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 12 }}>
-            <thead>
-              <tr style={{ background: "#e2e8f0" }}>
-                <th style={thTiny}>°/s</th>
-                <th style={thTiny}>{tt("tests.isokinetic.hqLow")}</th>
-                <th style={thTiny}>{tt("tests.isokinetic.hqExpected")}</th>
-                <th style={thTiny}>{tt("tests.isokinetic.hqHigh")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={tdTiny}>60</td>
-                <td style={tdTiny}>&lt;55%</td>
-                <td style={tdTiny}>55–65%</td>
-                <td style={tdTiny}>&gt;70%</td>
-              </tr>
-              <tr>
-                <td style={tdTiny}>180</td>
-                <td style={tdTiny}>&lt;60%</td>
-                <td style={tdTiny}>60–75%</td>
-                <td style={tdTiny}>&gt;80%</td>
-              </tr>
-              <tr>
-                <td style={tdTiny}>300</td>
-                <td style={tdTiny}>&lt;65%</td>
-                <td style={tdTiny}>65–85%</td>
-                <td style={tdTiny}>&gt;90%</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style={{ margin: "0 0 8px", fontWeight: 600 }}>
-            {tt("tests.isokinetic.lsiRefTitle")}
-          </p>
-          <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.45 }}>
-            <li>{tt("tests.isokinetic.lsiRefOptimal")}</li>
-            <li>{tt("tests.isokinetic.lsiRefAcceptable")}</li>
-            <li>{tt("tests.isokinetic.lsiRefDeficit")}</li>
-          </ul>
-        </div>
+        <IsokineticReferencePanel tt={tt} />
       </div>
     </div>
   );
@@ -1059,11 +702,6 @@ const tdRepN = {
   fontVariantNumeric: "tabular-nums",
   lineHeight: 1.2,
 };
-const thTiny = {
-  border: "1px solid #cbd5e1",
-  padding: 4,
-  textAlign: "left",
-};
 const td = {
   border: "1px solid #cbd5e1",
   padding: 4,
@@ -1086,4 +724,3 @@ const inputStyle = {
   fontSize: 11,
   padding: "2px 4px",
 };
-const tdTiny = { border: "1px solid #cbd5e1", padding: 4 };

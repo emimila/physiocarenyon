@@ -54,12 +54,41 @@ const SNAPSHOT_SHEET_CONTEXT_KEYS = [
   "oreSport",
 ];
 
+/**
+ * Normalizza una lista di antecedenti chirurgici (datata) per snapshot.
+ * Mantiene solo righe con almeno un campo non vuoto.
+ */
+/** Tipi accettati per il selettore "Tipo" della voce. Vuoto = nessuna scelta. */
+const ANTECEDENTI_KINDS = new Set(["generico", "ricorrente", "altro"]);
+
+export function normalizeAntecedentiList(value) {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  for (const r of value) {
+    if (!r || typeof r !== "object") continue;
+    const year = String(r.year ?? "").replace(/\D/g, "").slice(0, 4);
+    const month = String(r.month ?? "").trim();
+    const text = String(r.text ?? "").trim();
+    const kindRaw = String(r.kind ?? "").trim().toLowerCase();
+    const kind = ANTECEDENTI_KINDS.has(kindRaw) ? kindRaw : "";
+    const kindDetail = String(r.kindDetail ?? "").trim();
+    const monthOk = /^([1-9]|1[0-2])$/.test(month) ? month : "";
+    if (!year && !monthOk && !text && !kind && !kindDetail) continue;
+    out.push({ kind, kindDetail, year, month: monthOk, text });
+  }
+  return out;
+}
+
 export function buildSnapshotSheetContextFromPatientLike(form) {
   const f = form && typeof form === "object" ? form : {};
   const out = {};
   for (const k of SNAPSHOT_SHEET_CONTEXT_KEYS) {
     if (k === "sportMultipli") {
       out[k] = Array.isArray(f.sportMultipli) ? [...f.sportMultipli] : [];
+    } else if (k === "antecedentiChirurgici") {
+      // Nuovo formato lista. Stringa legacy o valore mancante → array vuoto
+      // (il testo libero pre-migrazione viene scartato silenziosamente).
+      out[k] = normalizeAntecedentiList(f.antecedentiChirurgici);
     } else {
       out[k] = f[k] ?? "";
     }
@@ -72,6 +101,9 @@ export function normalizedSheetFieldValue(key, obj) {
   if (!obj || typeof obj !== "object") return "";
   if (key === "sportMultipli") {
     return JSON.stringify([...(obj.sportMultipli || [])].map(String).sort());
+  }
+  if (key === "antecedentiChirurgici") {
+    return JSON.stringify(normalizeAntecedentiList(obj.antecedentiChirurgici));
   }
   return String(obj[key] ?? "").trim();
 }
@@ -98,6 +130,13 @@ export function buildSnapshotBodyFromPatientLike(form) {
     dataOperazione: form.dataOperazione ?? "",
     artoOperato: form.artoOperato ?? "",
     tipoOperazione: form.tipoOperazione ?? "",
+    distrettoOperato: form.distrettoOperato ?? "",
+    latoOperato: form.latoOperato ?? "",
+    interventoChirurgico: form.interventoChirurgico ?? "",
+    protocolloRiabilitazione: form.protocolloRiabilitazione ?? "",
+    protocolloRiabilitazionePdf: form.protocolloRiabilitazionePdf ?? "",
+    protocolloRiabilitazionePdfName:
+      form.protocolloRiabilitazionePdfName ?? "",
     quadroClinicoTipo: form.quadroClinicoTipo ?? "",
     infortunioChirurgicoPrevisto: form.infortunioChirurgicoPrevisto ?? "",
     medicoPrescrittore: form.medicoPrescrittore ?? "",
@@ -125,6 +164,13 @@ export function spreadSnapshotToPatientTop(snap) {
     dataOperazione: snap.dataOperazione ?? "",
     artoOperato: snap.artoOperato ?? "",
     tipoOperazione: snap.tipoOperazione ?? "",
+    distrettoOperato: snap.distrettoOperato ?? "",
+    latoOperato: snap.latoOperato ?? "",
+    interventoChirurgico: snap.interventoChirurgico ?? "",
+    protocolloRiabilitazione: snap.protocolloRiabilitazione ?? "",
+    protocolloRiabilitazionePdf: snap.protocolloRiabilitazionePdf ?? "",
+    protocolloRiabilitazionePdfName:
+      snap.protocolloRiabilitazionePdfName ?? "",
     quadroClinicoTipo: snap.quadroClinicoTipo ?? "",
     infortunioChirurgicoPrevisto: snap.infortunioChirurgicoPrevisto ?? "",
     medicoPrescrittore: snap.medicoPrescrittore ?? "",
@@ -155,6 +201,11 @@ export function legacyPatientClinicalHasVisibleData(p) {
   if (arto && arto !== "Non operato") return true;
   const tipo = patientTrim(p.tipoOperazione);
   if (tipo && tipo !== "Nessuna") return true;
+  if (patientTrim(p.distrettoOperato)) return true;
+  if (patientTrim(p.latoOperato)) return true;
+  if (patientTrim(p.interventoChirurgico)) return true;
+  if (patientTrim(p.protocolloRiabilitazione)) return true;
+  if (patientTrim(p.protocolloRiabilitazionePdf)) return true;
   if (patientTrim(p.quadroClinicoTipo)) return true;
   if (patientTrim(p.infortunioChirurgicoPrevisto)) return true;
   if (patientTrim(p.medicoPrescrittore)) return true;
@@ -239,6 +290,11 @@ export function patchPatientPesoFromTestSession(patient, newPesoStr, testDateIso
 
 export function normalizePatientClinicalHistory(patient) {
   const p = { ...patient };
+
+  // Antecedenti chirurgici: nuovo formato `Array<{year, month, text}>`.
+  // Stringa legacy o valore mancante → array vuoto (vecchio dato scartato).
+  p.antecedentiChirurgici = normalizeAntecedentiList(p.antecedentiChirurgici);
+
   let storico = Array.isArray(p.storicoQuadroClinico)
     ? p.storicoQuadroClinico.map(normalizeStoricoSnapshotEntry).filter(Boolean)
     : [];
@@ -303,6 +359,12 @@ const SNAPSHOT_BODY_KEYS = [
   "dataOperazione",
   "artoOperato",
   "tipoOperazione",
+  "distrettoOperato",
+  "latoOperato",
+  "interventoChirurgico",
+  "protocolloRiabilitazione",
+  "protocolloRiabilitazionePdf",
+  "protocolloRiabilitazionePdfName",
   "quadroClinicoTipo",
   "infortunioChirurgicoPrevisto",
   "medicoPrescrittore",
@@ -342,6 +404,7 @@ function normalizeRigheForDiff(formLike) {
   return migrateDiagnosiRighe(formLike || {}).map((r) => ({
     diagnosi: String(r.diagnosi ?? "").trim(),
     distrettoDiagnosi: String(r.distrettoDiagnosi ?? "").trim(),
+    latoDiagnosi: String(r.latoDiagnosi ?? "").trim(),
     dettagli: String(r.dettagli ?? "").trim(),
   }));
 }

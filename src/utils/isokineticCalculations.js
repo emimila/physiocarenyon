@@ -15,6 +15,23 @@ export function parseIsokineticNum(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Stima coppia media (Nm) da lavoro ÷ arco angolare: θ = ripetizioni × ROM (°) in radianti.
+ * Utile quando il dinamometro non espone la media esplicita; richiede ROM e lavoro coerenti (es. J).
+ */
+export function estimateMeanTorqueFromWorkNm(workStr, romDegStr, speed) {
+  const W = parseIsokineticNum(workStr);
+  const romDeg = parseIsokineticNum(romDegStr);
+  const repsStr = fixedRepsForSpeed(speed);
+  const reps = parseIsokineticNum(repsStr);
+  const repsN = reps != null && reps > 0 ? reps : 1;
+  if (W == null || W <= 0) return null;
+  if (romDeg == null || romDeg <= 0) return null;
+  const thetaRad = (repsN * romDeg * Math.PI) / 180;
+  if (thetaRad <= 1e-9) return null;
+  return W / thetaRad;
+}
+
 /** H/Q % = PT flessori / PT estensori × 100 */
 export function hqPercent(ptFlex, ptExt) {
   if (ptExt == null || ptExt === 0) return null;
@@ -153,6 +170,37 @@ function emptyIsokineticSide() {
     romFlex: "",
     workExt: "",
     workFlex: "",
+  };
+}
+
+/** Riga isocinetica completa (stesso schema del form / sanitize). */
+export function normalizeIsokineticRow(existing, speed) {
+  const ex = existing && Number(existing.speed) === speed ? existing : null;
+  return {
+    ...(ex || {}),
+    speed,
+    reps: fixedRepsForSpeed(speed),
+    left: { ...emptyIsokineticSide(), ...(ex?.left || {}) },
+    right: { ...emptyIsokineticSide(), ...(ex?.right || {}) },
+  };
+}
+
+export function ensureIsokineticShape(iso) {
+  const wc = iso?.weightConfirmation;
+  const weightConfirmation =
+    wc === "chart" || wc === "manual" || wc === "pending" ? wc : "pending";
+  const rawFocus = Number(iso?.clinicalFocusSpeed);
+  const clinicalFocusSpeed = [60, 180, 300].includes(rawFocus) ? rawFocus : 60;
+  return {
+    injuredSide: iso?.injuredSide ?? "",
+    clinicalFocusSpeed,
+    weightConfirmation,
+    manualWeightKg: iso?.manualWeightKg ?? "",
+    bodyWeightKgUsed: iso?.bodyWeightKgUsed ?? "",
+    rows: ISOKINETIC_SPEEDS.map((speed) => {
+      const existing = (iso?.rows || []).find((r) => Number(r.speed) === speed);
+      return normalizeIsokineticRow(existing, speed);
+    }),
   };
 }
 

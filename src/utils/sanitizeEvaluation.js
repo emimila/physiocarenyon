@@ -148,6 +148,10 @@ function pruneTest(t) {
     const wc = iso.weightConfirmation;
     const weightConfirmation =
       wc === "chart" || wc === "manual" || wc === "pending" ? wc : "pending";
+    const rawFocus = Number(iso.clinicalFocusSpeed);
+    const clinicalFocusSpeed = [60, 180, 300].includes(rawFocus)
+      ? rawFocus
+      : 60;
     return {
       id: t.id,
       type: t.type,
@@ -157,10 +161,37 @@ function pruneTest(t) {
           iso.injuredSide === "left" || iso.injuredSide === "right"
             ? iso.injuredSide
             : "",
+        clinicalFocusSpeed,
         weightConfirmation,
         manualWeightKg: iso.manualWeightKg ?? "",
         bodyWeightKgUsed: iso.bodyWeightKgUsed ?? "",
         rows,
+      },
+    };
+  }
+  if (t.type === "HOP_BATTERY") {
+    const hb = t.hopBattery && typeof t.hopBattery === "object" ? t.hopBattery : {};
+    const pair = (p) => ({
+      dx: p?.dx ?? "",
+      sx: p?.sx ?? "",
+    });
+    return {
+      id: t.id,
+      type: t.type,
+      noteAltro: t.noteAltro ?? "",
+      hopBattery: {
+        injuredSide:
+          hb.injuredSide === "left" || hb.injuredSide === "right"
+            ? hb.injuredSide
+            : "",
+        dominantSide:
+          hb.dominantSide === "left" || hb.dominantSide === "right"
+            ? hb.dominantSide
+            : "",
+        tripleHop: pair(hb.tripleHop),
+        singleHop: pair(hb.singleHop),
+        sideHop: pair(hb.sideHop),
+        crossoverHop: pair(hb.crossoverHop),
       },
     };
   }

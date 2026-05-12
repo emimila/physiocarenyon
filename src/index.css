@@ -1603,3 +1603,93 @@ code {
 .choice-chip-grid--compact .choice-chip__text {
   font-size: 0.8125rem;
 }
+
+/* Scheda paziente — flusso lineare e barra azioni */
+.patient-form-compact--linear {
+  padding-bottom: 72px;
+}
+
+.patient-form-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.patient-form-flow .section-card--compact {
+  margin-bottom: 8px;
+}
+
+.patient-form-compact--linear .patient-form-row {
+  margin-bottom: 6px;
+}
+
+.patient-form-compact--linear .patient-form-sport-block {
+  margin-top: 6px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+}
+
+.patient-form-readonly-hint {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+}
+
+.patient-form-readonly-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.875rem;
+}
+
+.patient-form-readonly-list li {
+  margin-bottom: 4px;
+}
+
+.patient-form-identity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 720px) {
+  .patient-form-identity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* PDF / report — card */
+.patient-pdf-card {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface, #fff);
+}
+
+.patient-pdf-card--identity {
+  background: var(--surface-2, #f8fafc);
+}
+
+.patient-pdf-card--nested {
+  margin-top: 10px;
+}
+
+.patient-pdf-card__title {
+  margin: 0 0 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-h, #0f172a);
+}
+
+.patient-pdf-card__title--main {
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+}
+
+.pdf-root .patient-pdf-card {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}

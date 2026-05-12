@@ -33,6 +33,8 @@ import {
   calcBMI,
   bmiCategory,
   timeSinceYWD,
+  isLocalIsoDateStrictlyFuture,
+  wholeCalendarDaysUntilLocalIsoDate,
   formatDateDMY,
   formatPatientListDisplayName,
   patientMatchesSearchQuery,
@@ -60,6 +62,12 @@ import {
   hqPercent,
   parseIsokineticNum,
 } from "./utils/isokineticCalculations";
+import {
+  ensureHopBatteryShape,
+  formatHopLsiOneDecimal,
+  hopLsiPercent,
+  meanHopLsi,
+} from "./utils/hopBatteryCalculations";
 import { normalizePatientSessioniTest } from "./utils/patientNormalize";
 import {
   findFirstIsokineticManualWeightKg,
@@ -70,6 +78,7 @@ import {
   buildSnapshotBodyFromPatientLike,
   buildSnapshotSheetContextFromPatientLike,
   formDiffersFromBaseline,
+  normalizeAntecedentiList,
   normalizePatientClinicalHistory,
   normalizeStoricoSnapshotEntry,
   patchPatientPesoFromTestSession,
@@ -84,6 +93,7 @@ import {
 } from "./utils/bonCounter";
 import { epleyOneRmKg, formatOneRmKg } from "./utils/epley1rm";
 import { PatientAnamnesisSheet } from "./components/PatientAnamnesisSheet";
+import SurgicalHistoryList from "./components/patient/SurgicalHistoryList";
 import { sportOptions, tegnerInfo } from "./data/options";
 import { bonDiffSummaryStyle } from "./utils/bonDiffSummaryStyle";
 
@@ -158,7 +168,7 @@ const emptyPatient = {
   farmacoSalvavita: "",
   fumatore: "",
   epilessia: "",
-  antecedentiChirurgici: "",
+  antecedentiChirurgici: [],
   figli: "",
   numeroFigli: "",
   tipoParto: "",
@@ -176,6 +186,12 @@ const emptyPatient = {
   dataOperazione: "",
   artoOperato: "",
   tipoOperazione: "",
+  distrettoOperato: "",
+  latoOperato: "",
+  interventoChirurgico: "",
+  protocolloRiabilitazione: "",
+  protocolloRiabilitazionePdf: "",
+  protocolloRiabilitazionePdfName: "",
   medicoPrescrittore: "",
   variazionePeso: "",
 motivoVariazionePeso: "",
@@ -228,14 +244,26 @@ export default function App() {
       if (!data) return [];
       const parsed = JSON.parse(data);
       const list = Array.isArray(parsed) ? parsed : [];
-      const withClinical = list.map((p) =>
-        normalizePatientClinicalHistory(
+      const withClinical = list.map((p) => {
+        const sportMultipli = Array.isArray(p.sportMultipli)
+          ? Array.from(
+              new Set(
+                p.sportMultipli.map((s) =>
+                  String(s).toLowerCase() === "escalade"
+                    ? "arrampicata"
+                    : s
+                )
+              )
+            )
+          : p.sportMultipli;
+        return normalizePatientClinicalHistory(
           normalizePatientSessioniTest({
             ...p,
+            sportMultipli,
             diagnosiRighe: migrateDiagnosiRighe(p),
           })
-        )
-      );
+        );
+      });
       return migratePatientsBonNumbers(withClinical);
     } catch {
       return [];
@@ -303,7 +331,13 @@ export default function App() {
       ...emptyPatient,
       id: uid(),
       diagnosiRighe: [
-        { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+        {
+          id: uid(),
+          diagnosi: "",
+          distrettoDiagnosi: "",
+          latoDiagnosi: "",
+          dettagli: "",
+        },
       ],
       quadroClinicoTipo: "",
       infortunioChirurgicoPrevisto: "",
@@ -505,6 +539,11 @@ export default function App() {
       valutazioni: form.valutazioni || [],
       sessioniTest: form.sessioniTest || [],
       sportMultipli: form.sportMultipli || [],
+      antecedentiChirurgici:
+        typeof form.antecedentiChirurgici === "string" &&
+        form.antecedentiChirurgici.trim() !== ""
+          ? form.antecedentiChirurgici
+          : normalizeAntecedentiList(form.antecedentiChirurgici),
       storicoQuadroClinico,
       dataCreazionePaziente,
       bonNumero: dossierBon,
@@ -545,7 +584,13 @@ export default function App() {
       valutazioni: normalized.valutazioni || [],
       sessioniTest: normalized.sessioniTest || [],
       diagnosiRighe: [
-        { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+        {
+          id: uid(),
+          diagnosi: "",
+          distrettoDiagnosi: "",
+          latoDiagnosi: "",
+          dettagli: "",
+        },
       ],
       diagnostica: "",
       diagnostica2: "",
@@ -582,10 +627,8 @@ export default function App() {
   function removeStoricoBon(p, storicoIndex) {
     if (
       !confirm(
-        tt(
-          "patient.confirmDeleteBon",
-          "Eliminare questo bon dallo storico? L’operazione non è annullabile."
-        )
+        tt("patient.confirmDeleteBon") ||
+          "Eliminare questa voce dallo storico? L’operazione non è annullabile."
       )
     )
       return;
@@ -616,7 +659,13 @@ export default function App() {
         if (!preserve.has(k)) next[k] = v;
       }
       next.diagnosiRighe = [
-        { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+        {
+          id: uid(),
+          diagnosi: "",
+          distrettoDiagnosi: "",
+          latoDiagnosi: "",
+          dettagli: "",
+        },
       ];
       next.quadroClinicoTipo = "";
       next.infortunioChirurgicoPrevisto = "";
@@ -978,6 +1027,25 @@ export default function App() {
             minWidth: 0,
           }}
         >
+          {selected && (
+            <button
+              type="button"
+              onClick={() => removePatient(selected.id)}
+              className="app-toolbar-deletePatientBtn"
+              title={tt("patient.deletePatient", "Elimina paziente")}
+              style={{
+                background: "#fee2e2",
+                color: "#b91c1c",
+                border: "1px solid #fca5a5",
+                borderRadius: 6,
+                padding: "4px 10px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              {tt("patient.deletePatient", "Elimina paziente")}
+            </button>
+          )}
           <DataBackup patients={patients} setPatients={setPatients} compact />
         </div>
       </div>
@@ -1061,6 +1129,7 @@ export default function App() {
           {editingPatient && (
             <PatientForm
               tt={tt}
+              lang={lang}
               form={form}
               update={update}
               setForm={setForm}
@@ -1072,7 +1141,7 @@ export default function App() {
                   ? (() => {
                       const snap =
                         form.storicoQuadroClinico[editingStoricoIndex];
-                      const bon = formatBonLabel(snap.bonNumero);
+                      const bon = formatBonLabel(snap.bonNumero, tt);
                       const dateStr = patientTrim(snap.dataValutazione)
                         ? formatDateDMY(snap.dataValutazione)
                         : "—";
@@ -1122,6 +1191,7 @@ export default function App() {
               <PatientDetail
               selected={selected}
               tt={tt}
+              lang={lang}
               editClinicalSnapshot={editClinicalSnapshot}
               removeStoricoBon={removeStoricoBon}
               addDiagnosisEntry={addDiagnosisEntry}
@@ -1174,6 +1244,7 @@ function PatientForm({
   savePatient,
   cancel,
   tt,
+  lang = "it",
   editingSnapshotNote = null,
 }) {
   const bmi = calcBMI(form.peso, form.altezza);
@@ -1182,6 +1253,32 @@ function PatientForm({
   function t(path, fallback) {
     return tt(path) || fallback;
   }
+
+  // Migrazione `antecedentiChirurgici`: prompt una sola volta per paziente.
+  // Se il valore e' una stringa (legacy), chiediamo all'utente se scartare il
+  // testo libero per usare il nuovo formato a righe. Confermando, il campo
+  // diventa un array vuoto. Annullando, la stringa resta visibile come banner
+  // di sola lettura sopra la lista (vedi `legacyText` su SurgicalHistoryList).
+  const migrationPromptedRef = useRef(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const value = form && form.antecedentiChirurgici;
+    if (typeof value !== "string" || value.trim() === "") return;
+    const formId = form && form.id;
+    if (!formId) return;
+    if (migrationPromptedRef.current === formId) return;
+    migrationPromptedRef.current = formId;
+    const message = tt(
+      "patient.confirmDiscardLegacyAntecedenti"
+    ) || "Convertire i dati esistenti? Il testo libero attuale verra' scartato per usare il nuovo formato a righe.";
+    const accept = window.confirm(message);
+    if (accept) {
+      update("antecedentiChirurgici", []);
+    }
+    // Se l'utente annulla, lasciamo la stringa: la banner sopra la lista
+    // mostrera' il testo originale finche' non viene esplicitamente scartato.
+  }, [form && form.id, form && form.antecedentiChirurgici]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   function option(path, value) {
     return {
@@ -1245,79 +1342,37 @@ function PatientForm({
     "Altro",
   ].map((v) => option("options.diagnosis", v));
 
+  /** Distretti coinvolti per riga diagnosi: nessun suffisso DX/SX (gestito separatamente). */
   const distrettoDiagnosiOptions = useMemo(
     () => [
       { value: "", label: "--" },
-      {
-        value: "anca_destra",
-        label: `${tt("options.distretti.anca")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "anca_sinistra",
-        label: `${tt("options.distretti.anca")} ${tt("evaluation.left")}`,
-      },
-      {
-        value: "ginocchio_destro",
-        label: `${tt("options.distretti.ginocchio")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "ginocchio_sinistro",
-        label: `${tt("options.distretti.ginocchio")} ${tt("evaluation.left")}`,
-      },
-      {
-        value: "caviglia_destra",
-        label: `${tt("options.distretti.caviglia")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "caviglia_sinistra",
-        label: `${tt("options.distretti.caviglia")} ${tt("evaluation.left")}`,
-      },
-      {
-        value: "piede_destro",
-        label: `${tt("options.distretti.piede")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "piede_sinistro",
-        label: `${tt("options.distretti.piede")} ${tt("evaluation.left")}`,
-      },
-      {
-        value: "spalla_destra",
-        label: `${tt("options.distretti.spalla")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "spalla_sinistra",
-        label: `${tt("options.distretti.spalla")} ${tt("evaluation.left")}`,
-      },
-      {
-        value: "gomito_destro",
-        label: `${tt("options.distretti.gomito")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "gomito_sinistro",
-        label: `${tt("options.distretti.gomito")} ${tt("evaluation.left")}`,
-      },
-      {
-        value: "polso_destro",
-        label: `${tt("options.distretti.polso")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "polso_sinistro",
-        label: `${tt("options.distretti.polso")} ${tt("evaluation.left")}`,
-      },
-      {
-        value: "mano_destra",
-        label: `${tt("options.distretti.mano")} ${tt("evaluation.right")}`,
-      },
-      {
-        value: "mano_sinistra",
-        label: `${tt("options.distretti.mano")} ${tt("evaluation.left")}`,
-      },
+      { value: "anca", label: tt("options.distretti.anca") },
+      { value: "ginocchio", label: tt("options.distretti.ginocchio") },
+      { value: "caviglia", label: tt("options.distretti.caviglia") },
+      { value: "piede", label: tt("options.distretti.piede") },
+      { value: "spalla", label: tt("options.distretti.spalla") },
+      { value: "gomito", label: tt("options.distretti.gomito") },
+      { value: "polso", label: tt("options.distretti.polso") },
+      { value: "mano", label: tt("options.distretti.mano") },
       { value: "cervicale", label: tt("options.distretti.cervicale") },
       { value: "toracica", label: tt("options.distretti.toracica") },
       { value: "lombare", label: tt("options.distretti.lombare") },
       { value: "artoinferiore", label: tt("options.distretti.artoinferiore") },
       { value: "artosuperiore", label: tt("options.distretti.artosuperiore") },
       { value: "cardio", label: tt("options.distretti.cardio") },
+    ],
+    [tt]
+  );
+
+  const latoDiagnosiOptions = useMemo(
+    () => [
+      { value: "", label: "--" },
+      { value: "destro", label: tt("evaluation.right") || "Destro" },
+      { value: "sinistro", label: tt("evaluation.left") || "Sinistro" },
+      {
+        value: "bilaterale",
+        label: tt("evaluation.bilateral") || "Bilaterale",
+      },
     ],
     [tt]
   );
@@ -1367,7 +1422,13 @@ function PatientForm({
   function addDiagnosiRiga() {
     setDiagnosiRighe([
       ...diagnosiRighe,
-      { id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" },
+      {
+        id: uid(),
+        diagnosi: "",
+        distrettoDiagnosi: "",
+        latoDiagnosi: "",
+        dettagli: "",
+      },
     ]);
     if (isLegacyClinicalLayout) {
       setShowImagingSection(true);
@@ -1379,7 +1440,15 @@ function PatientForm({
     setDiagnosiRighe(
       next.length
         ? next
-        : [{ id: uid(), diagnosi: "", distrettoDiagnosi: "", dettagli: "" }]
+        : [
+            {
+              id: uid(),
+              diagnosi: "",
+              distrettoDiagnosi: "",
+              latoDiagnosi: "",
+              dettagli: "",
+            },
+          ]
     );
   }
 
@@ -1426,6 +1495,36 @@ function PatientForm({
     "Riparazione meniscale",
     "Altro",
   ].map((v) => option("options.surgeryType", v));
+
+  /** Lista dei distretti operabili (no DX/SX, gestito separatamente con `latoOperato`). */
+  const surgeryDistrictOptions = [
+    { value: "", label: "--" },
+    { value: "anca", label: tt("options.distretti.anca") },
+    { value: "ginocchio", label: tt("options.distretti.ginocchio") },
+    { value: "caviglia", label: tt("options.distretti.caviglia") },
+    { value: "piede", label: tt("options.distretti.piede") },
+    { value: "spalla", label: tt("options.distretti.spalla") },
+    { value: "gomito", label: tt("options.distretti.gomito") },
+    { value: "polso", label: tt("options.distretti.polso") },
+    { value: "mano", label: tt("options.distretti.mano") },
+    { value: "cervicale", label: tt("options.distretti.cervicale") },
+    { value: "toracica", label: tt("options.distretti.toracica") },
+    { value: "lombare", label: tt("options.distretti.lombare") },
+    {
+      value: "altro",
+      label: t("patient.surgeryDistrictOther", "Altro"),
+    },
+  ];
+
+  const surgerySideOptions = [
+    { value: "", label: "--" },
+    { value: "destro", label: tt("evaluation.right") || "Destro" },
+    { value: "sinistro", label: tt("evaluation.left") || "Sinistro" },
+    {
+      value: "bilaterale",
+      label: tt("evaluation.bilateral") || "Bilaterale",
+    },
+  ];
 
   const clinicalOriginOptions = [
     {
@@ -1489,7 +1588,7 @@ function PatientForm({
                 compact
                 fullWidth
                 highlightChange={diffKey("diagnosiRighe")}
-                label={t("patient.diagnosis", "Diagnosi / problema principale")}
+                label={t("patient.diagnosis", "Diagnosi")}
                 value={row.diagnosi || ""}
                 onChange={(v) => updateDiagnosiRiga(row.id, { diagnosi: v })}
                 options={diagnosisOptions}
@@ -1500,12 +1599,25 @@ function PatientForm({
                 compact
                 fullWidth
                 highlightChange={diffKey("diagnosiRighe")}
-                label={tt("evaluation.district")}
+                label={t("patient.involvedDistrict", "Distretto coinvolto")}
                 value={row.distrettoDiagnosi || ""}
                 onChange={(v) =>
                   updateDiagnosiRiga(row.id, { distrettoDiagnosi: v })
                 }
                 options={distrettoDiagnosiOptions}
+              />
+            </div>
+            <div className="patient-form-row__field">
+              <Select
+                compact
+                fullWidth
+                highlightChange={diffKey("diagnosiRighe")}
+                label={t("patient.surgerySide", "Lato")}
+                value={row.latoDiagnosi || ""}
+                onChange={(v) =>
+                  updateDiagnosiRiga(row.id, { latoDiagnosi: v })
+                }
+                options={latoDiagnosiOptions}
               />
             </div>
           </div>
@@ -1650,7 +1762,12 @@ function PatientForm({
         />
       </div>
       <div className="patient-form-row__field">
-        <label style={dateCompanionLabelStyle}>
+        <div
+          tabIndex={-1}
+          role="status"
+          aria-label={t("patient.injuryDate", "Data infortunio")}
+          style={dateCompanionLabelStyle}
+        >
           <strong
             style={{ visibility: "hidden", whiteSpace: "nowrap" }}
             aria-hidden="true"
@@ -1680,9 +1797,17 @@ function PatientForm({
               </span>
             )}
           </div>
-        </label>
+        </div>
       </div>
     </div>
+  );
+
+  const surgeryDateFuture = Boolean(
+    patientTrim(form.dataOperazione) &&
+      isLocalIsoDateStrictlyFuture(form.dataOperazione)
+  );
+  const surgeryDaysUntil = wholeCalendarDaysUntilLocalIsoDate(
+    form.dataOperazione
   );
 
   const surgeryFieldsBlock = (
@@ -1700,7 +1825,15 @@ function PatientForm({
           />
         </div>
         <div className="patient-form-row__field">
-          <label style={dateCompanionLabelStyle}>
+          <div
+            tabIndex={-1}
+            role="status"
+            aria-label={t(
+              "patient.surgeryDate",
+              "Data operazione chirurgica"
+            )}
+            style={dateCompanionLabelStyle}
+          >
             <strong
               style={{ visibility: "hidden", whiteSpace: "nowrap" }}
               aria-hidden="true"
@@ -1710,14 +1843,39 @@ function PatientForm({
             <br />
             <div style={dateCompanionSlotStyle}>
               {form.dataOperazione ? (
-                <>
-                  <strong>
-                    {t("patient.timeSinceSurgery", "Tempo post-operatorio")}:
-                  </strong>{" "}
-                  {timeSinceYWD(form.dataOperazione, tt, {
-                    futureAsSurgeryCountdown: true,
-                  })}
-                </>
+                surgeryDateFuture ? (
+                  <>
+                    <p style={{ margin: 0 }}>
+                      <strong>
+                        {t("patient.surgeryStatusLabel", "Stato intervento")}:
+                      </strong>{" "}
+                      {t(
+                        "patient.surgeryStatusPreOp",
+                        "pre-operatorio"
+                      )}
+                    </p>
+                    <p style={{ margin: "6px 0 0" }}>
+                      <strong>
+                        {t(
+                          "patient.timeUntilSurgeryLabel",
+                          "Tempo all’operazione"
+                        )}
+                        :
+                      </strong>{" "}
+                      {surgeryDaysUntil != null ? surgeryDaysUntil : "—"}{" "}
+                      {tt("time.days") || "giorni"}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <strong>
+                      {t("patient.timeSinceSurgery", "Tempo post-operatorio")}:
+                    </strong>{" "}
+                    {timeSinceYWD(form.dataOperazione, tt, {
+                      futureAsSurgeryCountdown: true,
+                    })}
+                  </>
+                )
               ) : (
                 <span
                   style={{
@@ -1725,14 +1883,11 @@ function PatientForm({
                     color: "var(--text-muted)",
                   }}
                 >
-                  {t(
-                    "patient.surgeryDateHint",
-                    "Inserisci la data per calcolare il tempo post-operatorio."
-                  )}
+                  {t("patient.surgeryDateHint")}
                 </span>
               )}
             </div>
-          </label>
+          </div>
         </div>
       </div>
       <div className="patient-form-row">
@@ -1740,25 +1895,172 @@ function PatientForm({
           <Select
             compact
             fullWidth
-            highlightChange={diffKey("artoOperato")}
-            label={t("patient.operatedLimb", "Arto operato / localizzazione")}
-            value={form.artoOperato}
-            onChange={(v) => update("artoOperato", v)}
-            options={operatedLimbOptions}
+            highlightChange={diffKey("tipoOperazione")}
+            label={t("patient.surgeryType", "Tipo operazione")}
+            value={form.tipoOperazione || ""}
+            onChange={(v) => update("tipoOperazione", v)}
+            options={surgeryTypeOptions}
           />
         </div>
         <div className="patient-form-row__field">
           <Select
             compact
             fullWidth
-            highlightChange={diffKey("tipoOperazione")}
-            label={t("patient.surgeryType", "Tipo operazione")}
-            value={form.tipoOperazione}
-            onChange={(v) => update("tipoOperazione", v)}
-            options={surgeryTypeOptions}
+            highlightChange={diffKey("distrettoOperato")}
+            label={t("patient.operatedDistrict", "Distretto operato")}
+            value={form.distrettoOperato || ""}
+            onChange={(v) => update("distrettoOperato", v)}
+            options={surgeryDistrictOptions}
           />
         </div>
       </div>
+      <div className="patient-form-row">
+        <div className="patient-form-row__field">
+          <Select
+            compact
+            fullWidth
+            highlightChange={diffKey("latoOperato")}
+            label={t("patient.surgerySide", "Lato")}
+            value={form.latoOperato || ""}
+            onChange={(v) => update("latoOperato", v)}
+            options={surgerySideOptions}
+          />
+        </div>
+      </div>
+      <div className="patient-form-row">
+        <div className="patient-form-row__field">
+          <Textarea
+            compact
+            fullWidth
+            highlightChange={diffKey("interventoChirurgico")}
+            label={t("patient.surgeryDetails", "Dettagli operazione")}
+            value={form.interventoChirurgico || ""}
+            onChange={(v) => update("interventoChirurgico", v)}
+            minRows={2}
+          />
+        </div>
+      </div>
+      <div className="patient-form-row">
+        <div className="patient-form-row__field">
+          <Select
+            compact
+            fullWidth
+            highlightChange={diffKey("protocolloRiabilitazione")}
+            label={t(
+              "patient.surgeryProtocol",
+              "Protocollo riabilitazione"
+            )}
+            value={form.protocolloRiabilitazione || ""}
+            onChange={(v) => {
+              if (v !== "si") {
+                setForm({
+                  ...form,
+                  protocolloRiabilitazione: v,
+                  protocolloRiabilitazionePdf: "",
+                  protocolloRiabilitazionePdfName: "",
+                });
+              } else {
+                update("protocolloRiabilitazione", v);
+              }
+            }}
+            options={injurySurgeryPlannedOptions}
+          />
+        </div>
+      </div>
+      {form.protocolloRiabilitazione === "si" ? (
+        <div
+          className="patient-form-row"
+          style={{ marginTop: 4 }}
+        >
+          <div
+            className="patient-form-row__field"
+            style={{ flex: "1 1 100%" }}
+          >
+            <strong>
+              {t("patient.surgeryProtocolUpload", "Carica protocollo (PDF)")}
+            </strong>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 8,
+                marginTop: 6,
+              }}
+            >
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  if (file.size > 10 * 1024 * 1024) {
+                    alert(
+                      t(
+                        "patient.surgeryProtocolFileTooLarge",
+                        "Il file supera la dimensione massima consentita (10 MB)."
+                      )
+                    );
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const dataUrl = String(reader.result || "");
+                    setForm((prev) => ({
+                      ...prev,
+                      protocolloRiabilitazionePdf: dataUrl,
+                      protocolloRiabilitazionePdfName: file.name || "",
+                    }));
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+              {form.protocolloRiabilitazionePdf ? (
+                <>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      color: "var(--text-muted)",
+                      maxWidth: 280,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={form.protocolloRiabilitazionePdfName || ""}
+                  >
+                    {form.protocolloRiabilitazionePdfName ||
+                      "protocollo.pdf"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.open(
+                        form.protocolloRiabilitazionePdf,
+                        "_blank"
+                      )
+                    }
+                  >
+                    {t("patient.surgeryProtocolView", "Visualizza")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        protocolloRiabilitazionePdf: "",
+                        protocolloRiabilitazionePdfName: "",
+                      }))
+                    }
+                  >
+                    {t("patient.surgeryProtocolRemove", "Rimuovi")}
+                  </button>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 
@@ -1836,11 +2138,150 @@ function PatientForm({
     });
   }
 
+  const motivoMedicoSection = (
+    <Section
+      title={t("patient.reasonPhysicianSection", "Motivo / medico")}
+      compact
+    >
+      {!isLegacyClinicalLayout ? clinicalOriginWithPrescriberRow : null}
+      {isLegacyClinicalLayout ? prescribingDoctorTextarea : null}
+    </Section>
+  );
+
+  const bonHeaderBlock =
+    form.bonNumero !== "" &&
+    form.bonNumero != null &&
+    Number.isFinite(Number(form.bonNumero)) ? (
+      <p
+        tabIndex={-1}
+        style={{ margin: "0 0 8px", fontSize: "1.05rem", fontWeight: 700 }}
+      >
+        {formatBonLabel(form.bonNumero, t)}
+      </p>
+    ) : null;
+
+  const diagnosisSection = (
+    <>
+      {bonHeaderBlock}
+      <Section
+        title={t(
+          "patient.diagnosisInterventionSection",
+          "Diagnosi / intervento"
+        )}
+        compact
+      >
+        <p
+          tabIndex={-1}
+          style={{
+            margin: "0 0 10px",
+            fontSize: "0.9rem",
+            color: "var(--text-muted)",
+            textAlign: "left",
+          }}
+        >
+          {t(
+            "patient.diagnosesIntro",
+            "Diagnosi multiple: ogni riga è una voce. Usa «Aggiungi diagnosi» per aggiungerne un’altra (incrementale)."
+          )}
+        </p>
+        {isLegacyClinicalLayout ? (
+          <>
+            {injuryDateBlock}
+            {surgeryFieldsBlock}
+            {diagnosiRigheBlock}
+            {imagingLegacyGated}
+            {addDiagnosiBtn}
+          </>
+        ) : (
+          <>
+            {form.quadroClinicoTipo === "infortunio" ? (
+              <>
+                {injuryDateBlock}
+                <Select
+                  highlightChange={diffKey("infortunioChirurgicoPrevisto")}
+                  label={t(
+                    "patient.injurySurgeryPlanned",
+                    "Intervento chirurgico (anche futuro)?"
+                  )}
+                  value={form.infortunioChirurgicoPrevisto || ""}
+                  onChange={(v) => update("infortunioChirurgicoPrevisto", v)}
+                  options={injurySurgeryPlannedOptions}
+                />
+                {form.infortunioChirurgicoPrevisto === "si"
+                  ? surgeryFieldsBlock
+                  : null}
+              </>
+            ) : null}
+            {form.quadroClinicoTipo === "malattia" ||
+            (form.quadroClinicoTipo === "infortunio" &&
+              form.infortunioChirurgicoPrevisto !== "si") ? (
+              <>
+                {diagnosiRigheBlock}
+                {imagingFieldsFull}
+                {addDiagnosiBtn}
+              </>
+            ) : null}
+          </>
+        )}
+      </Section>
+    </>
+  );
+
+  const evaluationsSummarySection =
+    (form.valutazioni || []).length > 0 ||
+    (form.sessioniTest || []).length > 0 ? (
+      <Section
+        title={t("patient.evaluationsTestSummarySection", "Valutazioni / test")}
+        compact
+      >
+        <p className="patient-form-readonly-hint" tabIndex={-1}>
+          {t(
+            "patient.evaluationsSummaryReadOnly",
+            "Dati già presenti sul paziente (modifiche dalla vista paziente dopo il salvataggio)."
+          )}
+        </p>
+        <ul className="patient-form-readonly-list" tabIndex={-1}>
+          {(form.valutazioni || []).length > 0 ? (
+            <li>
+              {t("patient.evaluationsCount", "Valutazioni")}:{" "}
+              {(form.valutazioni || []).length}
+            </li>
+          ) : null}
+          {(form.sessioniTest || []).length > 0 ? (
+            <li>
+              {t("patient.testSessionsCount", "Sessioni test")}:{" "}
+              {(form.sessioniTest || []).length}
+            </li>
+          ) : null}
+        </ul>
+      </Section>
+    ) : null;
+
+  useEffect(() => {
+    function onDocumentKeyDown(e) {
+      if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        savePatient();
+        return;
+      }
+      if (e.key !== "Escape") return;
+      const el = e.target;
+      if (!el || !(el instanceof Element)) return;
+      const tag = el.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      cancel();
+    }
+    document.addEventListener("keydown", onDocumentKeyDown, true);
+    return () =>
+      document.removeEventListener("keydown", onDocumentKeyDown, true);
+  }, [savePatient, cancel]);
+
   return (
-    <div className="patient-form-compact">
+    <div className="patient-form-compact patient-form-compact--linear">
       <h2>{t("patient.title", "Scheda paziente")}</h2>
       {editingSnapshotNote ? (
         <p
+          tabIndex={-1}
           style={{
             margin: "0 0 14px",
             padding: "10px 12px",
@@ -1850,16 +2291,14 @@ function PatientForm({
             fontSize: "0.9375rem",
           }}
         >
-          {t(
-            "patient.editingBonSheetBanner",
-            "Stai modificando la scheda di questo bon:"
-          )}{" "}
+          {t("patient.editingBonSheetBanner")}{" "}
           <strong>{editingSnapshotNote}</strong>
         </p>
       ) : null}
 
+      <div className="patient-form-flow">
       <Section title={t("patient.identity", "Identità")} compact>
-        <div className="patient-form-row">
+        <div className="patient-form-identity-grid">
           <div className="patient-form-row__field">
             <Input
               dense
@@ -1878,8 +2317,6 @@ function PatientForm({
               onChange={(v) => update("cognome", v)}
             />
           </div>
-        </div>
-        <div className="patient-form-row">
           <div className="patient-form-row__field">
             <Select
               compact
@@ -1891,7 +2328,10 @@ function PatientForm({
               options={sexOptions}
             />
           </div>
-          <div className="patient-form-row__field">
+          <div
+            className="patient-form-row__field"
+            style={{ gridColumn: "1 / -1", maxWidth: "min(100%, 320px)" }}
+          >
             <Input
               dense
               fullWidth
@@ -1901,9 +2341,39 @@ function PatientForm({
               onChange={(v) => update("dataNascita", v)}
             />
           </div>
+          <div
+            className="patient-form-row patient-form-row--align-start"
+            style={{ gridColumn: "1 / -1" }}
+          >
+            <div className="patient-form-row__field">
+              <Select
+                compact
+                fullWidth
+                highlightChange={diffKey("motivoAccesso")}
+                label={t("patient.accessReason", "Perché sei da noi?")}
+                value={form.motivoAccesso}
+                onChange={(v) => update("motivoAccesso", v)}
+                options={accessReasonOptions}
+              />
+            </div>
+            {form.motivoAccesso === "Referral" ? (
+              <div className="patient-form-row__field">
+                <Input
+                  dense
+                  fullWidth
+                  highlightChange={diffKey("referralDaChi")}
+                  label={t(
+                    "patient.referralFrom",
+                    "Chi ha fatto il referral?"
+                  )}
+                  value={form.referralDaChi || ""}
+                  onChange={(v) => update("referralDaChi", v)}
+                />
+              </div>
+            ) : null}
+          </div>
         </div>
       </Section>
-
       <Section title={t("patient.physicalData", "Dati fisici")} compact>
         <div className="patient-form-row">
           <div className="patient-form-row__field">
@@ -1967,13 +2437,16 @@ function PatientForm({
           </div>
         </div>
         {bmi ? (
-          <p style={{ fontSize: "0.875rem", margin: "4px 0 0" }}>
+          <p
+            tabIndex={-1}
+            style={{ fontSize: "0.875rem", margin: "4px 0 0" }}
+          >
             <strong>{t("patient.bmi", "BMI")}:</strong> {bmi} (
             {bmiCategory(bmi)})
           </p>
         ) : null}
       </Section>
-
+      <>
       <Section
         title={t("patient.medicalHistory", "Informazioni mediche")}
         compact
@@ -2045,16 +2518,31 @@ function PatientForm({
           value={form.patologie || ""}
           onChange={(v) => update("patologie", v)}
         />
-        <Textarea
-          compact
-          fullWidth
-          highlightChange={diffKey("antecedentiChirurgici")}
+        <SurgicalHistoryList
+          tt={t}
+          lang={lang}
           label={t(
             "patient.relevantSurgeryHistory",
             "Antecedenti e operazioni chirurgiche rilevanti"
           )}
-          value={form.antecedentiChirurgici || ""}
-          onChange={(v) => update("antecedentiChirurgici", v)}
+          rows={
+            Array.isArray(form.antecedentiChirurgici)
+              ? form.antecedentiChirurgici
+              : []
+          }
+          highlightChange={diffKey("antecedentiChirurgici")}
+          onChange={(rows) => update("antecedentiChirurgici", rows)}
+          legacyText={
+            typeof form.antecedentiChirurgici === "string"
+              ? form.antecedentiChirurgici
+              : ""
+          }
+          onDiscardLegacy={
+            typeof form.antecedentiChirurgici === "string" &&
+            form.antecedentiChirurgici.trim() !== ""
+              ? () => update("antecedentiChirurgici", [])
+              : null
+          }
         />
       </Section>
 
@@ -2123,20 +2611,20 @@ function PatientForm({
           />
         </Section>
       ) : null}
-
+      </>
       <Section
-        title={t("patient.workEducation", "Dominio di lavoro / formazione")}
+        title={t("patient.workEducationSection", "Lavoro / formazione")}
         compact
       >
         <div className="patient-form-row patient-form-row--align-start">
           <div className="patient-form-row__field">
-            <Input
-              dense
+            <Textarea
+              compact
               fullWidth
               highlightChange={diffKey("dominioLavoro")}
               label={t(
-                "patient.workEducation",
-                "Dominio di lavoro / formazione"
+                "patient.professionOrFormation",
+                "Professione / formazione"
               )}
               value={form.dominioLavoro}
               onChange={(v) => update("dominioLavoro", v)}
@@ -2156,37 +2644,11 @@ function PatientForm({
             />
           </div>
         </div>
-        <div className="patient-form-row patient-form-row--align-start">
-          <div className="patient-form-row__field">
-            <Select
-              compact
-              fullWidth
-              highlightChange={diffKey("motivoAccesso")}
-              label={t("patient.accessReason", "Perché sei da noi?")}
-              value={form.motivoAccesso}
-              onChange={(v) => update("motivoAccesso", v)}
-              options={accessReasonOptions}
-            />
-          </div>
-          {form.motivoAccesso === "Referral" ? (
-            <div className="patient-form-row__field">
-              <Input
-                dense
-                fullWidth
-                highlightChange={diffKey("referralDaChi")}
-                label={t("patient.referralFrom", "Chi ha fatto il referral?")}
-                value={form.referralDaChi || ""}
-                onChange={(v) => update("referralDaChi", v)}
-              />
-            </div>
-          ) : null}
-        </div>
       </Section>
-
       <Section title={t("patient.sportLevel", "Sport e livello")} compact>
-        <label className="patient-form-sublabel">
+        <div className="patient-form-sublabel" tabIndex={-1}>
           <strong>{t("patient.sports", "Sport praticati")}</strong>
-        </label>
+        </div>
 
         <div
           className="choice-chip-grid choice-chip-grid--compact"
@@ -2310,6 +2772,7 @@ function PatientForm({
             />
             {form.fitnessTipo === "Pesi liberi" ? (
               <p
+                tabIndex={-1}
                 style={{
                   fontSize: "0.8125rem",
                   color: "var(--text-muted)",
@@ -2570,13 +3033,17 @@ function PatientForm({
         </div>
 
         {form.tegner !== "" && form.tegner != null ? (
-          <p style={{ fontSize: "0.8125rem", margin: "4px 0 6px" }}>
+          <p
+            tabIndex={-1}
+            style={{ fontSize: "0.8125rem", margin: "4px 0 6px" }}
+          >
             <strong>{t("patient.tegnerDefinition")}:</strong>{" "}
             {t(`options.tegner.${form.tegner}`) || tegnerInfo[form.tegner]}
           </p>
         ) : null}
 
         <details
+          tabIndex={-1}
           className="patient-form-details"
           style={{ fontSize: "0.8125rem", marginBottom: 8 }}
         >
@@ -2599,85 +3066,29 @@ function PatientForm({
           </div>
         </details>
       </Section>
+      {motivoMedicoSection}
+      {diagnosisSection}
+      {evaluationsSummarySection}
 
-      {form.bonNumero !== "" &&
-      form.bonNumero != null &&
-      Number.isFinite(Number(form.bonNumero)) ? (
-        <p style={{ margin: "0 0 8px", fontSize: "1.05rem", fontWeight: 700 }}>
-          {formatBonLabel(form.bonNumero)}
-        </p>
-      ) : null}
-
-      <Section title={t("patient.clinicalFrame", "Quadro clinico")}>
-        {!isLegacyClinicalLayout ? clinicalOriginWithPrescriberRow : null}
-        <p
-          style={{
-            margin: "0 0 10px",
-            fontSize: "0.9rem",
-            color: "var(--text-muted)",
-            textAlign: "left",
-          }}
-        >
-          {t(
-            "patient.diagnosesIntro",
-            "Diagnosi multiple: ogni riga è una voce. Usa «Aggiungi diagnosi» per aggiungerne un’altra (incrementale)."
-          )}
-        </p>
-
-        {isLegacyClinicalLayout ? (
-          <>
-            {diagnosiRigheBlock}
-            {addDiagnosiBtn}
-            {prescribingDoctorTextarea}
-            {imagingLegacyGated}
-            {injuryDateBlock}
-            {surgeryFieldsBlock}
-          </>
-        ) : (
-          <>
-            {form.quadroClinicoTipo === "malattia" ? (
-              <>
-                {diagnosiRigheBlock}
-                {addDiagnosiBtn}
-                {imagingFieldsFull}
-              </>
-            ) : null}
-
-            {form.quadroClinicoTipo === "infortunio" ? (
-              <>
-                {injuryDateBlock}
-                <Select
-                  highlightChange={diffKey("infortunioChirurgicoPrevisto")}
-                  label={t(
-                    "patient.injurySurgeryPlanned",
-                    "Intervento chirurgico (anche futuro)?"
-                  )}
-                  value={form.infortunioChirurgicoPrevisto || ""}
-                  onChange={(v) => update("infortunioChirurgicoPrevisto", v)}
-                  options={injurySurgeryPlannedOptions}
-                />
-                {form.infortunioChirurgicoPrevisto === "si" ? (
-                  <>
-                    {surgeryFieldsBlock}
-                    {diagnosiRigheBlock}
-                    {addDiagnosiBtn}
-                  </>
-                ) : null}
-                {form.infortunioChirurgicoPrevisto === "no" ? (
-                  <>
-                    {diagnosiRigheBlock}
-                    {addDiagnosiBtn}
-                    {imagingFieldsFull}
-                  </>
-                ) : null}
-              </>
-            ) : null}
-          </>
-        )}
-      </Section>
-
-      <button onClick={savePatient}>{t("common.save", "Salva")}</button>{" "}
-      <button onClick={cancel}>{t("common.cancel", "Annulla")}</button>
+      <div
+        className="patient-form-actions"
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 10,
+          marginTop: 20,
+          paddingTop: 16,
+          borderTop: "1px solid var(--border, #e2e8f0)",
+        }}
+      >
+        <button type="button" onClick={cancel}>
+          {tt("common.cancel")}
+        </button>
+        <button type="button" onClick={savePatient}>
+          {tt("common.save")}
+        </button>
+      </div>
+      </div>
     </div>
   );
 }
@@ -2913,8 +3324,19 @@ function PatientClinicalSnapshotFields({ snap, prevSnap = null, tt }) {
                               tt
                             )
                           : "";
+                        const latoKey = patientTrim(row.latoDiagnosi);
+                        const lato =
+                          latoKey === "destro"
+                            ? tt("evaluation.right")
+                            : latoKey === "sinistro"
+                              ? tt("evaluation.left")
+                              : latoKey === "bilaterale"
+                                ? tt("evaluation.bilateral")
+                                : "";
                         const det = manualTextLower(row.dettagli);
-                        const main = [dx, dist].filter(Boolean).join(" — ");
+                        const main = [dx, dist, lato]
+                          .filter(Boolean)
+                          .join(" — ");
                         const detT = patientTrim(det);
                         return (
                           <li key={row.id}>
@@ -3024,18 +3446,47 @@ function PatientClinicalSnapshotFields({ snap, prevSnap = null, tt }) {
                   {formatDateDMY(snap.dataOperazione)}
                 </SnapHi>
               </p>
-              <p style={{ margin: 0 }}>
-                <strong>{tt("patient.timeSinceSurgery")}:</strong>{" "}
-                <SnapHi show={diff("dataOperazione")}>
-                  {timeSinceYWD(snap.dataOperazione, tt, {
-                    futureAsSurgeryCountdown: true,
-                  })}
-                </SnapHi>
-              </p>
+              {isLocalIsoDateStrictlyFuture(snap.dataOperazione) ? (
+                <div style={{ flex: "1 1 100%", marginTop: 4 }}>
+                  <p style={{ margin: 0 }}>
+                    <strong>{tt("patient.surgeryStatusLabel")}:</strong>{" "}
+                    <SnapHi show={diff("dataOperazione")}>
+                      {tt("patient.surgeryStatusPreOp")}
+                    </SnapHi>
+                  </p>
+                  <p style={{ margin: "6px 0 0" }}>
+                    <strong>{tt("patient.timeUntilSurgeryLabel")}:</strong>{" "}
+                    <SnapHi show={diff("dataOperazione")}>
+                      {(() => {
+                        const n = wholeCalendarDaysUntilLocalIsoDate(
+                          snap.dataOperazione
+                        );
+                        return n != null ? n : "—";
+                      })()}{" "}
+                      {tt("time.days")}
+                    </SnapHi>
+                  </p>
+                </div>
+              ) : (
+                <p style={{ margin: 0 }}>
+                  <strong>{tt("patient.timeSinceSurgery")}:</strong>{" "}
+                  <SnapHi show={diff("dataOperazione")}>
+                    {timeSinceYWD(snap.dataOperazione, tt, {
+                      futureAsSurgeryCountdown: true,
+                    })}
+                  </SnapHi>
+                </p>
+              )}
             </div>
           ) : null}
 
-          {(patientTrim(snap.artoOperato) || patientTrim(snap.tipoOperazione)) ? (
+          {(patientTrim(snap.artoOperato) ||
+          patientTrim(snap.tipoOperazione) ||
+          patientTrim(snap.distrettoOperato) ||
+          patientTrim(snap.latoOperato) ||
+          patientTrim(snap.interventoChirurgico) ||
+          patientTrim(snap.protocolloRiabilitazione) ||
+          patientTrim(snap.protocolloRiabilitazionePdf)) ? (
             <div
               style={{
                 display: "flex",
@@ -3061,6 +3512,85 @@ function PatientClinicalSnapshotFields({ snap, prevSnap = null, tt }) {
                     {tt(`options.surgeryType.${snap.tipoOperazione}`) ||
                       snap.tipoOperazione}
                   </SnapHi>
+                </p>
+              ) : null}
+              {patientTrim(snap.distrettoOperato) ? (
+                <p style={{ margin: 0 }}>
+                  <strong>{tt("patient.operatedDistrict")}:</strong>{" "}
+                  <SnapHi show={diff("distrettoOperato")}>
+                    {(() => {
+                      const v = String(snap.distrettoOperato).trim();
+                      const known = new Set([
+                        "anca",
+                        "ginocchio",
+                        "caviglia",
+                        "piede",
+                        "spalla",
+                        "gomito",
+                        "polso",
+                        "mano",
+                        "cervicale",
+                        "toracica",
+                        "lombare",
+                      ]);
+                      if (known.has(v)) {
+                        return tt(`options.distretti.${v}`) || v;
+                      }
+                      if (v === "altro") {
+                        return tt("patient.surgeryDistrictOther") || v;
+                      }
+                      return v;
+                    })()}
+                  </SnapHi>
+                </p>
+              ) : null}
+              {patientTrim(snap.latoOperato) ? (
+                <p style={{ margin: 0 }}>
+                  <strong>{tt("patient.surgerySide")}:</strong>{" "}
+                  <SnapHi show={diff("latoOperato")}>
+                    {(() => {
+                      const v = String(snap.latoOperato).trim();
+                      if (v === "destro") return tt("evaluation.right") || v;
+                      if (v === "sinistro") return tt("evaluation.left") || v;
+                      if (v === "bilaterale")
+                        return tt("evaluation.bilateral") || v;
+                      return v;
+                    })()}
+                  </SnapHi>
+                </p>
+              ) : null}
+              {patientTrim(snap.interventoChirurgico) ? (
+                <p style={{ margin: 0 }}>
+                  <strong>{tt("patient.surgeryDetails")}:</strong>{" "}
+                  <SnapHi show={diff("interventoChirurgico")}>
+                    {manualTextLower(snap.interventoChirurgico)}
+                  </SnapHi>
+                </p>
+              ) : null}
+              {patientTrim(snap.protocolloRiabilitazione) ? (
+                <p style={{ margin: 0 }}>
+                  <strong>{tt("patient.surgeryProtocol")}:</strong>{" "}
+                  <SnapHi show={diff("protocolloRiabilitazione")}>
+                    {snap.protocolloRiabilitazione === "si"
+                      ? tt("options.yesNo.Sì") || "Sì"
+                      : tt("options.yesNo.No") || "No"}
+                  </SnapHi>
+                </p>
+              ) : null}
+              {patientTrim(snap.protocolloRiabilitazionePdf) ? (
+                <p style={{ margin: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.open(
+                        snap.protocolloRiabilitazionePdf,
+                        "_blank"
+                      )
+                    }
+                  >
+                    {tt("patient.surgeryProtocolView") ||
+                      "Visualizza protocollo"}
+                  </button>
                 </p>
               ) : null}
             </div>
@@ -3089,6 +3619,7 @@ function PatientClinicalHistoryBlocks({
   storico,
   selected,
   tt,
+  lang = "it",
   onEditSnapshot,
   onDeleteBon,
   onAddBonDiagnosis,
@@ -3125,8 +3656,8 @@ function PatientClinicalHistoryBlocks({
                     fontWeight: 700,
                   }}
                 >
-                  {formatBonLabel(snap.bonNumero)
-                    ? `${formatBonLabel(snap.bonNumero)} `
+                  {formatBonLabel(snap.bonNumero, tt)
+                    ? `${formatBonLabel(snap.bonNumero, tt)} `
                     : ""}
                   {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
                   {patientTrim(snap.dataValutazione)
@@ -3136,23 +3667,34 @@ function PatientClinicalHistoryBlocks({
               </>
             ) : null}
 
-            <PatientAnamnesisSheet
-              data={anamnSource}
-              tt={tt}
-              diffPrevious={
-                idx > 0 &&
-                storico[idx - 1]?.sheetContext &&
-                typeof storico[idx - 1].sheetContext === "object"
-                  ? storico[idx - 1].sheetContext
-                  : null
-              }
-            />
+            <div className="patient-pdf-card patient-pdf-card--nested pdf-avoid-break">
+              <h3 className="patient-pdf-card__title">
+                {tt("patient.reportBlockPhysicalSport")}
+              </h3>
+              <PatientAnamnesisSheet
+                data={anamnSource}
+                tt={tt}
+                lang={lang}
+                diffPrevious={
+                  idx > 0 &&
+                  storico[idx - 1]?.sheetContext &&
+                  typeof storico[idx - 1].sheetContext === "object"
+                    ? storico[idx - 1].sheetContext
+                    : null
+                }
+              />
+            </div>
 
-            <PatientClinicalSnapshotFields
-              snap={snap}
-              prevSnap={idx > 0 ? storico[idx - 1] : null}
-              tt={tt}
-            />
+            <div className="patient-pdf-card patient-pdf-card--nested pdf-avoid-break">
+              <h3 className="patient-pdf-card__title">
+                {tt("patient.reportBlockClinicalDx")}
+              </h3>
+              <PatientClinicalSnapshotFields
+                snap={snap}
+                prevSnap={idx > 0 ? storico[idx - 1] : null}
+                tt={tt}
+              />
+            </div>
 
             {onEditSnapshot ? (
               <div
@@ -3172,7 +3714,7 @@ function PatientClinicalHistoryBlocks({
                   style={{ flexShrink: 0 }}
                   onClick={() => onEditSnapshot(selected, idx)}
                 >
-                  {tt("patient.editThisBonSheet", "Modifica questa scheda bon")}
+                  {tt("patient.editThisBonSheet")}
                 </button>
                 {onDeleteBon ? (
                   <button
@@ -3180,7 +3722,7 @@ function PatientClinicalHistoryBlocks({
                     style={{ flexShrink: 0 }}
                     onClick={() => onDeleteBon(selected, idx)}
                   >
-                    {tt("patient.deleteThisBon", "Elimina questo bon")}
+                    {tt("patient.deleteThisBon")}
                   </button>
                 ) : null}
                 {onAddBonDiagnosis ? (
@@ -3189,7 +3731,7 @@ function PatientClinicalHistoryBlocks({
                     style={{ flexShrink: 0 }}
                     onClick={() => onAddBonDiagnosis(selected)}
                   >
-                    {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
+                    {tt("patient.addBonDiagnosis")}
                   </button>
                 ) : null}
               </div>
@@ -3205,6 +3747,7 @@ function PatientClinicalHistoryBlocks({
 function PatientSheetPdfSection({
   selected,
   tt,
+  lang = "it",
   onEditSnapshot,
   onDeleteBon,
   onAddBonDiagnosis,
@@ -3221,7 +3764,12 @@ function PatientSheetPdfSection({
   const clinicalMain =
     storicoQuadroClinico.length === 0 ? (
       <>
-        <PatientAnamnesisSheet data={selected} tt={tt} />
+        <div className="patient-pdf-card patient-pdf-card--nested pdf-avoid-break">
+          <h3 className="patient-pdf-card__title">
+            {tt("patient.reportBlockPhysicalSport")}
+          </h3>
+          <PatientAnamnesisSheet data={selected} tt={tt} lang={lang} />
+        </div>
         {onAddBonDiagnosis ? (
           <div
             className="no-pdf patient-bon-actions"
@@ -3234,7 +3782,7 @@ function PatientSheetPdfSection({
             }}
           >
             <button type="button" onClick={() => onAddBonDiagnosis(selected)}>
-              {tt("patient.addBonDiagnosis", "Aggiungi bon diagnosi")}
+              {tt("patient.addBonDiagnosis")}
             </button>
           </div>
         ) : null}
@@ -3244,6 +3792,7 @@ function PatientSheetPdfSection({
         storico={storicoQuadroClinico}
         selected={selected}
         tt={tt}
+        lang={lang}
         onEditSnapshot={onEditSnapshot}
         onDeleteBon={onDeleteBon}
         onAddBonDiagnosis={onAddBonDiagnosis}
@@ -3273,61 +3822,68 @@ function PatientSheetPdfSection({
         <div className="pdf-header-actions no-pdf">{headerActions}</div>
       </header>
 
-      <h2 style={{ lineHeight: 1.35, fontSize: "1.1rem", marginBottom: 4 }}>
-        <span
-          style={{
-            display: "inline-flex",
-            flexWrap: "wrap",
-            gap: "0 8px",
-            alignItems: "baseline",
-          }}
+      <div className="patient-pdf-card patient-pdf-card--identity pdf-avoid-break">
+        <h2
+          className="patient-pdf-card__title patient-pdf-card__title--main"
+          style={{ lineHeight: 1.35, fontSize: "1.1rem", marginBottom: 4 }}
         >
-          <span>{formatPatientListDisplayName(selected) || "-"}</span>
-          {selected.bonNumero !== "" &&
-          selected.bonNumero != null &&
-          Number.isFinite(Number(selected.bonNumero)) ? (
-            <span>
-              {formatBonLabel(selected.bonNumero)}{" "}
-              {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
-              {patientTrim(firstAppointmentDate)
-                ? formatDateDMY(firstAppointmentDate)
-                : "—"}
-            </span>
-          ) : patientTrim(firstAppointmentDate) ? (
-            <span>
-              {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
-              {formatDateDMY(firstAppointmentDate)}
-            </span>
-          ) : null}
-        </span>
-      </h2>
-      {(patientTrim(selected.sesso) || patientTrim(selected.dataNascita)) && (
-        <p
-          style={{
-            fontSize: "0.875rem",
-            margin: "0 0 8px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "0 14px",
-            alignItems: "baseline",
-          }}
-        >
-          {patientTrim(selected.sesso) ? (
-            <span>
-              <strong>{tt("patient.sex")}:</strong>{" "}
-              {tt(`options.sex.${selected.sesso}`) || selected.sesso}
-            </span>
-          ) : null}
-          {patientTrim(selected.dataNascita) ? (
-            <span>
-              <strong>{tt("patient.birthDate")}:</strong>{" "}
-              {formatDateDMY(selected.dataNascita)}
-            </span>
-          ) : null}
-        </p>
-      )}
+          <span
+            style={{
+              display: "inline-flex",
+              flexWrap: "wrap",
+              gap: "0 8px",
+              alignItems: "baseline",
+            }}
+          >
+            <span>{formatPatientListDisplayName(selected) || "-"}</span>
+            {selected.bonNumero !== "" &&
+            selected.bonNumero != null &&
+            Number.isFinite(Number(selected.bonNumero)) ? (
+              <span>
+                {formatBonLabel(selected.bonNumero, tt)}{" "}
+                {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
+                {patientTrim(firstAppointmentDate)
+                  ? formatDateDMY(firstAppointmentDate)
+                  : "—"}
+              </span>
+            ) : patientTrim(firstAppointmentDate) ? (
+              <span>
+                {tt("patient.appointmentOfDate", "appuntamento del")}{" "}
+                {formatDateDMY(firstAppointmentDate)}
+              </span>
+            ) : null}
+          </span>
+        </h2>
+        {(patientTrim(selected.sesso) || patientTrim(selected.dataNascita)) && (
+          <p
+            style={{
+              fontSize: "0.875rem",
+              margin: "0 0 0",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0 14px",
+              alignItems: "baseline",
+            }}
+          >
+            {patientTrim(selected.sesso) ? (
+              <span>
+                <strong>{tt("patient.sex")}:</strong>{" "}
+                {tt(`options.sex.${selected.sesso}`) || selected.sesso}
+              </span>
+            ) : null}
+            {patientTrim(selected.dataNascita) ? (
+              <span>
+                <strong>{tt("patient.birthDate")}:</strong>{" "}
+                {formatDateDMY(selected.dataNascita)}
+              </span>
+            ) : null}
+          </p>
+        )}
+      </div>
 
-      {clinicalMain}
+      <div className="patient-pdf-card patient-pdf-card--sheet-body pdf-avoid-break">
+        {clinicalMain}
+      </div>
     </>
   );
 }
@@ -3335,6 +3891,7 @@ function PatientSheetPdfSection({
 function PatientDetail({
   selected,
   tt,
+  lang = "it",
   editClinicalSnapshot,
   removeStoricoBon,
   addDiagnosisEntry,
@@ -3392,6 +3949,7 @@ function PatientDetail({
       <PatientSheetPdfSection
         selected={selected}
         tt={tt}
+        lang={lang}
         onEditSnapshot={editClinicalSnapshot}
         onDeleteBon={removeStoricoBon}
         onAddBonDiagnosis={addDiagnosisEntry}
@@ -3489,7 +4047,7 @@ function PatientDetail({
         revealComparativeCharts ||
         revealTestChartsPanel) && (
         <div
-          className="patient-sheet-list-panel"
+          className="patient-sheet-list-panel patient-pdf-card patient-pdf-card--evals pdf-avoid-break"
           style={{
             marginTop: 12,
             padding: "14px 16px",
@@ -3498,6 +4056,9 @@ function PatientDetail({
             background: "#fafbfc",
           }}
         >
+          <h3 className="patient-pdf-card__title" style={{ marginTop: 0 }}>
+            {tt("patient.reportBlockEvaluationsTests")}
+          </h3>
       {revealTests && (
         <>
           <h3 style={{ marginTop: 0, marginBottom: 10 }}>
@@ -3810,6 +4371,101 @@ function PatientDetail({
                                 </table>
                               </>
                             )}
+
+                            {test.type === "HOP_BATTERY" && (() => {
+                              const hb = ensureHopBatteryShape(test.hopBattery);
+                              const hopRows = [
+                                {
+                                  key: "tripleHop",
+                                  lab: tt("tests.hopBattery.tripleHop"),
+                                },
+                                {
+                                  key: "singleHop",
+                                  lab: tt("tests.hopBattery.singleHop"),
+                                },
+                                {
+                                  key: "sideHop",
+                                  lab: tt("tests.hopBattery.sideHop"),
+                                },
+                                {
+                                  key: "crossoverHop",
+                                  lab: tt("tests.hopBattery.crossoverHop"),
+                                },
+                              ];
+                              const lsies = hopRows.map(({ key }) =>
+                                hopLsiPercent(
+                                  hb.injuredSide,
+                                  hb[key]?.dx,
+                                  hb[key]?.sx
+                                )
+                              );
+                              const meanLsi = meanHopLsi(lsies);
+                              return (
+                                <>
+                                  <strong>
+                                    {tt("tests.hopBattery.title") ??
+                                      "Hop test battery"}
+                                  </strong>
+                                  {test.noteAltro &&
+                                    String(test.noteAltro).trim() !== "" && (
+                                      <p style={{ marginTop: 6 }}>
+                                        <strong>
+                                          {tt("evaluation.otherDetailsOptional")}:
+                                        </strong>{" "}
+                                        {String(test.noteAltro).trim()}
+                                      </p>
+                                    )}
+                                  <p style={{ marginTop: 8, fontSize: 12 }}>
+                                    <strong>
+                                      {tt("tests.hopBattery.injuredSideLabel")}:
+                                    </strong>{" "}
+                                    {hb.injuredSide === "left"
+                                      ? `${tt("evaluation.left")} (SX)`
+                                      : hb.injuredSide === "right"
+                                        ? `${tt("evaluation.right")} (DX)`
+                                        : "—"}
+                                  </p>
+                                  <table
+                                    border="1"
+                                    cellPadding={6}
+                                    style={{
+                                      borderCollapse: "collapse",
+                                      marginTop: 8,
+                                      width: "100%",
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    <thead>
+                                      <tr>
+                                        <th>{tt("evaluation.test")}</th>
+                                        <th>DX</th>
+                                        <th>SX</th>
+                                        <th>{tt("tests.hopBattery.lsiLabel")}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {hopRows.map(({ key, lab }, i) => (
+                                        <tr key={key}>
+                                          <td>{lab}</td>
+                                          <td>{hb[key]?.dx || "—"}</td>
+                                          <td>{hb[key]?.sx || "—"}</td>
+                                          <td>
+                                            {formatHopLsiOneDecimal(lsies[i]) ??
+                                              "—"}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                  {meanLsi != null ? (
+                                    <p style={{ marginTop: 8, fontSize: 12 }}>
+                                      <strong>{tt("tests.hopBattery.meanLsi")}:</strong>{" "}
+                                      {formatHopLsiOneDecimal(meanLsi)}
+                                    </p>
+                                  ) : null}
+                                </>
+                              );
+                            })()}
 
                             {test.type === "ISOKINETIC" && (
                               <>
@@ -4210,7 +4866,7 @@ function PatientDetail({
           >
             {tt("patient.sheetComparativeCharts")}
           </h3>
-          <KiviatComparison selected={selected} tt={tt} />
+          <KiviatComparison selected={selected} tt={tt} lang={lang} />
         </>
       )}
 
@@ -4254,8 +4910,7 @@ function KiviatComparisonPdfCoverHeader({
         lineHeight: 1.45,
       }}
     >
-      <div style={{ fontWeight: 700, color: "#0d5c68" }}>Physiocare Nyon</div>
-      <div style={{ marginTop: 6, fontWeight: 600 }}>
+      <div style={{ fontWeight: 600 }}>
         {formatPatientListDisplayName(selected) || "—"}
       </div>
       {selected.dataNascita ? (
@@ -4278,7 +4933,7 @@ function KiviatComparisonPdfCoverHeader({
   );
 }
 
-function KiviatComparison({ selected, tt }) {
+function KiviatComparison({ selected, tt, lang = "it" }) {
   const valutazioni = selected.valutazioni || [];
 
   const availableDistretti = Array.from(
@@ -4453,6 +5108,7 @@ function KiviatComparison({ selected, tt }) {
                     <PatientSheetPdfSection
                       selected={selected}
                       tt={tt}
+                      lang={lang}
                       stripPatientPdfCover
                     />
                   </div>

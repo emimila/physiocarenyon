@@ -220,12 +220,26 @@
 
 /* Report test isocinetico (Grafici test → PDF, stesso flusso Y Balance) */
 .pdf-root.pdf-exporting .isokinetic-pdf-report {
-  font-size: 9px !important;
   line-height: 1.35 !important;
 }
 
 .pdf-root.pdf-exporting .isokinetic-pdf-report table {
   font-size: 8px !important;
+}
+
+.pdf-root.pdf-exporting .isokinetic-torque-legend td,
+.pdf-root.pdf-exporting .isokinetic-torque-legend {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  color: #0f172a !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.pdf-root.pdf-exporting .isokinetic-pdf-table-legend {
+  font-size: 9px !important;
+  line-height: 1.4 !important;
+  color: #334155 !important;
 }
 
 .pdf-root.pdf-exporting .isokinetic-pdf-report table th,
@@ -240,4 +254,77 @@
 .pdf-root.pdf-exporting .isokinetic-pdf-block {
   break-inside: avoid-page;
   page-break-inside: avoid;
+}
+
+/* Hop test battery — report PDF */
+.pdf-root.pdf-exporting .hop-battery-pdf-report {
+  line-height: 1.35 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.pdf-root.pdf-exporting .hop-battery-pdf-report table th,
+.pdf-root.pdf-exporting .hop-battery-pdf-report table td {
+  padding: 4px 5px !important;
+  font-size: 9px !important;
+}
+
+.pdf-root.pdf-exporting .hop-battery-pdf-header {
+  font-size: 10px !important;
+}
+
+.pdf-root.pdf-exporting .hop-battery-pdf-legend {
+  font-size: 9px !important;
+  line-height: 1.4 !important;
+}
+
+.pdf-root.pdf-exporting .hop-battery-quad {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.pdf-root.pdf-exporting .hop-battery-sidebar {
+  font-size: 9px !important;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.pdf-root.pdf-exporting .hop-battery-pdf-footer {
+  font-size: 8px !important;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+/* Hop Battery Test — report PDF dedicato (header → paziente → risultati → LSI → grafici).
+   Le sezioni Header/Patient/Results/LSI vivono in pagina 1; il blocco grafici va in nuova pagina. */
+.pdf-root.pdf-exporting .hop-battery-test-pdf-report {
+  line-height: 1.35 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.pdf-root.pdf-exporting .hop-battery-test-pdf-header,
+.pdf-root.pdf-exporting .hop-battery-test-pdf-patient,
+.pdf-root.pdf-exporting .hop-battery-test-pdf-results,
+.pdf-root.pdf-exporting .hop-battery-test-pdf-lsi {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.pdf-root.pdf-exporting .hop-battery-test-pdf-results table th,
+.pdf-root.pdf-exporting .hop-battery-test-pdf-results table td {
+  padding: 4px 6px !important;
+  font-size: 9px !important;
+}
+
+.pdf-root.pdf-exporting .hop-battery-test-pdf-charts-page {
+  break-before: page;
+  page-break-before: always;
+}
+
+/* Brand text "Physiocare Nyon" che vive dentro componenti condivisi on-screen / PDF.
+   On-screen è giusto vederlo, in PDF sarebbe duplicato dell'header immagine in cima ad ogni pagina,
+   quindi lo nascondiamo solo durante l'export. */
+.pdf-root.pdf-exporting .hop-brand-text-onscreen-only {
+  display: none !important;
 }

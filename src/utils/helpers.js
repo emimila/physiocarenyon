@@ -144,6 +144,41 @@ export function timeSinceYWD(dateString, tt, options = {}) {
   return parts.join(" + ");
 }
 
+/**
+ * Data ISO locale `YYYY-MM-DD` strettamente nel futuro rispetto a oggi (inizio giornata).
+ * Oggi = non futura (stesso comportamento di `timeSinceYWD` per l’intervento).
+ */
+export function isLocalIsoDateStrictlyFuture(dateString) {
+  if (!dateString) return false;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString).trim());
+  if (!iso) return false;
+  const y = Number(iso[1]);
+  const mo = Number(iso[2]) - 1;
+  const day = Number(iso[3]);
+  const start = startOfLocalDay(new Date(y, mo, day));
+  if (!Number.isFinite(start.getTime())) return false;
+  const end = startOfLocalDay(new Date());
+  return end < start;
+}
+
+/**
+ * Giorni interi calendario da oggi alla data (solo se futura), altrimenti `null`.
+ * Coerente con il countdown usato in `timeSinceYWD(..., { futureAsSurgeryCountdown: true })`.
+ */
+export function wholeCalendarDaysUntilLocalIsoDate(dateString) {
+  if (!dateString) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString).trim());
+  if (!iso) return null;
+  const y = Number(iso[1]);
+  const mo = Number(iso[2]) - 1;
+  const day = Number(iso[3]);
+  const start = startOfLocalDay(new Date(y, mo, day));
+  if (!Number.isFinite(start.getTime())) return null;
+  const end = startOfLocalDay(new Date());
+  if (end >= start) return null;
+  return Math.round((start - end) / DAY_MS);
+}
+
 /** @deprecated Preferire `timeSinceYWD` per schede cliniche. */
 export function timeSince(dateString, tt) {
   return timeSinceYWD(dateString, tt);
@@ -324,30 +359,70 @@ const PATIENT_DIAGNOSIS_CANON = [
 /**
  * Traduce la diagnosi salvata: chiave esatta, poi match case-insensitive con il catalogo, altrimenti testo manuale in minuscolo.
  */
+/**
+ * Splitta valori legacy del tipo `ginocchio_destro` / `caviglia_sinistra` in distretto+lato.
+ * Ritorna { distretto, lato } o null se non riconosciuto.
+ */
+function splitLegacyDistrettoLato(value) {
+  if (!value || typeof value !== "string") return null;
+  const v = value.trim().toLowerCase();
+  if (!v) return null;
+  const sideMap = {
+    destro: "destro",
+    destra: "destro",
+    sinistro: "sinistro",
+    sinistra: "sinistro",
+    bilaterale: "bilaterale",
+  };
+  const m = v.match(/^([a-z]+)_(destro|destra|sinistro|sinistra|bilaterale)$/);
+  if (m) {
+    return { distretto: m[1], lato: sideMap[m[2]] || "" };
+  }
+  return null;
+}
+
 /** Riga diagnosi incrementale (scheda paziente). */
 export function migrateDiagnosiRighe(patient) {
   const p = patient || {};
   if (Array.isArray(p.diagnosiRighe) && p.diagnosiRighe.length > 0) {
-    return p.diagnosiRighe.map((row, i) => ({
-      id:
-        row.id ||
-        `dx-${i}-${Math.random().toString(36).slice(2, 11)}`,
-      diagnosi: row.diagnosi != null ? String(row.diagnosi) : "",
-      distrettoDiagnosi:
-        row.distrettoDiagnosi != null ? String(row.distrettoDiagnosi) : "",
-      dettagli: row.dettagli != null ? String(row.dettagli) : "",
-    }));
+    return p.diagnosiRighe.map((row, i) => {
+      const rawDistr =
+        row.distrettoDiagnosi != null ? String(row.distrettoDiagnosi) : "";
+      const rawLato =
+        row.latoDiagnosi != null ? String(row.latoDiagnosi) : "";
+      let distretto = rawDistr;
+      let lato = rawLato;
+      if (!lato) {
+        const split = splitLegacyDistrettoLato(rawDistr);
+        if (split) {
+          distretto = split.distretto;
+          lato = split.lato;
+        }
+      }
+      return {
+        id:
+          row.id ||
+          `dx-${i}-${Math.random().toString(36).slice(2, 11)}`,
+        diagnosi: row.diagnosi != null ? String(row.diagnosi) : "",
+        distrettoDiagnosi: distretto,
+        latoDiagnosi: lato,
+        dettagli: row.dettagli != null ? String(row.dettagli) : "",
+      };
+    });
   }
   const hasLegacy =
     (p.diagnosi && String(p.diagnosi).trim()) ||
     (p.distrettoDiagnosi && String(p.distrettoDiagnosi).trim()) ||
     (p.diagnosiDettagli && String(p.diagnosiDettagli).trim());
   if (hasLegacy) {
+    const rawDistr = String(p.distrettoDiagnosi || "").trim();
+    const split = splitLegacyDistrettoLato(rawDistr);
     return [
       {
         id: uid(),
         diagnosi: String(p.diagnosi || "").trim(),
-        distrettoDiagnosi: String(p.distrettoDiagnosi || "").trim(),
+        distrettoDiagnosi: split ? split.distretto : rawDistr,
+        latoDiagnosi: split ? split.lato : "",
         dettagli: String(p.diagnosiDettagli || "").trim(),
       },
     ];
@@ -357,6 +432,7 @@ export function migrateDiagnosiRighe(patient) {
       id: uid(),
       diagnosi: "",
       distrettoDiagnosi: "",
+      latoDiagnosi: "",
       dettagli: "",
     },
   ];

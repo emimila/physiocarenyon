@@ -33,7 +33,6 @@ export const sportOptions = [
   "handball",
   "danza",
   "crossfit",
-  "escalade",
   "arrampicata",
   "yoga",
   "pilates",

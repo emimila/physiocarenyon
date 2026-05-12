@@ -28,7 +28,7 @@ export default function Input({
           boxSizing: "border-box",
           ...(shortField
             ? {}
-            : { minHeight: "3.35rem", verticalAlign: "top" }),
+            : { minHeight: "2.375rem", verticalAlign: "top" }),
         }}
       />
     </label>
