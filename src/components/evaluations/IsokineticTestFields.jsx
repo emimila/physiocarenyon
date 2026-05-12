@@ -147,9 +147,20 @@ export default function IsokineticTestFields({
     });
   }
 
-  function applyEasytechImportPatch(patch) {
-    const next = applyEasytechPatchToIso(iso, patch);
-    patchIso({ rows: next.rows });
+  function applyEasytechImportPatch(payload) {
+    const patches = Array.isArray(payload?.patches)
+      ? payload.patches
+      : payload &&
+          typeof payload === "object" &&
+          (payload.speed != null || payload.right != null || payload.left != null)
+        ? [payload]
+        : [];
+    if (patches.length === 0) return;
+    let nextIso = iso;
+    for (const p of patches) {
+      nextIso = applyEasytechPatchToIso(nextIso, p);
+    }
+    patchIso({ rows: nextIso.rows });
   }
 
   function selectRow(ri) {

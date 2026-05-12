@@ -195,25 +195,36 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
   }
 
   function importAll() {
-    let anyImported = false;
+    const patches = [];
     for (let i = 0; i < pages.length; i++) {
       const p = pages[i];
       const patch = buildPatchForPage(p);
       if (patch && patch.speed && (patch.right || patch.left)) {
-        onApplyPatch?.({
-          speed: patch.speed,
-          right: patch.right,
-          left: patch.left,
-        });
-        anyImported = true;
+        patches.push(patch);
       }
     }
-    if (anyImported) {
-      setPages((prev) => prev.map((p) => ({ ...p, imported: true })));
-      setError("");
-    } else {
+    if (patches.length === 0) {
       setError(tt("tests.isokinetic.easytechImportNothing"));
+      return;
     }
+    setError("");
+    if (patches.length === 1) {
+      onApplyPatch?.(patches[0]);
+    } else {
+      onApplyPatch?.({ patches });
+    }
+    setPages((prev) => {
+      const readyIdx = new Set();
+      for (let i = 0; i < prev.length; i++) {
+        const patch = buildPatchForPage(prev[i]);
+        if (patch && patch.speed && (patch.right || patch.left)) {
+          readyIdx.add(i);
+        }
+      }
+      return prev.map((p, i) =>
+        readyIdx.has(i) ? { ...p, imported: true } : p
+      );
+    });
   }
 
   const summary = useMemo(() => {
@@ -366,7 +377,7 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
 
           {pages.map((p, idx) => (
             <PageCard
-              key={p.pageNumber}
+              key={`${p.pageNumber}-${p.sectionIndex ?? 0}-${idx}`}
               page={p}
               tt={tt}
               overwrites={computePageOverwrites(p, iso)}
@@ -483,10 +494,15 @@ function PageCard({
         }}
       >
         <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a" }}>
-          {tt("tests.isokinetic.easytechImportPageTitle").replace(
-            "{n}",
-            String(page.pageNumber)
-          )}
+          {page.sectionCount != null && page.sectionCount > 1
+            ? tt("tests.isokinetic.easytechImportPageTitleSection")
+                .replace("{page}", String(page.pageNumber))
+                .replace("{section}", String(page.sectionIndex ?? 1))
+                .replace("{sections}", String(page.sectionCount))
+            : tt("tests.isokinetic.easytechImportPageTitle").replace(
+                "{n}",
+                String(page.pageNumber)
+              )}
         </div>
         <span
           style={{
@@ -556,8 +572,11 @@ function PageCard({
             borderRadius: 6,
           }}
         >
-          {page.message ||
-            tt("tests.isokinetic.easytechImportPageError")}
+          {page.status === "TABLE_NOT_FOUND"
+            ? tt("tests.isokinetic.easytechImportTableNotFound") ||
+              tt("tests.isokinetic.easytechImportPageError")
+            : page.message ||
+              tt("tests.isokinetic.easytechImportPageError")}
         </div>
       ) : null}
 

@@ -908,7 +908,7 @@ export const translations = {
           "Legenda tabelle: °/s = velocità; Contr. = tipo di contrazione; Conc. = concentrica; N = numero ripetizioni. Colonne dati: coppia massima est/flex (Nm), angolo al CM (°), ROM (°), lavoro totale est/flex (J) per il lato del titolo (destro/sinistro). In «Calcoli automatici»: H/Q, LSI e coppia per kg se è indicato il lato interessato.",
         easytechImportTitle: "Importa PDF Easytech",
         easytechImportHint:
-          "Trascina o seleziona un report Easytech (PDF)…",
+          "Trascina o seleziona un report Easytech (PDF) con testo selezionabile. Vengono lette tutte le pagine; se su un foglio ci sono più velocità (più blocchi «Vitesse Ext/Flex»), ogni blocco diventa una scheda separata. «Importa tutte le pagine pronte» aggiorna 60°, 180° e 300° in un solo passaggio.",
         easytechImportLoading: "Lettura del PDF in corso…",
         easytechImportError: "Errore durante la lettura del PDF: {msg}",
         easytechImportSpeed: "Velocità",
@@ -927,13 +927,17 @@ export const translations = {
         easytechImportColGauche: "GAUCHE",
         easytechImportColRapport: "Rapport",
         easytechImportMultiPageWarning:
-          "Il PDF contiene più pagine. Verrà importata solo la prima.",
+          "Il PDF ha più pagine o più tabelle: ogni blocco riconosciuto compare nell’elenco; usa «Importa tutte le pagine pronte» per applicarle insieme.",
         easytechImportPickPdf: "Scegli PDF…",
         easytechImportBusy: "Lettura…",
         easytechImportSummary: "{ready} pagina/e pronta/e su {total}",
         easytechImportAll: "Importa tutte le pagine pronte",
         easytechImportProgressPage: "Pagina {n} / {total}",
         easytechImportPageTitle: "Pagina PDF {n}",
+        easytechImportPageTitleSection:
+          "Pagina PDF {page}, tabella {section}/{sections}",
+        easytechImportTableNotFound:
+          "In questa parte del PDF non risultano le etichette della tabella Easytech (ad es. «Vitesse Ext/Flex»). Assicurati che il PDF abbia testo selezionabile o esporta di nuovo da Easytech.",
         easytechImportImportedBadge: "Importata",
         easytechImportRemovePage: "Rimuovi pagina",
         easytechImportPageError: "Errore pagina",
@@ -1616,7 +1620,7 @@ export const translations = {
           "Légende des tableaux : °/s = vitesse ; Contr. = type de contraction ; Conc. = concentrique ; N = nombre de répétitions. Colonnes : couple max ext/flex (Nm), angle au CM (°), ROM (°), travail total ext/flex (J) pour le côté du titre. Dans « Calculs automatiques » : H/Q, LSI et couple par kg si le côté concerné est renseigné.",
         easytechImportTitle: "Importer le PDF Easytech",
         easytechImportHint:
-          "Glisser-déposer ou sélectionner un rapport Easytech (PDF)…",
+          "Glisser-déposer ou sélectionner un rapport Easytech (PDF) avec texte sélectionnable. Toutes les pages sont lues ; si une page contient plusieurs vitesses (plusieurs blocs « Vitesse Ext/Flex »), chaque bloc devient une fiche. « Importer toutes les pages prêtes » met à jour 60°, 180° et 300° en une fois.",
         easytechImportLoading: "Lecture du PDF en cours…",
         easytechImportError: "Erreur lors de la lecture du PDF : {msg}",
         easytechImportSpeed: "Vitesse",
@@ -1635,13 +1639,17 @@ export const translations = {
         easytechImportColGauche: "GAUCHE",
         easytechImportColRapport: "Rapport",
         easytechImportMultiPageWarning:
-          "Le PDF contient plusieurs pages. Seule la première sera importée.",
+          "Le PDF a plusieurs pages ou tableaux : chaque bloc reconnu apparaît dans la liste ; utilisez « Importer toutes les pages prêtes » pour tout appliquer.",
         easytechImportPickPdf: "Choisir le PDF…",
         easytechImportBusy: "Lecture…",
         easytechImportSummary: "{ready} page(s) prête(s) sur {total}",
         easytechImportAll: "Importer toutes les pages prêtes",
         easytechImportProgressPage: "Page {n} / {total}",
         easytechImportPageTitle: "Page PDF {n}",
+        easytechImportPageTitleSection:
+          "Page PDF {page}, tableau {section}/{sections}",
+        easytechImportTableNotFound:
+          "Les libellés du tableau Easytech (p. ex. « Vitesse Ext/Flex ») sont introuvables dans cette partie du PDF. Vérifiez que le texte est sélectionnable ou réexportez depuis Easytech.",
         easytechImportImportedBadge: "Importée",
         easytechImportRemovePage: "Retirer la page",
         easytechImportPageError: "Erreur page",
@@ -2646,7 +2654,7 @@ export const translations = {
           "Tabellenlegende: °/s = Geschwindigkeit; Ktr. = Kontraktionstyp; Konz. = konzentrisch; N = Wiederholungen. Spalten: max. Moment ext/flex (Nm), Winkel am CM (°), ROM (°), Gesamtarbeit ext/flex (J) für die im Titel genannte Seite. Unter « Automatische Berechnungen »: H/Q, LSI und Moment pro kg, wenn die betroffene Seite gesetzt ist.",
         easytechImportTitle: "Easytech-PDF importieren",
         easytechImportHint:
-          "Easytech-Bericht (PDF) ablegen oder auswählen…",
+          "Easytech-Bericht (PDF) mit auswählbarem Text ablegen oder auswählen. Alle Seiten werden gelesen; stehen mehrere Geschwindigkeiten auf einem Blatt (mehrere « Vitesse Ext/Flex »-Blöcke), wird jeder Block separat gelistet. « Alle bereiten Seiten importieren » aktualisiert 60°, 180° und 300° auf einmal.",
         easytechImportLoading: "PDF wird gelesen…",
         easytechImportError: "Fehler beim Lesen des PDFs: {msg}",
         easytechImportSpeed: "Geschwindigkeit",
@@ -2665,13 +2673,17 @@ export const translations = {
         easytechImportColGauche: "GAUCHE",
         easytechImportColRapport: "Verhältnis",
         easytechImportMultiPageWarning:
-          "Das PDF enthält mehrere Seiten. Nur die erste wird importiert.",
+          "Das PDF hat mehrere Seiten oder Tabellen: jeder erkannte Block erscheint in der Liste; « Alle bereiten Seiten importieren » wendet alles zusammen an.",
         easytechImportPickPdf: "PDF wählen…",
         easytechImportBusy: "Lesen…",
         easytechImportSummary: "{ready} von {total} Seite(n) bereit",
         easytechImportAll: "Alle bereiten Seiten importieren",
         easytechImportProgressPage: "Seite {n} / {total}",
         easytechImportPageTitle: "PDF-Seite {n}",
+        easytechImportPageTitleSection:
+          "PDF-Seite {page}, Tabelle {section}/{sections}",
+        easytechImportTableNotFound:
+          "In diesem PDF-Abschnitt fehlen die Easytech-Tabellenüberschriften (z. B. « Vitesse Ext/Flex »). Bitte wählbaren Text prüfen oder erneut aus Easytech exportieren.",
         easytechImportImportedBadge: "Importiert",
         easytechImportRemovePage: "Seite entfernen",
         easytechImportPageError: "Seitenfehler",
@@ -3982,7 +3994,7 @@ dominantHand: {
           "Leyenda de tablas: °/s = velocidad; Contr. = tipo de contracción; Conc. = concéntrica; N = repeticiones. Columnas: par máx. ext/flex (Nm), ángulo en CM (°), ROM (°), trabajo total ext/flex (J) para el lado del título. En «Cálculos automáticos»: H/Q, LSI y par por kg si se indica el lado afectado.",
         easytechImportTitle: "Importar PDF Easytech",
         easytechImportHint:
-          "Arrastra o selecciona un informe Easytech (PDF)…",
+          "Arrastra o selecciona un informe Easytech (PDF) con texto seleccionable. Se leen todas las páginas; si en una hoja hay varias velocidades (varios bloques « Vitesse Ext/Flex »), cada bloque es una tarjeta. « Importar todas las páginas listas » actualiza 60°, 180° y 300° de una vez.",
         easytechImportLoading: "Leyendo el PDF…",
         easytechImportError: "Error al leer el PDF: {msg}",
         easytechImportSpeed: "Velocidad",
@@ -4001,13 +4013,17 @@ dominantHand: {
         easytechImportColGauche: "GAUCHE",
         easytechImportColRapport: "Relación",
         easytechImportMultiPageWarning:
-          "El PDF contiene varias páginas. Solo se importará la primera.",
+          "El PDF tiene varias páginas o tablas: cada bloque reconocido aparece en la lista; usa « Importar todas las páginas listas » para aplicarlas juntas.",
         easytechImportPickPdf: "Elegir PDF…",
         easytechImportBusy: "Leyendo…",
         easytechImportSummary: "{ready} página(s) lista(s) de {total}",
         easytechImportAll: "Importar todas las páginas listas",
         easytechImportProgressPage: "Página {n} / {total}",
         easytechImportPageTitle: "Página PDF {n}",
+        easytechImportPageTitleSection:
+          "Página PDF {page}, tabla {section}/{sections}",
+        easytechImportTableNotFound:
+          "En esta parte del PDF no aparecen las etiquetas de la tabla Easytech (p. ej. « Vitesse Ext/Flex »). Comprueba que el texto sea seleccionable o vuelve a exportar desde Easytech.",
         easytechImportImportedBadge: "Importada",
         easytechImportRemovePage: "Quitar página",
         easytechImportPageError: "Error de página",
@@ -4684,7 +4700,7 @@ dominantHand: {
           "Table legend: °/s = speed; Contr. = contraction type; Con. = concentric; N = repetitions. Columns: peak torque ext/flex (Nm), angle at peak torque (°), ROM (°), total work ext/flex (J) for the side in the block title. Under « Automatic calculations »: H/Q, LSI and torque per kg when involved side is set.",
         easytechImportTitle: "Import Easytech PDF",
         easytechImportHint:
-          "Drop or pick an Easytech report (PDF)…",
+          "Drop or pick an Easytech report (PDF) with selectable text. All pages are read; if one sheet has several speeds (several « Vitesse Ext/Flex » blocks), each block becomes its own card. « Import all ready pages » fills 60°, 180°, and 300° in one go.",
         easytechImportLoading: "Reading the PDF…",
         easytechImportError: "Error while reading the PDF: {msg}",
         easytechImportSpeed: "Speed",
@@ -4703,13 +4719,17 @@ dominantHand: {
         easytechImportColGauche: "GAUCHE",
         easytechImportColRapport: "Ratio",
         easytechImportMultiPageWarning:
-          "The PDF has multiple pages. Only the first will be imported.",
+          "The PDF has several pages or tables: each recognised block is listed; use « Import all ready pages » to apply them together.",
         easytechImportPickPdf: "Choose PDF…",
         easytechImportBusy: "Reading…",
         easytechImportSummary: "{ready} ready page(s) of {total}",
         easytechImportAll: "Import all ready pages",
         easytechImportProgressPage: "Page {n} / {total}",
         easytechImportPageTitle: "PDF page {n}",
+        easytechImportPageTitleSection:
+          "PDF page {page}, table {section}/{sections}",
+        easytechImportTableNotFound:
+          "This part of the PDF does not contain the Easytech table labels (e.g. « Vitesse Ext/Flex »). Make sure the PDF has selectable text or export again from Easytech.",
         easytechImportImportedBadge: "Imported",
         easytechImportRemovePage: "Remove page",
         easytechImportPageError: "Page error",

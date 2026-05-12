@@ -305,6 +305,28 @@ export function parseEasytechPdfText(linesArray) {
 }
 
 /**
+ * Se il referto stampa più velocità sulla stessa pagina, le righe ripartono
+ * più volte da "Vitesse Ext/Flex". Suddivide le righe in un array di sezioni,
+ * ciascuna parsabile con {@link parseEasytechPdfText}.
+ *
+ * @param {string[]} linesArray
+ * @returns {string[][]}
+ */
+export function splitEasytechPdfLinesIntoSections(linesArray) {
+  const lines = (linesArray || [])
+    .map((l) => String(l || "").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const starts = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (/^Vitesse\s+Ext\/Flex\s+/i.test(lines[i])) starts.push(i);
+  }
+  if (starts.length <= 1) return [lines];
+  return starts.map((start, idx) =>
+    lines.slice(start, idx + 1 < starts.length ? starts[idx + 1] : lines.length)
+  );
+}
+
+/**
  * Validate a single field's raw value against its rule. Returns
  * `{ valid, normalized, message? }`.
  *

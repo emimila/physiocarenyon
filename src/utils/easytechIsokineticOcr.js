@@ -7,6 +7,7 @@
 import {
   EASYTECH_FIELD_RULES,
   parseEasytechPdfText,
+  splitEasytechPdfLinesIntoSections,
   validateField,
 } from "./easytechIsokineticImport.js";
 
@@ -127,13 +128,25 @@ export async function extractEasytechPdf(pdfBytes, onProgress) {
     const page = await pdf.getPage(i);
     const tc = await page.getTextContent({ disableNormalization: false });
     const lines = textItemsToLines(tc.items);
-    const parsed = parseEasytechPdfText(lines);
-    pages.push({
-      pageNumber: i,
-      rows: parsed.rows,
-      header: parsed.header,
-      measurements: buildMeasurementColumnsFromRows(parsed.rows),
-    });
+    const sections = splitEasytechPdfLinesIntoSections(lines);
+    let secIdx = 0;
+    for (const sectionLines of sections) {
+      secIdx += 1;
+      const parsed = parseEasytechPdfText(sectionLines);
+      const ok = Boolean(parsed.ok);
+      pages.push({
+        pageNumber: i,
+        sectionIndex: sections.length > 1 ? secIdx : null,
+        sectionCount: sections.length > 1 ? sections.length : null,
+        status: ok ? "OK" : "TABLE_NOT_FOUND",
+        message: ok
+          ? ""
+          : "",
+        rows: parsed.rows,
+        header: parsed.header,
+        measurements: buildMeasurementColumnsFromRows(parsed.rows),
+      });
+    }
   }
 
   onProgress?.({ phase: "ocr", page: n, totalPages: n, totalCells: 1, cellIdx: 1 });
