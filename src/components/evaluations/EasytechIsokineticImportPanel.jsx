@@ -853,8 +853,8 @@ function guessSideMapFromPage(page, fallback = {}) {
  * isocinetica e quindi possono "sovrascrivere" valori esistenti.
  */
 const ISO_OVERWRITE_MAP = {
-  coupleMaximalNm: { kind: "pair", ext: "ptExt", flex: "ptFlex" },
-  angleAtCm: { kind: "pair", ext: "anglePtExt", flex: "anglePtFlex" },
+  coupleMaximal: { kind: "pair", ext: "ptExt", flex: "ptFlex" },
+  angleAtCM: { kind: "pair", ext: "anglePtExt", flex: "anglePtFlex" },
   totTravail: { kind: "pair", ext: "workExt", flex: "workFlex" },
   angleMouvementMaximal: { kind: "rom", ext: "romExt", flex: "romFlex" },
 };

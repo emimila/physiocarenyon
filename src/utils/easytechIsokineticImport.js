@@ -71,6 +71,13 @@ export const EASYTECH_FIELD_RULES = [
     allowed: ["60/60", "180/180", "300/300"],
   },
   {
+    jsonKey: "cote",
+    label: "Côté",
+    labelRegex: /^C[oô]t[eé]\s+(.*)$/iu,
+    columns: 2,
+    type: "coteTokens",
+  },
+  {
     jsonKey: "repsSetExec",
     label: "# Rep. Set/Exec.",
     labelRegex: /^#\s*Rep\.\s+Set\/Exec\.\s+(.*)$/,
@@ -180,6 +187,23 @@ export const ISO_OVERWRITE_MAP = {
 };
 
 function pickValueRows(line, rule) {
+  if (rule.type === "coteTokens") {
+    const s = String(line || "").trim();
+    if (s.includes("/")) {
+      const parts = s.split("/").map((x) => x.trim());
+      return {
+        droite: parts[0] || "",
+        gauche: parts[1] || "",
+        rapport: "",
+      };
+    }
+    const parts = s.split(/\s+/).filter(Boolean);
+    return {
+      droite: parts[0] || "",
+      gauche: parts[1] || "",
+      rapport: "",
+    };
+  }
   // For lines following the rule label, pull pair-shaped substrings. Even if
   // line carries a Rapport pair (third column), the first two pairs are
   // DROITE / GAUCHE.
@@ -293,6 +317,13 @@ export function parseEasytechPdfText(linesArray) {
  */
 export function validateField(rule, raw) {
   const value = String(raw == null ? "" : raw).trim();
+
+  if (rule.type === "coteTokens") {
+    if (!value) {
+      return { valid: true, normalized: "", message: null };
+    }
+    return { valid: true, normalized: value, message: null };
+  }
 
   // For "Rapport Flex/Ext %" rows, the DROITE and GAUCHE columns are
   // intentionally empty (only the third "Rapport" column carries scalars).
@@ -539,4 +570,54 @@ export function pageResultToIsokineticPatch(pageResult, opts) {
 /** Helper used by both the panel preview and the import button. */
 export function getRowRule(key) {
   return EASYTECH_FIELD_RULES.find((r) => r.jsonKey === key) || null;
+}
+
+/** Righe Easytech che alimentano direttamente la tabella isocinetica (UI). */
+export const EASYTECH_TARGET_FIELDS = new Set([
+  "coupleMaximal",
+  "angleAtCM",
+  "totTravail",
+  "angleMouvementMaximal",
+]);
+
+function splitPairFromIsoField(field) {
+  if (!field?.valid) return [null, null];
+  const s = String(field.value ?? field.raw ?? "").trim();
+  if (!s) return [null, null];
+  const m = s.match(/^(-?\d+(?:[.,]\d+)?)\s*\/\s*(-?\d+(?:[.,]\d+)?)$/);
+  if (!m) return [null, null];
+  const a = Number(m[1].replace(",", "."));
+  const b = Number(m[2].replace(",", "."));
+  return [
+    Number.isFinite(a) ? a : null,
+    Number.isFinite(b) ? b : null,
+  ];
+}
+
+/**
+ * Costruisce l'oggetto lato (right/left) della riga isocinetica dai campi
+ * validati del pannello import (coppie ext/flex, ROM da min/max).
+ */
+export function buildIsokineticSideFromFields(fields) {
+  if (!fields || typeof fields !== "object") return null;
+  const out = {};
+  const setPair = (keyExt, keyFlex, f) => {
+    const [a, b] = splitPairFromIsoField(f);
+    if (a != null) out[keyExt] = String(Math.round(a));
+    if (b != null) out[keyFlex] = String(Math.round(b));
+  };
+  setPair("ptExt", "ptFlex", fields.coupleMaximal);
+  setPair("anglePtExt", "anglePtFlex", fields.angleAtCM);
+  setPair("workExt", "workFlex", fields.totTravail);
+  const [ra, rb] = splitPairFromIsoField(fields.angleMouvementMaximal);
+  if (ra != null && rb != null) {
+    const rom = String(Math.abs(Math.round(rb - ra)));
+    out.romExt = rom;
+    out.romFlex = rom;
+  }
+  const keys = Object.keys(out).filter(
+    (k) => out[k] != null && String(out[k]).trim() !== ""
+  );
+  if (!keys.length) return null;
+  return out;
 }

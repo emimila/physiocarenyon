@@ -22,6 +22,7 @@ import {
 import { patientTrim } from "../../utils/helpers";
 import Input from "../ui/Input";
 import UseOperatedSideRecall from "./UseOperatedSideRecall";
+import EasytechIsokineticImportPanel from "./EasytechIsokineticImportPanel";
 /** Ordine colonne dati lato (condiviso con export PDF). */
 export const ISOKINETIC_SIDE_TABLE_FIELDS = [
   "ptExt",
@@ -56,6 +57,24 @@ function clinicalFocusRowIndex(isoLike) {
 
 function mergeIso(test, iso) {
   return { ...test, isokinetic: iso };
+}
+
+function applyEasytechPatchToIso(iso0, patch) {
+  const iso = ensureIsokineticShape(iso0);
+  const speed = Number(patch.speed);
+  if (!Number.isFinite(speed)) return iso;
+  const rows = iso.rows.map((row) => {
+    if (Number(row.speed) !== speed) return row;
+    const next = { ...row };
+    if (patch.right && typeof patch.right === "object") {
+      next.right = { ...(row.right || {}), ...patch.right };
+    }
+    if (patch.left && typeof patch.left === "object") {
+      next.left = { ...(row.left || {}), ...patch.left };
+    }
+    return next;
+  });
+  return { ...iso, rows };
 }
 
 function sideCell(iso, rowIndex, side, field, value, setEvaluationForm, evaluationForm, distrettoId, testId) {
@@ -128,6 +147,11 @@ export default function IsokineticTestFields({
     });
   }
 
+  function applyEasytechImportPatch(patch) {
+    const next = applyEasytechPatchToIso(iso, patch);
+    patchIso({ rows: next.rows });
+  }
+
   function selectRow(ri) {
     const r = iso.rows[ri];
     if (!r) return;
@@ -157,6 +181,11 @@ export default function IsokineticTestFields({
 
   return (
     <div className="isokinetic-test-fields" style={{ marginTop: 12 }}>
+      <EasytechIsokineticImportPanel
+        tt={tt}
+        iso={iso}
+        onApplyPatch={applyEasytechImportPatch}
+      />
       <div
         style={{
           display: "flex",
