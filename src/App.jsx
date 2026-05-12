@@ -4473,6 +4473,39 @@ function PatientDetail({
                                   {tt("tests.isokinetic.title") ??
                                     "Test isocinetico"}
                                 </strong>
+                                {!isExportingPdf ? (
+                                  <div
+                                    className="no-pdf"
+                                    style={{ marginTop: 8 }}
+                                  >
+                                    <p
+                                      style={{
+                                        margin: "0 0 8px",
+                                        fontSize: 12,
+                                        color: "#64748b",
+                                        maxWidth: 520,
+                                      }}
+                                    >
+                                      {tt(
+                                        "tests.isokinetic.easytechImportReadonlyHint"
+                                      )}
+                                    </p>
+                                    <button
+                                      type="button"
+                                      onClick={() => editTestSession(s)}
+                                      style={{
+                                        padding: "8px 12px",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      {tt(
+                                        "tests.isokinetic.easytechImportOpenEditorButton"
+                                      )}
+                                    </button>
+                                  </div>
+                                ) : null}
                                 {test.noteAltro &&
                                   String(test.noteAltro).trim() !== "" && (
                                     <p style={{ marginTop: 6 }}>
