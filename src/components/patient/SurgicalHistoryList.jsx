@@ -84,6 +84,8 @@ export default function SurgicalHistoryList({
     padding: 6,
     boxSizing: "border-box",
     lineHeight: 1.35,
+    fontFamily: "inherit",
+    fontSize: "inherit",
   };
 
   return (

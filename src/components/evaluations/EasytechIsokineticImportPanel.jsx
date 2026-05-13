@@ -1015,9 +1015,8 @@ function guessSideMapFromPage(page, fallback = {}) {
  * Mappa fra chiave Easytech e campi della riga isocinetica.
  *
  * - `pair` significa che la cella "X/Y" alimenta due campi distinti
- *   (estensione + flessione).
- * - `rom` significa che la cella "min/max" alimenta entrambi i campi ROM
- *   con il modulo `|max - min|` (Easytech non distingue ROM ext/flex).
+ *   (estensione + flessione), inclusi romExt / romFlex da «Angle de mouvement
+ *   maximal».
  *
  * Solo le chiavi presenti qui finiscono effettivamente nella tabella
  * isocinetica e quindi possono "sovrascrivere" valori esistenti.
@@ -1026,7 +1025,7 @@ const ISO_OVERWRITE_MAP = {
   coupleMaximal: { kind: "pair", ext: "ptExt", flex: "ptFlex" },
   angleAtCM: { kind: "pair", ext: "anglePtExt", flex: "anglePtFlex" },
   totTravail: { kind: "pair", ext: "workExt", flex: "workFlex" },
-  angleMouvementMaximal: { kind: "rom", ext: "romExt", flex: "romFlex" },
+  angleMouvementMaximal: { kind: "pair", ext: "romExt", flex: "romFlex" },
 };
 
 function parsePairInts(s) {
@@ -1065,17 +1064,9 @@ function computeCellOverwrite(rule, field, side, speed, iso) {
 
   let newExt = "";
   let newFlex = "";
-  if (mapping.kind === "rom") {
-    const [a, b] = parsePairInts(field.value);
-    if (a == null || b == null) return null;
-    const range = String(Math.abs(b - a));
-    newExt = range;
-    newFlex = range;
-  } else {
-    const [ext, flex] = parsePairInts(field.value);
-    if (ext != null) newExt = String(ext);
-    if (flex != null) newFlex = String(flex);
-  }
+  const [ext, flex] = parsePairInts(field.value);
+  if (ext != null) newExt = String(ext);
+  if (flex != null) newFlex = String(flex);
 
   const curExt = existing[mapping.ext];
   const curFlex = existing[mapping.flex];
@@ -1088,14 +1079,6 @@ function computeCellOverwrite(rule, field, side, speed, iso) {
     newFlex !== "" && hasCurFlex && String(curFlex) !== newFlex;
   if (!overwritesExt && !overwritesFlex) return null;
 
-  if (mapping.kind === "rom") {
-    const display = hasCurExt
-      ? String(curExt)
-      : hasCurFlex
-      ? String(curFlex)
-      : "";
-    return display;
-  }
   const e = hasCurExt ? String(curExt) : "—";
   const f = hasCurFlex ? String(curFlex) : "—";
   return `${e}/${f}`;

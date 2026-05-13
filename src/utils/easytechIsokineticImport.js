@@ -531,11 +531,10 @@ function detectSpeed(rows) {
  *   - ptExt / ptFlex            <- Couple Maximal[Nm] (A/B = ext/flex)
  *   - anglePtExt / anglePtFlex  <- Angle @CM (A/B = ext/flex)
  *   - workExt / workFlex        <- Tot. Travail (A/B = ext/flex)
- *   - romExt / romFlex          <- Angle de mouvement maximal:
- *                                  single ROM = max - min (B - A) per side;
- *                                  same value reused for ext and flex (only
- *                                  one motion range is reported per side per
- *                                  speed).
+ *   - romExt / romFlex          <- Angle de mouvement maximal: coppia
+ *                                  extension / flexion (primo valore → romExt,
+ *                                  secondo → romFlex), come le altre righe a
+ *                                  due numeri.
  */
 export function pageResultToIsokineticPatch(pageResult, opts) {
   const { side } = opts || {};
@@ -560,18 +559,9 @@ export function pageResultToIsokineticPatch(pageResult, opts) {
   const [ptExt, ptFlex] = pairOrNulls(couple);
   const [anglePtExt, anglePtFlex] = pairOrNulls(angleCM);
   const [workExt, workFlex] = pairOrNulls(work);
-
-  let romValue = null;
-  const romSlot = rom ? rom[which] : null;
-  if (romSlot && romSlot.valid && Array.isArray(romSlot.normalized)) {
-    const [a, b] = romSlot.normalized;
-    if (Number.isFinite(a) && Number.isFinite(b)) {
-      romValue = b - a;
-    }
-  }
+  const [romExtN, romFlexN] = pairOrNulls(rom);
 
   const fmtInt = (n) => (Number.isFinite(n) ? String(Math.round(n)) : "");
-  const fmt2 = (n) => (Number.isFinite(n) ? String(n) : "");
 
   return {
     speed,
@@ -583,8 +573,8 @@ export function pageResultToIsokineticPatch(pageResult, opts) {
       anglePtFlex: fmtInt(anglePtFlex),
       workExt: fmtInt(workExt),
       workFlex: fmtInt(workFlex),
-      romExt: fmt2(romValue),
-      romFlex: fmt2(romValue),
+      romExt: fmtInt(romExtN),
+      romFlex: fmtInt(romFlexN),
     },
   };
 }
@@ -602,41 +592,56 @@ export const EASYTECH_TARGET_FIELDS = new Set([
   "angleMouvementMaximal",
 ]);
 
-function splitPairFromIsoField(field) {
+function splitPairFromIsoField(field, rule) {
   if (!field?.valid) return [null, null];
-  const s = String(field.value ?? field.raw ?? "").trim();
-  if (!s) return [null, null];
-  const m = s.match(/^(-?\d+(?:[.,]\d+)?)\s*\/\s*(-?\d+(?:[.,]\d+)?)$/);
-  if (!m) return [null, null];
-  const a = Number(m[1].replace(",", "."));
-  const b = Number(m[2].replace(",", "."));
-  return [
-    Number.isFinite(a) ? a : null,
-    Number.isFinite(b) ? b : null,
-  ];
+  for (const s of [
+    String(field.value ?? "").trim(),
+    String(field.raw ?? "").trim(),
+  ]) {
+    if (!s) continue;
+    const m = s.match(/^(-?\d+(?:[.,]\d+)?)\s*\/\s*(-?\d+(?:[.,]\d+)?)$/);
+    if (m) {
+      const a = Number(m[1].replace(",", "."));
+      const b = Number(m[2].replace(",", "."));
+      return [
+        Number.isFinite(a) ? a : null,
+        Number.isFinite(b) ? b : null,
+      ];
+    }
+  }
+  if (rule) {
+    const v = validateField(rule, String(field.raw ?? "").trim());
+    if (v.valid && Array.isArray(v.normalized) && v.normalized.length >= 2) {
+      const a = Number(v.normalized[0]);
+      const b = Number(v.normalized[1]);
+      return [
+        Number.isFinite(a) ? a : null,
+        Number.isFinite(b) ? b : null,
+      ];
+    }
+  }
+  return [null, null];
 }
 
 /**
  * Costruisce l'oggetto lato (right/left) della riga isocinetica dai campi
- * validati del pannello import (coppie ext/flex, ROM da min/max).
+ * validati del pannello import (coppie ext/flex; ROM ext/flex da «Angle de
+ * mouvement maximal»).
  */
 export function buildIsokineticSideFromFields(fields) {
   if (!fields || typeof fields !== "object") return null;
   const out = {};
-  const setPair = (keyExt, keyFlex, f) => {
-    const [a, b] = splitPairFromIsoField(f);
+  const setPair = (keyExt, keyFlex, jsonKey) => {
+    const rule = EASYTECH_FIELD_RULES.find((r) => r.jsonKey === jsonKey);
+    const f = fields[jsonKey];
+    const [a, b] = splitPairFromIsoField(f, rule);
     if (a != null) out[keyExt] = String(Math.round(a));
     if (b != null) out[keyFlex] = String(Math.round(b));
   };
-  setPair("ptExt", "ptFlex", fields.coupleMaximal);
-  setPair("anglePtExt", "anglePtFlex", fields.angleAtCM);
-  setPair("workExt", "workFlex", fields.totTravail);
-  const [ra, rb] = splitPairFromIsoField(fields.angleMouvementMaximal);
-  if (ra != null && rb != null) {
-    const rom = String(Math.abs(Math.round(rb - ra)));
-    out.romExt = rom;
-    out.romFlex = rom;
-  }
+  setPair("ptExt", "ptFlex", "coupleMaximal");
+  setPair("anglePtExt", "anglePtFlex", "angleAtCM");
+  setPair("workExt", "workFlex", "totTravail");
+  setPair("romExt", "romFlex", "angleMouvementMaximal");
   const keys = Object.keys(out).filter(
     (k) => out[k] != null && String(out[k]).trim() !== ""
   );
