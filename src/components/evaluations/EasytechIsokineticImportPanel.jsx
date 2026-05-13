@@ -8,11 +8,13 @@ import {
 } from "../../utils/easytechIsokineticImport";
 import { extractEasytechPdf } from "../../utils/easytechIsokineticOcr";
 
+let easytechImportRunSeq = 0;
+
 /**
  * Pannello di import del referto Easytech.
  *
  * Flusso:
- *  1. l'utente sceglie un PDF
+ *  1. un solo pulsante: scegli uno o più PDF nella stessa finestra (selezione multipla)
  *  2. la pipeline esegue render + OCR cella-per-cella per ogni pagina
  *  3. il risultato viene mostrato come tabella editabile con validazione live:
  *     - bordo verde se la cella è valida
@@ -27,13 +29,20 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
   const [progress, setProgress] = useState(null);
   const [pages, setPages] = useState([]);
   const [error, setError] = useState("");
-  const [fileName, setFileName] = useState("");
+
+  const loadedSourceLabels = useMemo(() => {
+    const names = pages
+      .map((p) => p.sourceFileName)
+      .filter((n) => typeof n === "string" && n.trim());
+    return [...new Set(names)];
+  }, [pages]);
+
+  const showPageSourceFile = loadedSourceLabels.length > 1;
 
   function reset() {
     setPages([]);
     setError("");
     setProgress(null);
-    setFileName("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -42,32 +51,93 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
   }
 
   async function handleFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const list = e.target.files;
+    if (!list?.length) return;
+    const files = Array.from(list).filter(
+      (f) =>
+        f &&
+        (f.type === "application/pdf" || /\.pdf$/i.test(f.name || ""))
+    );
+    if (!files.length) {
+      setError(tt("tests.isokinetic.easytechImportNoPdfFiles") || "Seleziona solo file PDF.");
+      e.target.value = "";
+      return;
+    }
+    const append = pages.length > 0;
     setError("");
-    setFileName(file.name);
     setBusy(true);
-    setProgress({ phase: "open", page: 0, totalPages: 0 });
+    const runId = ++easytechImportRunSeq;
+    const totalFiles = files.length;
+    const fileErrors = [];
+    const allNewPages = [];
     try {
-      const buf = await file.arrayBuffer();
-      const result = await extractEasytechPdf(new Uint8Array(buf), (ev) =>
-        setProgress(ev)
-      );
-      const enriched = (result.pages || []).map((p) => decoratePage(p));
-      setPages(enriched);
+      for (let fi = 0; fi < files.length; fi++) {
+        const file = files[fi];
+        setProgress({
+          phase: "open",
+          page: 0,
+          totalPages: 0,
+          multiFileIndex: fi + 1,
+          multiFileTotal: totalFiles,
+          multiFileName: file.name,
+        });
+        try {
+          const buf = await file.arrayBuffer();
+          const result = await extractEasytechPdf(new Uint8Array(buf), (ev) =>
+            setProgress({
+              ...ev,
+              multiFileIndex: fi + 1,
+              multiFileTotal: totalFiles,
+              multiFileName: file.name,
+            })
+          );
+          const enriched = (result.pages || []).map((p) =>
+            decoratePage(p, {
+              sourceFileName: file.name,
+              sourceFileIndex: fi,
+              sourceRunId: runId,
+            })
+          );
+          allNewPages.push(...enriched);
+        } catch (err) {
+          fileErrors.push(`${file.name}: ${err?.message || err}`);
+        }
+      }
+      if (allNewPages.length === 0) {
+        setError(
+          fileErrors.length
+            ? fileErrors.join("\n")
+            : tt("tests.isokinetic.easytechImportNothingLoaded") ||
+                "Nessuna pagina estratta dai PDF selezionati."
+        );
+        return;
+      }
+      setPages((prev) => (append ? [...prev, ...allNewPages] : allNewPages));
+      if (fileErrors.length) {
+        setError(
+          (tt("tests.isokinetic.easytechImportPartialErrors") ||
+            "Alcuni file non sono stati letti:") +
+            "\n" +
+            fileErrors.join("\n")
+        );
+      }
     } catch (err) {
       setError(String(err?.message || err));
     } finally {
       setBusy(false);
       setProgress(null);
+      e.target.value = "";
     }
   }
 
-  function decoratePage(p) {
+  function decoratePage(p, ctx = {}) {
     const speed = guessSpeedFromPage(p);
     const sideMap = guessSideMapFromPage(p);
     return {
       ...p,
+      sourceFileName: ctx.sourceFileName ?? "",
+      sourceFileIndex: ctx.sourceFileIndex ?? 0,
+      sourceRunId: ctx.sourceRunId ?? 0,
       uiSpeed: speed,
       uiSideMap: sideMap,
       imported: false,
@@ -286,13 +356,21 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
             ? tt("tests.isokinetic.easytechImportBusy") || "Lettura…"
             : tt("tests.isokinetic.easytechImportPickPdf") || "Scegli PDF…"}
         </button>
-        {fileName ? (
-          <span style={{ fontSize: 12, color: "#475569" }}>{fileName}</span>
+        {loadedSourceLabels.length > 0 ? (
+          <span style={{ fontSize: 12, color: "#475569", maxWidth: 360 }} title={loadedSourceLabels.join("\n")}>
+            {loadedSourceLabels.length > 2
+              ? tt("tests.isokinetic.easytechImportLoadedFilesCount")
+                  .replace("{n}", String(loadedSourceLabels.length))
+              : loadedSourceLabels.join(" · ")}
+          </span>
+        ) : busy && progress?.multiFileName ? (
+          <span style={{ fontSize: 12, color: "#475569" }}>{progress.multiFileName}</span>
         ) : null}
         <input
           ref={fileInputRef}
           type="file"
           accept="application/pdf"
+          multiple
           onChange={handleFile}
           style={{ display: "none" }}
         />
@@ -377,9 +455,10 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
 
           {pages.map((p, idx) => (
             <PageCard
-              key={`${p.pageNumber}-${p.sectionIndex ?? 0}-${idx}`}
+              key={`${p.sourceRunId ?? 0}-${p.sourceFileIndex ?? 0}-${p.pageNumber}-${p.sectionIndex ?? 0}-${idx}`}
               page={p}
               tt={tt}
+              showSourceFile={showPageSourceFile}
               overwrites={computePageOverwrites(p, iso)}
               onUpdateField={(column, jsonKey, raw) =>
                 updatePageField(idx, column, jsonKey, raw)
@@ -421,6 +500,15 @@ function ProgressBar({ pct, progress, tt }) {
       >
         <span>
           {phaseLabel}
+          {progress?.multiFileTotal > 1 && progress?.multiFileName ? (
+            <>
+              {" — "}
+              {tt("tests.isokinetic.easytechImportProgressFile")
+                .replace("{n}", String(progress.multiFileIndex || 1))
+                .replace("{total}", String(progress.multiFileTotal))
+                .replace("{name}", String(progress.multiFileName))}
+            </>
+          ) : null}
           {progress?.totalPages ? (
             <>
               {" — "}
@@ -459,6 +547,7 @@ function ProgressBar({ pct, progress, tt }) {
 function PageCard({
   page,
   tt,
+  showSourceFile,
   overwrites,
   onUpdateField,
   onSetSpeed,
@@ -484,81 +573,98 @@ function PageCard({
         marginBottom: 12,
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 12,
-          alignItems: "center",
-          marginBottom: 10,
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a" }}>
-          {page.sectionCount != null && page.sectionCount > 1
-            ? tt("tests.isokinetic.easytechImportPageTitleSection")
-                .replace("{page}", String(page.pageNumber))
-                .replace("{section}", String(page.sectionIndex ?? 1))
-                .replace("{sections}", String(page.sectionCount))
-            : tt("tests.isokinetic.easytechImportPageTitle").replace(
-                "{n}",
-                String(page.pageNumber)
-              )}
-        </div>
-        <span
+      <div style={{ marginBottom: 10 }}>
+        <div
           style={{
-            fontSize: 11,
-            padding: "2px 8px",
-            borderRadius: 999,
-            background:
-              page.status === "OK"
-                ? "#dcfce7"
-                : page.status === "TABLE_NOT_FOUND" ||
-                  page.status === "GRID_NOT_FOUND"
-                ? "#fef9c3"
-                : "#fee2e2",
-            color:
-              page.status === "OK"
-                ? "#166534"
-                : page.status === "TABLE_NOT_FOUND" ||
-                  page.status === "GRID_NOT_FOUND"
-                ? "#854d0e"
-                : "#991b1b",
-            border: "1px solid currentColor",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 12,
+            alignItems: "center",
           }}
         >
-          {page.status}
-        </span>
-        {page.imported ? (
+          <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a" }}>
+            {page.sectionCount != null && page.sectionCount > 1
+              ? tt("tests.isokinetic.easytechImportPageTitleSection")
+                  .replace("{page}", String(page.pageNumber))
+                  .replace("{section}", String(page.sectionIndex ?? 1))
+                  .replace("{sections}", String(page.sectionCount))
+              : tt("tests.isokinetic.easytechImportPageTitle").replace(
+                  "{n}",
+                  String(page.pageNumber)
+                )}
+          </div>
           <span
             style={{
               fontSize: 11,
               padding: "2px 8px",
               borderRadius: 999,
-              background: "#e0f2fe",
-              color: "#0369a1",
-              border: "1px solid #38bdf8",
+              background:
+                page.status === "OK"
+                  ? "#dcfce7"
+                  : page.status === "TABLE_NOT_FOUND" ||
+                    page.status === "GRID_NOT_FOUND"
+                  ? "#fef9c3"
+                  : "#fee2e2",
+              color:
+                page.status === "OK"
+                  ? "#166534"
+                  : page.status === "TABLE_NOT_FOUND" ||
+                    page.status === "GRID_NOT_FOUND"
+                  ? "#854d0e"
+                  : "#991b1b",
+              border: "1px solid currentColor",
             }}
           >
-            {tt("tests.isokinetic.easytechImportImportedBadge")}
+            {page.status}
           </span>
+          {page.imported ? (
+            <span
+              style={{
+                fontSize: 11,
+                padding: "2px 8px",
+                borderRadius: 999,
+                background: "#e0f2fe",
+                color: "#0369a1",
+                border: "1px solid #38bdf8",
+              }}
+            >
+              {tt("tests.isokinetic.easytechImportImportedBadge")}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={onRemove}
+            title={tt("tests.isokinetic.easytechImportRemovePage")}
+            style={{
+              marginLeft: "auto",
+              padding: "3px 8px",
+              fontSize: 11,
+              background: "#fff",
+              color: "#b91c1c",
+              border: "1px solid #fecaca",
+              borderRadius: 6,
+              cursor: "pointer",
+            }}
+          >
+            {tt("tests.isokinetic.easytechImportRemovePage")}
+          </button>
+        </div>
+        {showSourceFile && page.sourceFileName ? (
+          <div
+            style={{
+              fontSize: 10,
+              color: "#64748b",
+              marginTop: 4,
+              wordBreak: "break-all",
+            }}
+            title={page.sourceFileName}
+          >
+            {tt("tests.isokinetic.easytechImportPageSourceFile").replace(
+              "{file}",
+              String(page.sourceFileName)
+            )}
+          </div>
         ) : null}
-        <button
-          type="button"
-          onClick={onRemove}
-          title={tt("tests.isokinetic.easytechImportRemovePage")}
-          style={{
-            marginLeft: "auto",
-            padding: "3px 8px",
-            fontSize: 11,
-            background: "#fff",
-            color: "#b91c1c",
-            border: "1px solid #fecaca",
-            borderRadius: 6,
-            cursor: "pointer",
-          }}
-        >
-          {tt("tests.isokinetic.easytechImportRemovePage")}
-        </button>
       </div>
 
       {page.status !== "OK" ? (
