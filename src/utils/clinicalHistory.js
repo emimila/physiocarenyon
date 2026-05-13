@@ -74,24 +74,25 @@ export function migrateAntecedentiToLineRows(value) {
     if (r.line === "kind") {
       const kindRaw = String(r.kind ?? "").trim().toLowerCase();
       const kind = ANTECEDENTI_KINDS.has(kindRaw) ? kindRaw : "";
-      const kindDetail = String(r.kindDetail ?? "").trim();
+      /* kindDetail: senza trim — spazi e digitazione restano fedeli in editor */
+      const kindDetail = String(r.kindDetail ?? "");
       out.push({ line: "kind", kind, kindDetail });
       continue;
     }
     if (r.line === "date") {
       const year = String(r.year ?? "").replace(/\D/g, "").slice(0, 4);
       const month = String(r.month ?? "").trim();
-      const text = String(r.text ?? "").trim();
+      const text = String(r.text ?? "");
       const monthOk = /^([1-9]|1[0-2])$/.test(month) ? month : "";
       out.push({ line: "date", year, month: monthOk, text });
       continue;
     }
     const year = String(r.year ?? "").replace(/\D/g, "").slice(0, 4);
     const month = String(r.month ?? "").trim();
-    const text = String(r.text ?? "").trim();
+    const text = String(r.text ?? "");
     const kindRaw = String(r.kind ?? "").trim().toLowerCase();
     const kind = ANTECEDENTI_KINDS.has(kindRaw) ? kindRaw : "";
-    const kindDetail = String(r.kindDetail ?? "").trim();
+    const kindDetail = String(r.kindDetail ?? "");
     const monthOk = /^([1-9]|1[0-2])$/.test(month) ? month : "";
     if (kind || kindDetail) {
       out.push({ line: "kind", kind, kindDetail });

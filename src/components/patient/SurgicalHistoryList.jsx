@@ -222,13 +222,19 @@ export default function SurgicalHistoryList({
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="text"
-                    placeholder={textPlaceholder}
-                    aria-label={textPlaceholder}
-                    value={row.text || ""}
-                    disabled={disabled}
-                    onChange={(e) => patchRow(index, { text: e.target.value })}
+                <input
+                  type="text"
+                  placeholder={textPlaceholder}
+                  aria-label={textPlaceholder}
+                  value={row.text || ""}
+                  disabled={disabled}
+                  autoComplete="off"
+                  spellCheck={false}
+                  onKeyDown={(e) => {
+                    if (e.key === " " || e.code === "Space")
+                      e.stopPropagation();
+                  }}
+                  onChange={(e) => patchRow(index, { text: e.target.value })}
                     style={{
                       ...inputBase,
                       flex: "1 1 200px",
@@ -264,6 +270,12 @@ export default function SurgicalHistoryList({
                   aria-label={kindDetailPlaceholder}
                   value={row.kindDetail || ""}
                   disabled={disabled}
+                  autoComplete="off"
+                  spellCheck={false}
+                  onKeyDown={(e) => {
+                    if (e.key === " " || e.code === "Space")
+                      e.stopPropagation();
+                  }}
                   onChange={(e) =>
                     patchRow(index, { kindDetail: e.target.value })
                   }

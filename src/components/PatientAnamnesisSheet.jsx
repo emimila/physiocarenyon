@@ -12,8 +12,8 @@ import {
   patientTrim,
 } from "../utils/helpers";
 
-/** Evidenziazione differenze BON: stesso corpo del riassunto, solo colore. */
-const SURGICAL_DIFF_STYLE = {
+/** Evidenziazione differenze BON: stesso corpo del testo, solo colore. */
+const LINE_DIFF_STYLE = {
   color: bonDiffSummaryStyle.color,
   fontWeight: "inherit",
   fontSize: "inherit",
@@ -23,12 +23,12 @@ const SURGICAL_DIFF_STYLE = {
 
 function Hi({ show, children }) {
   if (!show) return children;
-  return <span style={DIFF_STYLE}>{children}</span>;
+  return <span style={LINE_DIFF_STYLE}>{children}</span>;
 }
 
 function HiSurgicalLine({ show, children }) {
   if (!show) return children;
-  return <span style={SURGICAL_DIFF_STYLE}>{children}</span>;
+  return <span style={LINE_DIFF_STYLE}>{children}</span>;
 }
 
 /** Blocco anamnesi / sport come in scheda paziente (stesso layout export PDF). */
@@ -269,14 +269,25 @@ export function PatientAnamnesisSheet({
         const showHi = diff("antecedentiChirurgici");
         return (
           <div style={{ margin: "0 0 10px" }}>
-            <p style={{ margin: "0 0 4px" }}>
-              <strong>{tt("patient.relevantSurgeryHistory")}:</strong>
+            <p
+              style={{
+                margin: "0 0 4px",
+                fontWeight: 400,
+                fontSize: "inherit",
+                lineHeight: 1.45,
+              }}
+            >
+              <HiSurgicalLine show={showHi}>
+                {tt("patient.relevantSurgeryHistory")}:
+              </HiSurgicalLine>
             </p>
             <ul
               style={{
                 margin: "0 0 0 18px",
                 padding: 0,
                 lineHeight: 1.45,
+                fontWeight: 400,
+                fontSize: "inherit",
               }}
             >
               {surgicalRows.map((row, i) => {
@@ -286,7 +297,7 @@ export function PatientAnamnesisSheet({
                         `patient.surgeryKind${row.kind.charAt(0).toUpperCase() + row.kind.slice(1)}`
                       ) || row.kind
                     : "";
-                  const kindDetailStr = manualTextLower(row.kindDetail);
+                  const kindDetailStr = patientTrim(row.kindDetail);
                   const parts = [];
                   if (kindStr) parts.push(kindStr);
                   if (kindDetailStr) parts.push(kindDetailStr);
@@ -303,7 +314,7 @@ export function PatientAnamnesisSheet({
                   const monthStr = row.month
                     ? getMonthShort(lang, row.month) || row.month
                     : "—";
-                  const textStr = manualTextLower(row.text);
+                  const textStr = patientTrim(row.text);
                   return (
                     <li key={`surg-li-${i}`}>
                       <HiSurgicalLine show={showHi}>
