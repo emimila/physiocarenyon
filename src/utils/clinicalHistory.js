@@ -55,17 +55,37 @@ const SNAPSHOT_SHEET_CONTEXT_KEYS = [
 ];
 
 /**
- * Normalizza una lista di antecedenti chirurgici (datata) per snapshot.
- * Mantiene solo righe con almeno un campo non vuoto.
+ * Antecedenti chirurgici in snapshot: lista di righe `{ line: "kind"|"date", ... }`.
+ * `normalizeAntecedentiList` mantiene solo righe con almeno un campo non vuoto.
  */
 /** Tipi accettati per il selettore "Tipo" della voce. Vuoto = nessuna scelta. */
 const ANTECEDENTI_KINDS = new Set(["generico", "ricorrente", "altro"]);
 
-export function normalizeAntecedentiList(value) {
+/**
+ * Converte la lista salvata in righe indipendenti per l'editor.
+ * - Formato attuale: `{ line: "kind" | "date", ... }`.
+ * - Legacy: un solo oggetto con tipo+specifica e anno+mese+testo → fino a due righe in sequenza.
+ */
+export function migrateAntecedentiToLineRows(value) {
   if (!Array.isArray(value)) return [];
   const out = [];
   for (const r of value) {
     if (!r || typeof r !== "object") continue;
+    if (r.line === "kind") {
+      const kindRaw = String(r.kind ?? "").trim().toLowerCase();
+      const kind = ANTECEDENTI_KINDS.has(kindRaw) ? kindRaw : "";
+      const kindDetail = String(r.kindDetail ?? "").trim();
+      out.push({ line: "kind", kind, kindDetail });
+      continue;
+    }
+    if (r.line === "date") {
+      const year = String(r.year ?? "").replace(/\D/g, "").slice(0, 4);
+      const month = String(r.month ?? "").trim();
+      const text = String(r.text ?? "").trim();
+      const monthOk = /^([1-9]|1[0-2])$/.test(month) ? month : "";
+      out.push({ line: "date", year, month: monthOk, text });
+      continue;
+    }
     const year = String(r.year ?? "").replace(/\D/g, "").slice(0, 4);
     const month = String(r.month ?? "").trim();
     const text = String(r.text ?? "").trim();
@@ -73,10 +93,30 @@ export function normalizeAntecedentiList(value) {
     const kind = ANTECEDENTI_KINDS.has(kindRaw) ? kindRaw : "";
     const kindDetail = String(r.kindDetail ?? "").trim();
     const monthOk = /^([1-9]|1[0-2])$/.test(month) ? month : "";
-    if (!year && !monthOk && !text && !kind && !kindDetail) continue;
-    out.push({ kind, kindDetail, year, month: monthOk, text });
+    if (kind || kindDetail) {
+      out.push({ line: "kind", kind, kindDetail });
+    }
+    if (year || monthOk || text) {
+      out.push({ line: "date", year, month: monthOk, text });
+    }
   }
   return out;
+}
+
+/** Mantiene solo righe con almeno un campo non vuoto (dopo migrazione forma righe). */
+export function normalizeAntecedentiList(value) {
+  const migrated = migrateAntecedentiToLineRows(value);
+  return migrated.filter((row) => {
+    if (row.line === "kind") {
+      return Boolean(row.kind || String(row.kindDetail ?? "").trim());
+    }
+    if (row.line === "date") {
+      return Boolean(
+        row.year || row.month || String(row.text ?? "").trim()
+      );
+    }
+    return false;
+  });
 }
 
 export function buildSnapshotSheetContextFromPatientLike(form) {
@@ -291,7 +331,7 @@ export function patchPatientPesoFromTestSession(patient, newPesoStr, testDateIso
 export function normalizePatientClinicalHistory(patient) {
   const p = { ...patient };
 
-  // Antecedenti chirurgici: nuovo formato `Array<{year, month, text}>`.
+  // Antecedenti chirurgici: `Array<{ line: "kind"|"date", ... }>` (righe indipendenti).
   // Stringa legacy o valore mancante → array vuoto (vecchio dato scartato).
   p.antecedentiChirurgici = normalizeAntecedentiList(p.antecedentiChirurgici);
 

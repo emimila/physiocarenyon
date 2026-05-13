@@ -3264,26 +3264,6 @@ function PatientClinicalSnapshotFields({ snap, prevSnap = null, tt }) {
             </p>
           ) : null}
 
-          {Object.prototype.hasOwnProperty.call(
-            snap,
-            "infortunioChirurgicoPrevisto"
-          ) && patientTrim(snap.infortunioChirurgicoPrevisto) ? (
-            <p>
-              <strong>
-                {tt(
-                  "patient.injurySurgeryPlanned",
-                  "Intervento chirurgico (anche futuro)?"
-                )}
-                :
-              </strong>{" "}
-              <SnapHi show={diff("infortunioChirurgicoPrevisto")}>
-                {snap.infortunioChirurgicoPrevisto === "si"
-                  ? tt("options.yesNo.Sì") || "Sì"
-                  : tt("options.yesNo.No") || "No"}
-              </SnapHi>
-            </p>
-          ) : null}
-
           {(() => {
             const dxRows = migrateDiagnosiRighe(snap).filter((row) =>
               patientDiagnosiRowIsFilled(row, tt)
@@ -3431,53 +3411,42 @@ function PatientClinicalSnapshotFields({ snap, prevSnap = null, tt }) {
           ) : null}
 
           {patientTrim(snap.dataOperazione) ? (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "8px 20px",
-                alignItems: "baseline",
-                marginBottom: 6,
-              }}
-            >
-              <p style={{ margin: 0 }}>
-                <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
-                <SnapHi show={diff("dataOperazione")}>
-                  {formatDateDMY(snap.dataOperazione)}
-                </SnapHi>
-              </p>
+            <p style={{ margin: "0 0 6px", lineHeight: 1.45 }}>
+              <strong>{tt("patient.surgeryDateShort")}:</strong>{" "}
+              <SnapHi show={diff("dataOperazione")}>
+                {formatDateDMY(snap.dataOperazione)}
+              </SnapHi>
               {isLocalIsoDateStrictlyFuture(snap.dataOperazione) ? (
-                <div style={{ flex: "1 1 100%", marginTop: 4 }}>
-                  <p style={{ margin: 0 }}>
-                    <strong>{tt("patient.surgeryStatusLabel")}:</strong>{" "}
-                    <SnapHi show={diff("dataOperazione")}>
-                      {tt("patient.surgeryStatusPreOp")}
-                    </SnapHi>
-                  </p>
-                  <p style={{ margin: "6px 0 0" }}>
-                    <strong>{tt("patient.timeUntilSurgeryLabel")}:</strong>{" "}
-                    <SnapHi show={diff("dataOperazione")}>
-                      {(() => {
-                        const n = wholeCalendarDaysUntilLocalIsoDate(
-                          snap.dataOperazione
-                        );
-                        return n != null ? n : "—";
-                      })()}{" "}
-                      {tt("time.days")}
-                    </SnapHi>
-                  </p>
-                </div>
+                <>
+                  {"  "}
+                  <strong>{tt("patient.surgeryStatusLabel")}:</strong>{" "}
+                  <SnapHi show={diff("dataOperazione")}>
+                    {tt("patient.surgeryStatusPreOp")}
+                  </SnapHi>
+                  {"  "}
+                  <strong>{tt("patient.timeUntilSurgeryLabel")}:</strong>{" "}
+                  <SnapHi show={diff("dataOperazione")}>
+                    {(() => {
+                      const n = wholeCalendarDaysUntilLocalIsoDate(
+                        snap.dataOperazione
+                      );
+                      return n != null ? n : "—";
+                    })()}{" "}
+                    {tt("time.days")}
+                  </SnapHi>
+                </>
               ) : (
-                <p style={{ margin: 0 }}>
+                <>
+                  {"  "}
                   <strong>{tt("patient.timeSinceSurgery")}:</strong>{" "}
                   <SnapHi show={diff("dataOperazione")}>
                     {timeSinceYWD(snap.dataOperazione, tt, {
                       futureAsSurgeryCountdown: true,
                     })}
                   </SnapHi>
-                </p>
+                </>
               )}
-            </div>
+            </p>
           ) : null}
 
           {(patientTrim(snap.artoOperato) ||

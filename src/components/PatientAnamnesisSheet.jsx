@@ -12,12 +12,23 @@ import {
   patientTrim,
 } from "../utils/helpers";
 
-/** Voci anamnesi modificate rispetto al bon precedente: riepilogo / stampa. */
-const DIFF_STYLE = bonDiffSummaryStyle;
+/** Evidenziazione differenze BON: stesso corpo del riassunto, solo colore. */
+const SURGICAL_DIFF_STYLE = {
+  color: bonDiffSummaryStyle.color,
+  fontWeight: "inherit",
+  fontSize: "inherit",
+  letterSpacing: "normal",
+  textTransform: "none",
+};
 
 function Hi({ show, children }) {
   if (!show) return children;
   return <span style={DIFF_STYLE}>{children}</span>;
+}
+
+function HiSurgicalLine({ show, children }) {
+  if (!show) return children;
+  return <span style={SURGICAL_DIFF_STYLE}>{children}</span>;
 }
 
 /** Blocco anamnesi / sport come in scheda paziente (stesso layout export PDF). */
@@ -269,32 +280,40 @@ export function PatientAnamnesisSheet({
               }}
             >
               {surgicalRows.map((row, i) => {
-                const yearStr = row.year || "—";
-                const monthStr = row.month
-                  ? getMonthShort(lang, row.month) || row.month
-                  : "—";
-                const textStr = manualTextLower(row.text);
-                const kindStr = row.kind
-                  ? tt(
-                      `patient.surgeryKind${row.kind.charAt(0).toUpperCase() + row.kind.slice(1)}`
-                    ) || row.kind
-                  : "";
-                const kindDetailStr = manualTextLower(row.kindDetail);
-                const prefixParts = [];
-                if (kindStr) prefixParts.push(kindStr);
-                if (kindDetailStr) prefixParts.push(kindDetailStr);
-                const prefix = prefixParts.length
-                  ? `${prefixParts.join(" — ")} · `
-                  : "";
-                return (
-                  <li key={`surg-li-${i}`}>
-                    <Hi show={showHi}>
-                      {prefix}
-                      {yearStr} – {monthStr}
-                      {textStr ? `: ${textStr}` : ""}
-                    </Hi>
-                  </li>
-                );
+                if (row.line === "kind") {
+                  const kindStr = row.kind
+                    ? tt(
+                        `patient.surgeryKind${row.kind.charAt(0).toUpperCase() + row.kind.slice(1)}`
+                      ) || row.kind
+                    : "";
+                  const kindDetailStr = manualTextLower(row.kindDetail);
+                  const parts = [];
+                  if (kindStr) parts.push(kindStr);
+                  if (kindDetailStr) parts.push(kindDetailStr);
+                  const lineText =
+                    parts.length > 0 ? parts.join(" — ") : "—";
+                  return (
+                    <li key={`surg-li-${i}`}>
+                      <HiSurgicalLine show={showHi}>{lineText}</HiSurgicalLine>
+                    </li>
+                  );
+                }
+                if (row.line === "date") {
+                  const yearStr = row.year || "—";
+                  const monthStr = row.month
+                    ? getMonthShort(lang, row.month) || row.month
+                    : "—";
+                  const textStr = manualTextLower(row.text);
+                  return (
+                    <li key={`surg-li-${i}`}>
+                      <HiSurgicalLine show={showHi}>
+                        {yearStr} – {monthStr}
+                        {textStr ? `: ${textStr}` : ""}
+                      </HiSurgicalLine>
+                    </li>
+                  );
+                }
+                return null;
               })}
             </ul>
           </div>
@@ -373,40 +392,6 @@ export function PatientAnamnesisSheet({
               <strong>{tt("patient.professionalRiskNotes")}:</strong>{" "}
               <Hi show={diff("rischiProfessionali")}>
                 {manualTextLower(selected.rischiProfessionali)}
-              </Hi>
-            </span>
-          ) : null}
-        </p>
-      )}
-
-      {(patientTrim(selected.motivoAccesso) ||
-        patientTrim(manualTextLower(selected.referralDaChi))) && (
-        <p
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "0 12px",
-            alignItems: "baseline",
-          }}
-        >
-          {patientTrim(manualTextLower(selected.referralDaChi)) ? (
-            <span>
-              <strong>{tt("patient.referralFrom", "Referral da")}:</strong>{" "}
-              <Hi show={diff("referralDaChi")}>
-                {manualTextLower(selected.referralDaChi)}
-              </Hi>
-            </span>
-          ) : null}
-          {patientTrim(manualTextLower(selected.referralDaChi)) &&
-          patientTrim(selected.motivoAccesso)
-            ? "|"
-            : null}
-          {patientTrim(selected.motivoAccesso) ? (
-            <span>
-              <strong>{tt("patient.accessReason", "Perché sei da noi?")}:</strong>{" "}
-              <Hi show={diff("motivoAccesso")}>
-                {tt(`options.accessReason.${selected.motivoAccesso}`) ||
-                  selected.motivoAccesso}
               </Hi>
             </span>
           ) : null}
