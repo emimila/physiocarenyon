@@ -12,23 +12,14 @@ import {
   patientTrim,
 } from "../utils/helpers";
 
-/** Evidenziazione differenze BON: stesso corpo del testo, solo colore. */
-const LINE_DIFF_STYLE = {
-  color: bonDiffSummaryStyle.color,
-  fontWeight: "inherit",
-  fontSize: "inherit",
-  letterSpacing: "normal",
-  textTransform: "none",
-};
-
 function Hi({ show, children }) {
   if (!show) return children;
-  return <span style={LINE_DIFF_STYLE}>{children}</span>;
+  return <span style={bonDiffSummaryStyle}>{children}</span>;
 }
 
 function HiSurgicalLine({ show, children }) {
   if (!show) return children;
-  return <span style={LINE_DIFF_STYLE}>{children}</span>;
+  return <span style={bonDiffSummaryStyle}>{children}</span>;
 }
 
 /** Blocco anamnesi / sport come in scheda paziente (stesso layout export PDF). */
@@ -273,8 +264,7 @@ export function PatientAnamnesisSheet({
               style={{
                 margin: "0 0 4px",
                 fontWeight: 400,
-                fontSize: "inherit",
-                lineHeight: 1.45,
+                lineHeight: 1.35,
               }}
             >
               <HiSurgicalLine show={showHi}>
@@ -285,9 +275,8 @@ export function PatientAnamnesisSheet({
               style={{
                 margin: "0 0 0 18px",
                 padding: 0,
-                lineHeight: 1.45,
+                lineHeight: 1.35,
                 fontWeight: 400,
-                fontSize: "inherit",
               }}
             >
               {surgicalRows.map((row, i) => {

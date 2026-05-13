@@ -1693,3 +1693,20 @@ code {
   page-break-inside: avoid;
   break-inside: avoid;
 }
+
+/* Scheda paziente: stesso sans del resto dell’app (evita serif/monospace ereditati su liste / testo lungo). */
+.pdf-root .patient-pdf-card,
+.pdf-root .patient-pdf-card p,
+.pdf-root .patient-pdf-card ul,
+.pdf-root .patient-pdf-card ol,
+.pdf-root .patient-pdf-card li,
+.patient-clinical-snapshot {
+  font-family: var(--sans);
+}
+
+/* Liste nelle card: stessa scala dei <p> in .pdf-root (12px), altrimenti ereditano 16px da :root */
+.pdf-root .patient-pdf-card ul,
+.pdf-root .patient-pdf-card ol {
+  font-size: 12px;
+  line-height: 1.35;
+}
