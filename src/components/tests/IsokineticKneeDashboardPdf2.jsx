@@ -39,23 +39,32 @@ const PCN = {
   green: "#66bb6a",
 };
 
-/** Colonne fisse riga misura: label (~31%) | barre | anello — allineate su tutti i tier. */
+/**
+ * Griglia righe misura (solo colonna centrale dashboard): stessa su 60/180/300 °/s.
+ * Obiettivo proporzioni ~ label movimento 28–32% | barre DX/SX 36–40% | anello simmetria ~14–18%
+ * della somma label+bars+ring (il contenitore anello resta leggibile, non comprime le barre).
+ */
 const ISO_MEASURE_COLS = {
-  labelPx: 146,
-  barsPx: 72,
-  ringPx: 98,
-  gap: 12,
+  labelPx: 118,
+  barsPx: 128,
+  ringPx: 74,
+  gap: 14,
 };
 
-/** Fascia sinistra card velocità: più stretta della revisione precedente, ma leggibile (white-space pre-line sul titolo). */
+/** Fascia sinistra velocità+titolo: leggibile (pre-line), non rubare troppo spazio ai dati. */
 const ISO_SPEED_STRIP_WIDTH_PX = 80;
 
-/** Barre verticali — altezza allineata al contenitore anello (ISO_BAR_WRAP_H). */
-const ISO_BAR_TRACK_W = 26;
-/** Spazio tra barra Destra e Sinistra */
-const ISO_BAR_PAIR_GAP_PX = 14;
-const ISO_BAR_H_MAX = 42;
-const ISO_BAR_WRAP_H = 58;
+/** Riga intestazioni DX / SX / SIMMETRIA — altezza compatta (non usa l’altezza delle barre). */
+const ISO_HEADER_ROW_H = 22;
+
+/** Barre verticali — traccia più larga, coppia DX/SX più distanziata dal cerchio (columnGap). */
+const ISO_BAR_TRACK_W = 30;
+const ISO_BAR_PAIR_GAP_PX = 18;
+const ISO_BAR_H_MAX = 50;
+/** Altezza fissa riga dati: numeri + gap + barre (allineate a destra con anello simmetria). */
+const ISO_BAR_WRAP_H = 72;
+/** Spazio tra valore numerico e barra (coppia DX / SX). */
+const ISO_NUM_BAR_GAP_PX = 5;
 
 function isoMeasureGridTemplateColumns() {
   const { labelPx, barsPx, ringPx } = ISO_MEASURE_COLS;
@@ -219,10 +228,10 @@ function VerticalPairBars({ valDx, valSx }) {
         boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: ISO_NUM_BAR_GAP_PX }}>
         <span
           style={{
-            fontSize: 12.5,
+            fontSize: 13.5,
             fontWeight: 800,
             color: PCN.teal,
             fontVariantNumeric: "tabular-nums",
@@ -252,10 +261,10 @@ function VerticalPairBars({ valDx, valSx }) {
           />
         </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: ISO_NUM_BAR_GAP_PX }}>
         <span
           style={{
-            fontSize: 12.5,
+            fontSize: 13.5,
             fontWeight: 800,
             color: PCN.orange,
             fontVariantNumeric: "tabular-nums",
@@ -309,7 +318,7 @@ function SymmetryRing({ pct, tt, omitCaption = false }) {
         minWidth: ISO_MEASURE_COLS.ringPx,
         maxWidth: ISO_MEASURE_COLS.ringPx,
         overflow: "hidden",
-        padding: omitCaption ? "0 6px" : "0 4px 4px",
+        padding: omitCaption ? "0 3px" : "0 4px 4px",
         boxSizing: "border-box",
       }}
     >
@@ -370,7 +379,7 @@ function MeasurementRow({ label, valDx, valSx, lsi, unit, borderTop, tt }) {
         gridTemplateColumns: isoMeasureGridTemplateColumns(),
         columnGap: ISO_MEASURE_COLS.gap,
         alignItems: "center",
-        padding: "3px 0 4px",
+        padding: "8px 0",
         borderTop: borderTop ? "1px solid rgba(255,255,255,0.06)" : "none",
       }}
     >
@@ -472,7 +481,7 @@ function SpeedTierBlock({ speed, speedTitle, unitLabel, row, injured, mode, tt }
         borderRadius: 12,
         border: `1px solid ${PCN.border}`,
         background: PCN.card,
-        padding: "11px 12px 12px",
+        padding: "10px 12px 11px",
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
         minHeight: 0,
         overflow: "hidden",
@@ -530,9 +539,9 @@ function SpeedTierBlock({ speed, speedTitle, unitLabel, row, injured, mode, tt }
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           alignItems: "center",
-          padding: "0 8px 0 5px",
+          padding: "0 6px 0 5px",
           boxSizing: "border-box",
         }}
       >
@@ -551,46 +560,50 @@ function SpeedTierBlock({ speed, speedTitle, unitLabel, row, injured, mode, tt }
             gridTemplateColumns: isoMeasureGridTemplateColumns(),
             columnGap: ISO_MEASURE_COLS.gap,
             alignItems: "center",
-            paddingBottom: 2,
-            marginBottom: 2,
+            paddingTop: 0,
+            paddingBottom: 1,
+            marginBottom: 1,
             borderBottom: "1px solid rgba(255,255,255,0.05)",
           }}
         >
-          <div aria-hidden style={{ minHeight: 1 }} />
+          <div aria-hidden style={{ height: ISO_HEADER_ROW_H }} />
           <div
             style={{
               display: "flex",
               justifyContent: "center",
+              alignItems: "center",
               gap: ISO_BAR_PAIR_GAP_PX,
               width: ISO_MEASURE_COLS.barsPx,
               minWidth: ISO_MEASURE_COLS.barsPx,
               maxWidth: ISO_MEASURE_COLS.barsPx,
-              fontSize: 7.35,
+              height: ISO_HEADER_ROW_H,
+              fontSize: 6.85,
               fontWeight: 800,
-              letterSpacing: "0.04em",
+              letterSpacing: "0.03em",
               color: PCN.muted,
               boxSizing: "border-box",
             }}
           >
-            <span style={{ width: ISO_BAR_TRACK_W, textAlign: "center", color: PCN.teal }}>{t("isoPdf2HeaderRight")}</span>
-            <span style={{ width: ISO_BAR_TRACK_W, textAlign: "center", color: PCN.orange }}>{t("isoPdf2HeaderLeft")}</span>
+            <span style={{ width: ISO_BAR_TRACK_W, textAlign: "center", color: PCN.teal, lineHeight: 1.05 }}>{t("isoPdf2HeaderRight")}</span>
+            <span style={{ width: ISO_BAR_TRACK_W, textAlign: "center", color: PCN.orange, lineHeight: 1.05 }}>{t("isoPdf2HeaderLeft")}</span>
           </div>
           <div
             style={{
               width: ISO_MEASURE_COLS.ringPx,
               minWidth: ISO_MEASURE_COLS.ringPx,
               maxWidth: ISO_MEASURE_COLS.ringPx,
-              height: ISO_BAR_WRAP_H,
+              height: ISO_HEADER_ROW_H,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               textAlign: "center",
-              fontSize: 7.75,
+              fontSize: 6.75,
               fontWeight: 800,
-              letterSpacing: "0.07em",
+              letterSpacing: "0.04em",
               color: PCN.muted,
               boxSizing: "border-box",
-              padding: "0 2px",
+              padding: "0 1px",
+              lineHeight: 1.05,
             }}
           >
             {t("isoPdf2HeaderSymmetry")}
@@ -657,14 +670,16 @@ function HqRadarChart({ rows, tt }) {
    */
   const vbW = 648;
   const vbH = 480;
-  const R = 267;
+  const R = 276;
   const cx = vbW / 2;
-  /** Triangolo max in altezza: R↑ e pad leggermente↓ così cornerLabelR resta sotto il clip del viewBox. */
-  const cy = (311 / 480) * vbH;
+  /** Triangolo zoom (+lati); cy e inset etichetta “60” evitano clip in alto. */
+  const cy = (314 / 480) * vbH;
   const angles = [-Math.PI / 2, -Math.PI / 2 + (2 * Math.PI) / 3, -Math.PI / 2 + (4 * Math.PI) / 3];
   const maxHq = 130;
-  const cornerLabelPad = 31;
+  const cornerLabelPad = 25;
   const cornerLabelR = R + cornerLabelPad;
+  /** Sposta solo l’etichetta in cima verso il centro: resta leggibile senza clip (overflow card). */
+  const topCornerLabelInset = 16;
 
   function poly(side) {
     const pts = rows.map((row, i) => {
@@ -683,7 +698,7 @@ function HqRadarChart({ rows, tt }) {
       key={ringScale}
       fill="none"
       stroke="rgba(255,255,255,0.16)"
-      strokeWidth="2.770705"
+      strokeWidth="2.864"
       points={angles
         .map((a) => {
           const rr = R * ringScale;
@@ -777,17 +792,19 @@ function HqRadarChart({ rows, tt }) {
                 x2={cx + R * Math.cos(angles[i])}
                 y2={cy + R * Math.sin(angles[i])}
                 stroke="rgba(255,255,255,0.2)"
-                strokeWidth="2.704168"
+                strokeWidth="2.795"
               />
             ))}
             {angles.map((a, i) => {
               const spd = rows[i]?.speed;
               if (spd == null) return null;
-              const lx = cx + cornerLabelR * Math.cos(a);
-              const ly = cy + cornerLabelR * Math.sin(a);
+              const labelR =
+                i === 0 ? cornerLabelR - topCornerLabelInset : cornerLabelR;
+              const lx = cx + labelR * Math.cos(a);
+              const ly = cy + labelR * Math.sin(a);
               const anchor =
                 i === 0 ? "middle" : i === 1 ? "start" : "end";
-              const dy = i === 0 ? "-0.15em" : "0.32em";
+              const dy = i === 0 ? "0.12em" : "0.32em";
               return (
                 <text
                   key={`corner-${spd}`}
@@ -796,7 +813,7 @@ function HqRadarChart({ rows, tt }) {
                   dy={dy}
                   textAnchor={anchor}
                   fill={PCN.tealHi}
-                  fontSize="27.384573"
+                  fontSize="28.31"
                   fontWeight="800"
                   fontFamily="system-ui,sans-serif"
                   style={{ userSelect: "none" }}
@@ -808,16 +825,16 @@ function HqRadarChart({ rows, tt }) {
             <polygon
               fill={PCN.tealFill}
               stroke={PCN.teal}
-              strokeWidth="5.562494"
+              strokeWidth="5.749"
               points={poly("right")}
             />
             <polygon
               fill={PCN.orangeFill}
               stroke={PCN.orange}
-              strokeWidth="5.562494"
+              strokeWidth="5.749"
               points={poly("left")}
             />
-            <circle cx={cx} cy={cy} r="4.792315" fill={PCN.text} />
+            <circle cx={cx} cy={cy} r="4.953" fill={PCN.text} />
           </svg>
         </div>
       </div>
