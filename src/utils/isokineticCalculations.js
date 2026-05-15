@@ -59,12 +59,65 @@ export function diffInjuredMinusHealthy(vInjured, vHealthy) {
   return vInjured - vHealthy;
 }
 
-/** LSI estensori/flessori: >95 ottimale, 90–95 accettabile, <90 deficit */
+/**
+ * Vecchia macro-classificazione LSI (% coinvolto / controlaterale).
+ * Non va usata come «simmetria» quando il rapporto supera 100%.
+ * Preferire classifyDirectionalLsiVsContralateral + classifySymmetryMinMax.
+ */
 export function classifyLsi(pct) {
   if (pct == null || !Number.isFinite(pct)) return null;
   if (pct > 95) return "optimal";
   if (pct >= 90) return "acceptable";
   return "deficit";
+}
+
+/** Simmetria assoluta picchi DX/SX: min/max × 100 (mai >100%). */
+export function symmetryMinMaxPercent(dx, sx) {
+  if (
+    dx == null ||
+    sx == null ||
+    !Number.isFinite(dx) ||
+    !Number.isFinite(sx) ||
+    dx < 0 ||
+    sx < 0
+  ) {
+    return null;
+  }
+  const hi = Math.max(dx, sx);
+  const lo = Math.min(dx, sx);
+  if (hi <= 0) return null;
+  return (lo / hi) * 100;
+}
+
+/**
+ * Fascia clinica sulla simmetria min/max (non sul LSI direzionale >100%).
+ * @returns {"symHigh"|"symAcceptable"|"symModerateAsym"|"symSevereAsym"|null}
+ */
+export function classifySymmetryMinMax(symPct) {
+  if (symPct == null || !Number.isFinite(symPct)) return null;
+  if (symPct >= 95) return "symHigh";
+  if (symPct >= 90) return "symAcceptable";
+  if (symPct >= 80) return "symModerateAsym";
+  return "symSevereAsym";
+}
+
+/**
+ * Rapporto lato interessato / controlaterale (può superare 100%).
+ * @returns {"dirInvolvedHigher"|"dirInvolvedSimilar"|"dirInvolvedLower"|null}
+ */
+export function classifyDirectionalLsiVsContralateral(lsiPct) {
+  if (lsiPct == null || !Number.isFinite(lsiPct)) return null;
+  if (lsiPct > 100.5) return "dirInvolvedHigher";
+  if (lsiPct < 99.5) return "dirInvolvedLower";
+  return "dirInvolvedSimilar";
+}
+
+/** Chi ha il picco più alto (solo anatomico). */
+export function comparePeakTorqueSides(dr, dl) {
+  if (dr == null || dl == null || !Number.isFinite(dr) || !Number.isFinite(dl))
+    return null;
+  if (Math.abs(dr - dl) < 0.05) return "equal";
+  return dr > dl ? "rightHigher" : "leftHigher";
 }
 
 /**
@@ -128,6 +181,14 @@ export function computeRowMetrics(row, injuredSide) {
   const lsiExt = lsiPercent(ptExtI, ptExtH);
   const lsiFlex = lsiPercent(ptFlexI, ptFlexH);
 
+  const ptExtR = parseIsokineticNum(row.right?.ptExt);
+  const ptExtL = parseIsokineticNum(row.left?.ptExt);
+  const ptFlexR = parseIsokineticNum(row.right?.ptFlex);
+  const ptFlexL = parseIsokineticNum(row.left?.ptFlex);
+
+  const symmetryExt = symmetryMinMaxPercent(ptExtR, ptExtL);
+  const symmetryFlex = symmetryMinMaxPercent(ptFlexR, ptFlexL);
+
   const defExt = deficitPercent(ptExtH, ptExtI);
   const defFlex = deficitPercent(ptFlexH, ptFlexI);
 
@@ -149,8 +210,14 @@ export function computeRowMetrics(row, injuredSide) {
     hqBandHealthy: classifyHqBand(row.speed, hqH),
     lsiExt,
     lsiFlex,
-    lsiExtClass: classifyLsi(lsiExt),
-    lsiFlexClass: classifyLsi(lsiFlex),
+    symmetryExt,
+    symmetryFlex,
+    symmetryExtClass: classifySymmetryMinMax(symmetryExt),
+    symmetryFlexClass: classifySymmetryMinMax(symmetryFlex),
+    directionalExtClass: classifyDirectionalLsiVsContralateral(lsiExt),
+    directionalFlexClass: classifyDirectionalLsiVsContralateral(lsiFlex),
+    compareExt: comparePeakTorqueSides(ptExtR, ptExtL),
+    compareFlex: comparePeakTorqueSides(ptFlexR, ptFlexL),
     deficitExt: defExt,
     deficitFlex: defFlex,
     diffRomExt: diffInjuredMinusHealthy(romExtI, romExtH),
@@ -191,7 +258,26 @@ export function ensureIsokineticShape(iso) {
     wc === "chart" || wc === "manual" || wc === "pending" ? wc : "pending";
   const rawFocus = Number(iso?.clinicalFocusSpeed);
   const clinicalFocusSpeed = [60, 180, 300].includes(rawFocus) ? rawFocus : 60;
-  return {
+  const chartsIn = iso?.easytechPdfCharts60;
+  const easytechPdfCharts60 =
+    chartsIn &&
+    typeof chartsIn === "object" &&
+    Number(chartsIn.version) === 1 &&
+    Array.isArray(chartsIn.images) &&
+    chartsIn.images.length
+      ? {
+          version: 1,
+          images: chartsIn.images.filter(
+            (im) =>
+              im &&
+              typeof im.dataUrl === "string" &&
+              im.dataUrl.startsWith("data:") &&
+              Number(im.nativeW) > 0 &&
+              Number(im.nativeH) > 0
+          ),
+        }
+      : null;
+  const base = {
     injuredSide: iso?.injuredSide ?? "",
     clinicalFocusSpeed,
     weightConfirmation,
@@ -202,6 +288,10 @@ export function ensureIsokineticShape(iso) {
       return normalizeIsokineticRow(existing, speed);
     }),
   };
+  if (easytechPdfCharts60?.images?.length) {
+    base.easytechPdfCharts60 = easytechPdfCharts60;
+  }
+  return base;
 }
 
 /** Righe normalizzate per report / PDF (stesso schema del form). */

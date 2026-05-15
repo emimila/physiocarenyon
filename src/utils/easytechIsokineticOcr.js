@@ -6,10 +6,12 @@
  */
 import {
   EASYTECH_FIELD_RULES,
+  detectSpeed,
   parseEasytechPdfText,
   splitEasytechPdfLinesIntoSections,
   validateField,
 } from "./easytechIsokineticImport.js";
+import { extractEasytechPdfPageChartImages } from "./easytechIsokineticPdfRasterCharts.js";
 
 /** Import statico: evita chunk `pdf-*.js` lazy che in produzione (Vercel) danno "error loading dynamically imported module". */
 import * as pdfjs from "pdfjs-dist/build/pdf.mjs";
@@ -126,6 +128,13 @@ export async function extractEasytechPdf(pdfBytes, onProgress) {
   for (let i = 1; i <= n; i++) {
     onProgress?.({ phase: "render", page: i, totalPages: n });
     const page = await pdf.getPage(i);
+    onProgress?.({ phase: "charts", page: i, totalPages: n });
+    let chartRasterPack = null;
+    try {
+      chartRasterPack = await extractEasytechPdfPageChartImages(page);
+    } catch {
+      chartRasterPack = null;
+    }
     const tc = await page.getTextContent({ disableNormalization: false });
     const lines = textItemsToLines(tc.items);
     const sections = splitEasytechPdfLinesIntoSections(lines);
@@ -134,6 +143,14 @@ export async function extractEasytechPdf(pdfBytes, onProgress) {
       secIdx += 1;
       const parsed = parseEasytechPdfText(sectionLines);
       const ok = Boolean(parsed.ok);
+      const tableSpeed = detectSpeed(parsed.rows);
+      const easytechPdfCharts60 =
+        tableSpeed === 60 &&
+        chartRasterPack &&
+        Array.isArray(chartRasterPack.images) &&
+        chartRasterPack.images.length
+          ? chartRasterPack
+          : null;
       pages.push({
         pageNumber: i,
         sectionIndex: sections.length > 1 ? secIdx : null,
@@ -145,6 +162,7 @@ export async function extractEasytechPdf(pdfBytes, onProgress) {
         rows: parsed.rows,
         header: parsed.header,
         measurements: buildMeasurementColumnsFromRows(parsed.rows),
+        easytechPdfCharts60,
       });
     }
   }

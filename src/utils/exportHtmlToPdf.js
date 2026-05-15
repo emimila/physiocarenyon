@@ -1,4 +1,5 @@
 import html2pdf from "html2pdf.js";
+import { jsPDF } from "jspdf";
 
 import physiocareHeader from "../assets/physiocare-header.jpg";
 
@@ -19,6 +20,8 @@ const HEADER_Y_IN = 0.15;
 const HEADER_NATIVE_WIDTH = 1024;
 const HEADER_NATIVE_HEIGHT = 157;
 const PDF_TOP_MARGIN_IN = 1.4;
+/** Margine superiore quando non si applica il banner (contenuto parte dall’alto). */
+const PDF_TOP_MARGIN_NO_HEADER_IN = 0.45;
 const PDF_BOTTOM_MARGIN_IN = 0.5;
 const PDF_SIDE_MARGIN_IN = HEADER_SIDE_PADDING_IN;
 
@@ -67,14 +70,20 @@ function loadHeaderDataUrl() {
 }
 
 /**
- * Opzioni html2pdf condivise: A4 verticale, margine top calibrato sul banner
- * PhysioCare, pagebreak per limitare tagli a metà blocco.
+ * Opzioni html2pdf condivise: A4, margine top calibrato sul banner PhysioCare (se attivo).
  * @param {string} filename
+ * @param {"portrait" | "landscape"} [orientation]
+ * @param {boolean} [stampHeader=true] se false, margine top ridotto (nessun banner).
  */
-export function getHtml2PdfOptions(filename) {
+export function getHtml2PdfOptions(
+  filename,
+  orientation = "portrait",
+  stampHeader = true
+) {
+  const topMargin = stampHeader ? PDF_TOP_MARGIN_IN : PDF_TOP_MARGIN_NO_HEADER_IN;
   return {
     margin: [
-      PDF_TOP_MARGIN_IN,
+      topMargin,
       PDF_SIDE_MARGIN_IN,
       PDF_BOTTOM_MARGIN_IN,
       PDF_SIDE_MARGIN_IN,
@@ -90,7 +99,7 @@ export function getHtml2PdfOptions(filename) {
     jsPDF: {
       unit: "in",
       format: "a4",
-      orientation: "portrait",
+      orientation,
       compress: true,
     },
     pagebreak: {
@@ -130,21 +139,125 @@ function stampHeaderOnAllPages(pdf, dataUrl) {
 }
 
 /**
- * Esporta un elemento DOM in PDF (A4 portrait) con html2pdf.js, applicando il
- * banner PhysioCare Nyon a piena larghezza in cima a ogni pagina.
- * @param {HTMLElement | null} element
- * @param {{ filename: string }} options
+ * Stesso flusso html2pdf fino al canvas, poi un’unica pagina: scala l’immagine
+ * per entrare nell’area stampabile (evita la divisione automatica su più pagine).
+ * @param {HTMLElement} element
+ * @param {ReturnType<typeof getHtml2PdfOptions>} opts
+ * @param {boolean} stampHeader
  */
-export async function exportHtmlToPdf(element, { filename }) {
+async function exportHtmlToPdfFitOnePage(element, opts, stampHeader) {
+  const worker = html2pdf().set(opts).from(element);
+  await worker.toContainer();
+  await worker.toCanvas();
+  const canvas = await worker.get("canvas");
+  if (!canvas || !canvas.width || !canvas.height) {
+    throw new Error("Canvas export non valido (dimensioni zero).");
+  }
+
+  const imageType =
+    opts.image && typeof opts.image.type === "string" && opts.image.type.toLowerCase() === "png"
+      ? "png"
+      : "jpeg";
+  const mime = imageType === "png" ? "image/png" : "image/jpeg";
+  const q =
+    opts.image && typeof opts.image.quality === "number" && Number.isFinite(opts.image.quality)
+      ? opts.image.quality
+      : 0.96;
+  const imgData =
+    imageType === "png"
+      ? canvas.toDataURL(mime)
+      : canvas.toDataURL(mime, q);
+  const imgFormat = imageType === "png" ? "PNG" : "JPEG";
+
+  const pdf = new jsPDF(opts.jsPDF);
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const m = opts.margin;
+  const innerW = pageW - m[1] - m[3];
+  const innerH = pageH - m[0] - m[2];
+  const cw = canvas.width;
+  const ch = canvas.height;
+  const imgRatio = cw / ch;
+  const boxRatio = innerW / innerH;
+  let drawW;
+  let drawH;
+  if (imgRatio > boxRatio) {
+    drawW = innerW;
+    drawH = innerW / imgRatio;
+  } else {
+    drawH = innerH;
+    drawW = innerH * imgRatio;
+  }
+  const x = m[1] + (innerW - drawW) / 2;
+  const y = m[0] + (innerH - drawH) / 2;
+  pdf.addImage(imgData, imgFormat, x, y, drawW, drawH);
+
+  if (stampHeader) {
+    const headerDataUrl = await loadHeaderDataUrl();
+    stampHeaderOnAllPages(pdf, headerDataUrl);
+  }
+  pdf.save(opts.filename);
+}
+
+/**
+ * Esporta un elemento DOM in PDF (A4) con html2pdf.js.
+ * Con `stampHeader: true` (default) applica il banner PhysioCare in cima a ogni pagina.
+ * @param {HTMLElement | null} element
+ * @param {{
+ *   filename: string;
+ *   orientation?: "portrait" | "landscape";
+ *   stampHeader?: boolean;
+ *   html2canvas?: Record<string, unknown>;
+ *   pagebreak?: Record<string, unknown>;
+ *   margin?: [number, number, number, number];
+ *   image?: { type?: string; quality?: number };
+ *   fitOnePage?: boolean;
+ * }} options
+ */
+export async function exportHtmlToPdf(
+  element,
+  {
+    filename,
+    orientation = "portrait",
+    stampHeader = true,
+    html2canvas: html2canvasOverride,
+    pagebreak: pagebreakOverride,
+    margin: marginOverride,
+    image: imageOverride,
+    fitOnePage = false,
+  } = {}
+) {
   if (!element) return;
   try {
-    const headerDataUrl = await loadHeaderDataUrl();
-    const worker = html2pdf()
-      .set(getHtml2PdfOptions(filename))
-      .from(element)
-      .toPdf();
+    const opts = getHtml2PdfOptions(filename, orientation, stampHeader);
+    if (
+      Array.isArray(marginOverride) &&
+      marginOverride.length === 4 &&
+      marginOverride.every((x) => typeof x === "number" && Number.isFinite(x))
+    ) {
+      opts.margin = marginOverride;
+    }
+    if (imageOverride && typeof imageOverride === "object") {
+      opts.image = { ...opts.image, ...imageOverride };
+    }
+    if (html2canvasOverride && typeof html2canvasOverride === "object") {
+      opts.html2canvas = { ...opts.html2canvas, ...html2canvasOverride };
+    }
+    if (pagebreakOverride && typeof pagebreakOverride === "object") {
+      opts.pagebreak = { ...opts.pagebreak, ...pagebreakOverride };
+    }
+
+    if (fitOnePage) {
+      await exportHtmlToPdfFitOnePage(element, opts, stampHeader);
+      return;
+    }
+
+    const worker = html2pdf().set(opts).from(element).toPdf();
     const pdf = await worker.get("pdf");
-    stampHeaderOnAllPages(pdf, headerDataUrl);
+    if (stampHeader) {
+      const headerDataUrl = await loadHeaderDataUrl();
+      stampHeaderOnAllPages(pdf, headerDataUrl);
+    }
     await worker.save();
   } catch (err) {
     const msg =

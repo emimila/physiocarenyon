@@ -308,7 +308,209 @@ export const translations = {
         lineLegendSx: "SX (sinistra)",
         diffBoxTitle: "DIFFERENZA (DX − SX), cm",
         saveTestPdf: "Salva PDF",
+        saveTestPdf2: "Salva PDF 2",
+        saveTestPdf3: "Salva PDF 3 — curve",
+        saveTestPdf4: "Salva PDF 4 — analisi angolare",
         saveTestPdfError: "Impossibile generare il PDF del test.",
+        isoPdf2Title: "TEST ISOCINETICO DEL GINOCCHIO",
+        isoPdf2Subtitle: "Analisi di forza e controllo muscolare",
+        isoPdf2Objective: "Obiettivo: raggiungere una simmetria ≥ 90%",
+        isoPdf2Patient: "Paziente",
+        isoPdf2WhatMeasures: "Cosa misura il test?",
+        isoPdf2MainResults: "RISULTATI PRINCIPALI",
+        isoPdf2RadarTitle: "Rapporto flessori / estensori (%)",
+        isoPdf2RadarValueHint:
+          "Su ogni asse: riferimento (teal) sopra, valutato (arancio) sotto — valori H/Q %.",
+        isoPdf2InjuredShort: "lato valutato",
+        isoPdf2Synthesis: "Sintesi e raccomandazioni",
+        isoPdf2Rehab: "Focus riabilitativo",
+        isoPdf2FooterGoal:
+          "Obiettivo: raggiungere una simmetria ≥ 90% sulle metriche principali prima del ritorno allo sport e, nel tempo, avvicinarsi ai valori di riferimento specifici per la disciplina praticata. Combinare buona simmetria e un profilo di forza coerente con le richieste dell'attività riduce il rischio di infortunio e di ricaduta.",
+        isoPdf2AgeShort: "Età",
+        isoPdf2SideEvaluated: "lato valutato",
+        isoPdf2SideHealthy: "lato sano",
+        isoPdf2What60: "Forza massima (picco di coppia).",
+        isoPdf2What180: "Resistenza di forza (lavoro totale).",
+        isoPdf2What300: "Forza rapida e controllo.",
+        isoPdf2SymmetryLegendTitle: "Legenda simmetria",
+        isoPdf2SpeedForceMax: "FORZA MASSIMA",
+        isoPdf2SpeedResist: "RESISTENZA",
+        isoPdf2SpeedFast: "FORZA RAPIDA\nCONTROLLO",
+        isoPdf2UnitNm: "Picco di coppia (Nm)",
+        isoPdf2UnitWork: "Lavoro totale (J)",
+        isoPdf2SymSevere: "DEFICIT IMPORTANTE",
+        isoPdf2SymModerate: "DEFICIT MODERATO",
+        isoPdf2SymGood: "BUONA SIMMETRIA",
+        isoPdf2SymTierLt80: "< 80%",
+        isoPdf2SymTier80to89: "80–89%",
+        isoPdf2SymTierGte90: "≥ 90%",
+        isoPdf2SymLegendLt80: "< 80% — deficit importante",
+        isoPdf2SymLegend80to89: "80–89% — deficit moderato",
+        isoPdf2SymLegendGte90: "≥ 90% — buona simmetria",
+        isoPdf2SynthExtDeficitLeft:
+          "Il ginocchio sinistro mostra un deficit di forza del quadricipite (LSI estensori fino al {{lsi}}), più evidente a basse/medie velocità se coerente con i dati.",
+        isoPdf2SynthExtDeficitRight:
+          "Il ginocchio destro mostra un deficit di forza del quadricipite (LSI estensori fino al {{lsi}}), più evidente a basse/medie velocità se coerente con i dati.",
+        isoPdf2SynthExtOkLeft:
+          "Il profilo estensori del ginocchio sinistro è compatibile con una simmetria accettabile (LSI ≥ 90% nelle metriche principali).",
+        isoPdf2SynthExtOkRight:
+          "Il profilo estensori del ginocchio destro è compatibile con una simmetria accettabile (LSI ≥ 90% nelle metriche principali).",
+        isoPdf2SynthHqVaries:
+          " Il rapporto flessori/estensori varia tra le velocità: valutare equilibrio muscolare e strategia di riabilitazione.",
+        isoPdf2RehabQuadSlowFast: "Incrementare la forza del quadricipite (lento → veloce).",
+        isoPdf2RehabEndurance180:
+          "Migliorare la resistenza di forza a 180°/s (lavoro totale estensori).",
+        isoPdf2RehabRapid300: "Allenare controllo e produzione di forza rapida a 300°/s.",
+        isoPdf2RehabDefault: "Mantenere carico progressivo e verifica simmetrica periodica.",
+        isoPdf2HeaderRight: "DX",
+        isoPdf2HeaderLeft: "SX",
+        isoPdf2HeaderSymmetry: "SIMMETRIA",
+        isoPdf2MeasureExtQuad: "ESTENSIONE (QUADRICIPITE)",
+        isoPdf2MeasureFlexHam: "FLESSIONE (ISCHIOCRURALI)",
+        isoPdf3NoData:
+          "Dati insufficienti per il confronto curva (serve almeno la riga 60°/s con picchi estensori/flessori).",
+        isoPdf3Kicker: "Confronto curva migliore — singola ripetizione",
+        isoPdf3Title: "Confronto qualitativo torque–angolo (60°/s)",
+        isoPdf3SpeedTag:
+          "Protocollo: 60°/s — forza massima (concentrico). Picchi = massimo di sessione per lato.",
+        isoPdf3StripVel: "Velocità",
+        isoPdf3StripPeakExt: "Picco torque — estensione",
+        isoPdf3StripPeakFlex: "Picco torque — flessione",
+        isoPdf3StripVs: "vs",
+        isoPdf3StripSym: "Simmetria estensori (LSI)",
+        isoPdf3StripSymHint: "Riferimento prudente: ≥90% buona; 80–89% moderata; <80% rilevante",
+        isoPdf3StripSintesi: "Sintesi rapida",
+        isoPdf3AxisAngle: "Angolo (°)",
+        isoPdf3AxisTorque: "Coppia (Nm)",
+        isoPdf3PanelRight: "Ginocchio destro",
+        isoPdf3PanelLeft: "Ginocchio sinistro",
+        isoPdf3PeakExt: "PEAK ESTENSIONE",
+        isoPdf3PeakFlex: "PEAK FLESSIONE",
+        isoPdf3KpiPeakExt: "Picco estensione (DX / SX)",
+        isoPdf3KpiPeakExtHint: "Nm — valori di sessione a 60°/s",
+        isoPdf3KpiDeficit: "Differenza estensori",
+        isoPdf3KpiDeficitHint: "Stima deficit lato valutato vs controlaterale (estensione)",
+        isoPdf3KpiHq: "Rapporto H/Q (DX / SX)",
+        isoPdf3KpiHqDelta: "Δ H/Q",
+        isoPdf3KpiSym: "Simmetria estensori (LSI %)",
+        isoPdf3KpiSymHint: "Riferimento prudente: ≥90% buona; 80–89% moderata; <80% rilevante",
+        isoPdf3ShapeTitle: "Lettura forma curva",
+        isoPdf3SymGaugeHint:
+          "Indicatore funzionale (LSI estensori {{pct}}): valutare insieme alla forma della curva, non isolatamente.",
+        isoPdf3ReadTitle: "Sintesi biomeccanica",
+        isoPdf3ImpactTitle: "Impatto funzionale possibile",
+        isoPdf3Footnote:
+          "Le curve mostrano due lobi sulla stessa scala: estensione (≈ −10°–58°) e flessione (≈ 62°–130°), con assi identici tra destro e sinistro per confronto visivo. Ricostruite dai picchi/ROM in scheda se non importate dal PDF.",
+        isoPdf3RefertoTitle: "Curve torque–angolo dal referto PDF (60°/s)",
+        isoPdf3RefertoCaption:
+          "Immagini estratte dal PDF Easytech in fase di import: stessa resa grafica del referto (incluse le ripetizioni / curve migliori già evidenziate dal software).",
+        isoPdf3FootnotePdfRasters:
+          "Le immagini riproducono i grafici incorporati nel PDF originale. Le metriche testuali e la lettura qualitativa accanto restano basate sui dati tabellari in scheda.",
+        isoPdf3N_symExtGood:
+          "Simmetria dei picchi in estensione nella fascia compatibile con un buon equilibrio fra lati.",
+        isoPdf3N_symExtMod:
+          "Simmetria estensori moderatamente ridotta: la produzione massima del lato valutato resta vicina ma non equivalente al controlaterale.",
+        isoPdf3N_symExtLow:
+          "Simmetria estensori più bassa: la curva di estensione del lato valutato suggerisce una riduzione della forza massima rispetto al lato controlaterale.",
+        isoPdf3N_shapeMoreVarLeft:
+          "Profilo sinistro con maggiore variabilità locale della coppia durante la concentrica, rispetto al destro.",
+        isoPdf3N_shapeMoreVarRight:
+          "Profilo destro con maggiore variabilità locale della coppia durante la concentrica, rispetto al sinistro.",
+        isoPdf3N_shapeBothSomeVar:
+          "Entrambe le curve mostrano una certa variabilità: confrontare con comfort e qualità del movimento in seduta.",
+        isoPdf3N_shapeRelSmooth:
+          "Andamenti relativamente continui: buona base per interpretare picchi e tempi di salita senza artefatti evidenti.",
+        isoPdf3N_buildFasterLeft:
+          "Salita verso il picco estensori leggermente più rapida a sinistra: attivazione iniziale più pronta sul tratto angolare osservato.",
+        isoPdf3N_buildFasterRight:
+          "Salita verso il picco estensori leggermente più rapida a destra: attivazione iniziale più pronta sul tratto angolare osservato.",
+        isoPdf3N_buildSimilar:
+          "Build-up verso il picco estensori abbastanza simile fra i lati sul tratto analizzato.",
+        isoPdf3N_decayEarlierLeft:
+          "Dopo il picco estensori, tendenza a un calo di coppia un po’ più marcata a sinistra nel tratto terminale del ROM osservato.",
+        isoPdf3N_decayEarlierRight:
+          "Dopo il picco estensori, tendenza a un calo di coppia un po’ più marcata a destra nel tratto terminale del ROM osservato.",
+        isoPdf3N_decaySimilar:
+          "Mantenimento della coppia post-picco estensori comparabile fra i lati nel tratto osservato.",
+        isoPdf3N_workVolumeLowerLeft:
+          "Area sotto la curva complessivamente minore a sinistra: volume di lavoro per ripetizione stimato più contenuto.",
+        isoPdf3N_workVolumeLowerRight:
+          "Area sotto la curva complessivamente minore a destra: volume di lavoro per ripetizione stimato più contenuto.",
+        isoPdf3N_workVolumeSimilar:
+          "Volume di lavoro stimato dall’area curva abbastanza simile fra i lati, da affiancare ai dati di lavoro tabellare.",
+        isoPdf3N_hqSupportShift:
+          "Rapporto flessori/estensori lievemente spostato: utile come supporto se coerente con il deficit estensori.",
+        isoPdf3BulletPeak:
+          "Picco estensori: confrontare altezza del picco e timing con la sensazione di controllo in seduta.",
+        isoPdf3BulletShape:
+          "Forma curva: continuità e assenza di micro-interruzioni guidano la lettura del controllo neuromuscolare.",
+        isoPdf3BulletBuild:
+          "Build-up: una salita più graduale può associarsi a minore prontezza di reclutamento nel tratto iniziale.",
+        isoPdf3BulletDecay:
+          "Mantenimento post-picco: un calo più rapido suggerisce minore sostenibilità locale nel tratto finale del ROM.",
+        isoPdf3BulletWork:
+          "Area curva: sintesi visiva del lavoro per ripetizione; integrare con il lavoro totale registrato.",
+        isoPdf3BulletControl:
+          "Oscillazioni leggere possono riflettere variabilità di controllo senza implicare da sole una diagnosi.",
+        isoPdf3Impact1:
+          "Possibile minore efficienza nei gesti esplosivi brevi (accelerazioni, salti) se il deficit estensori persiste.",
+        isoPdf3Impact2:
+          "Controllo della produzione di forza potenzialmente meno uniforme in cambi di ritmo o direzione.",
+        isoPdf3Impact3:
+          "Potenziale compenso neuromuscolare in task ad alta richiesta se la simmetria resta sotto soglia.",
+        isoPdf3Impact4:
+          "Prestazione dinamica da monitorare con progressioni caricate e verifica periodica della qualità di movimento.",
+        isoPdf4NoData:
+          "Dati insufficienti per PDF4 (serve la riga 60°/s con picchi e ROM coerenti, come per PDF3).",
+        isoPdf4Kicker: "PDF4 · analisi angolo-specifica",
+        isoPdf4Title: "Confronto torque–angolo campionato e zone di attenzione (60°/s)",
+        isoPdf4SpeedOnly: "Solo 60°/s — curve ricostruite dai riassunti di sessione (modello PDF3).",
+        isoPdf4Disclaimer:
+          "I valori per angolo sono campionati sulle curve sintetiche coerenti con la tabella isocinetica, non su tracciati raw della macchina. Soglie LSI indicative: ≥90% accettabile, 80–89% moderata, <80% da integrare con esame clinico.",
+        isoPdf4LsiGlobalHint: "LSI picco estensori (tabella): {{lsi}}.",
+        isoPdf4OverlayExt: "Sovrapposizione estensione — destro vs sinistro",
+        isoPdf4OverlayFlex: "Sovrapposizione flessione — destro vs sinistro",
+        isoPdf4LegRight: "Destro",
+        isoPdf4LegLeft: "Sinistro",
+        isoPdf4LsiStripTitle: "Profilo LSI / simmetria per angolo (campione ogni 5°)",
+        isoPdf4LsiAxis: "LSI % (coinvolto/controlaterale) oppure simmetria min/max se lato non indicato",
+        isoPdf4LsiAxisShort: "LSI / sim. (%)",
+        isoPdf4ZonesTitle: "Zone con LSI sotto soglia (80% / 90%)",
+        isoPdf4ZonesNone: "Nessuna zona continua sotto 90% sul campionamento a 5° (restano da valutare picchi e ROM reali).",
+        isoPdf4ZoneMin: "LSI min. ~{{lsi}}%",
+        isoPdf4WorstHint:
+          "Valore più basso sul campionamento: ~{{lsi}}% intorno a {{angle}}° ({{phase}}).",
+        isoPdf4TableTitle: "Tabella dati plausibili ogni {{step}}°",
+        isoPdf4ColAngle: "Angolo (°)",
+        isoPdf4ColPhase: "Ramo",
+        isoPdf4ColRight: "Nm destro",
+        isoPdf4ColLeft: "Nm sinistro",
+        isoPdf4ColLsi: "LSI / sim. %",
+        isoPdf4PhaseExt: "Estensione",
+        isoPdf4PhaseFlex: "Flessione",
+        isoPdf4PhaseExtShort: "Ext",
+        isoPdf4PhaseFlexShort: "Flex",
+        isoPdf4Footnote:
+          "Con lato coinvolto impostato in scheda, la colonna LSI usa (coinvolto/controlaterale)×100; altrimenti min/max×100. Integrare sempre con test funzionali e valutazione clinica.",
+        isoPdf4EvalTitle: "Lettura integrata (forma curva + campionamento angolare)",
+        isoPdf4EvalFromPdf3: "Da forma curva e metriche qualitative (modello PDF3):",
+        isoPdf4EvalFromAngle: "Da profilo LSI/simmetria ogni 5°:",
+        isoPdf4OpIntro:
+          "Osservazioni sintetiche basate su curve ricostruite e griglia angolare; non sostituiscono esame clinico né diagnosi.",
+        isoPdf4OpDeficitBothPhases:
+          "Il profilo angolare mostra simmetria ridotta sia in estensione sia in flessione: pattern più globale che un singolo segmento isolato.",
+        isoPdf4OpDeficitDominatesExt:
+          "Le maggiori criticità risultano in estensione: coerente con focus su quadricipite, controllo nel primo arco e possibile inibizione/dolore.",
+        isoPdf4OpDeficitDominatesFlex:
+          "Le bande sotto soglia sono prevalentemente in flessione: utile correlare con ischiocrurali, angoli profondi e task sportivi in flessione.",
+        isoPdf4OpNotUniform:
+          "Il deficit non è uniforme lungo il ROM: alternanze di LSI più o meno favorevoli vanno lette insieme a comfort, qualità del movimento e test funzionali.",
+        isoPdf4OpPeakMisleading:
+          "Pur con LSI al picco estensori non drammatico in tabella, il campionamento angolare mostra fasce più deboli: il picco da solo non racconta tutta la curva.",
+        isoPdf4OpDecayInvolved:
+          "Sul lato coinvolto la fase estensora tende a mantenere meno coppia dopo il picco rispetto al controlaterale: ipotesi di fatica locale, dolore o strategia di output da esplorare.",
+        isoPdf4OpClosing:
+          "Integrare con ROM attivo, carico funzionale, test hop/salti e sintomi; al retest confrontare le stesse fasce angolari.",
         trialShort: "P.",
         dir: {
           anterior: "Anteriore",
@@ -833,7 +1035,15 @@ export const translations = {
         hqLow: "Basso",
         hqExpected: "Atteso",
         hqHigh: "Alto",
-        lsiRefTitle: "LSI — obiettivo",
+        lsiRefTitle: "Simmetria / LSI — riferimenti indicativi",
+        lsiRefIntro:
+          "Soglie indicative per la simmetria min/max tra i picchi DX/SX, oppure per l’LSI direzionale quando il lato interessato è più basso del controlaterale:",
+        lsiRefSymHigh: "≥95% simmetria alta",
+        lsiRefSymAcceptable: "90–94.9% accettabile",
+        lsiRefSymModerate: "80–89.9% asimmetria moderata",
+        lsiRefSymSevere: "<80% asimmetria importante",
+        lsiRefDirectionalOver100:
+          "Se l’LSI direzionale è >100%, non classificarlo come «simmetria ottimale»: significa che il lato interessato supera il controlaterale al picco; riportare sempre anche la simmetria min/max.",
         lsiRefOptimal: ">95% Ottimale",
         lsiRefAcceptable: "90–95% Accettabile",
         lsiRefDeficit: "<90% Deficit",
@@ -907,6 +1117,141 @@ export const translations = {
         workCompareChartUnit: "Scala: J",
         workChartRowExt: "Lavoro totale — estensione",
         workChartRowFlex: "Lavoro totale — flessione",
+        peakTorqueMainTitle: "Coppia massimale",
+        peakTorqueMainQuestion:
+          "Quale lato produce il picco di coppia più alto? (solo confronto DX vs SX per movimento e velocità)",
+        peakTorqueDataCaption:
+          "Dati: riepilogo numerico della tabella (picco di sessione per velocità), non curve torque–angolo raw.",
+        peakTorquePanelExt: "Coppia massimale — Estensione (quadricipite)",
+        peakTorquePanelFlex: "Coppia massimale — Flessione (ischiocrurali)",
+        peakTorquePanelSubtitle:
+          "Confronto picco Nm destro vs sinistro alle tre velocità",
+        peakTorqueUnitNm: "Unità: Nm (coppia massimale di sessione)",
+        peakTorqueAxisNm: "Nm",
+        peakTorqueMetricsTitle: "Metriche per velocità",
+        peakTorqueColStronger: "Lato più alto",
+        peakTorqueColDiff: "Differenza",
+        peakTorqueColDirectionalLsi: "LSI direzionale",
+        peakTorqueColSymmetry: "Simmetria (min/max)",
+        peakTorqueColAsymmetryVsMax: "Asimmetria (vs max)",
+        peakTorqueColN: "N",
+        peakTorqueColBriefInterpretation: "Interpretazione breve",
+        peakTorqueDataTypeLabel:
+          "Tipo dato: riepilogo numerico PDF / picco di sessione, non curva torque–angolo raw. Fonte: PDF_NUMERIC_SUMMARY.",
+        peakLegendInvolvedBar: "{short} — lato interessato",
+        peakLegendContralateralBar: "{short} — controlaterale",
+        peakTorqueSeparateScalesNote:
+          "Scale verticali separate tra estensione e flessione: non confrontare l’altezza delle barre tra i due pannelli.",
+        peakTorqueTableRepsFootnote:
+          "N = numero di ripetizioni previste nel protocollo per velocità (60°/s: 5; 180°/s: 20; 300°/s: 15).",
+        peakBriefSym_symHigh: "alta simmetria",
+        peakBriefSym_symAcceptable: "simmetria accettabile",
+        peakBriefSym_symModerateAsym: "asimmetria moderata",
+        peakBriefSym_symSevereAsym: "asimmetria importante",
+        peakBriefSym_relativeWorst: "maggiore asimmetria tra le velocità",
+        peakBriefSym_relativeBest: "migliore simmetria tra le velocità",
+        peakBriefSym_fallback: "simmetria variabile",
+        peakBriefDir_equal: "picchi DX/SX quasi equivalenti",
+        peakBriefDir_invHigher: "{inv} superiore al controlaterale",
+        peakBriefDir_invLower: "{inv} inferiore al controlaterale",
+        peakBriefDir_invLowerSlight: "{inv} leggermente inferiore al controlaterale",
+        peakBriefCombined: "{dir}; {sym}",
+        peakSynthExt60_invHigher:
+          "A 60°/s il lato interessato ({inv}) mostra un picco estensorio superiore al controlaterale ({pair} Nm).",
+        peakSynthExt60_invLower:
+          "A 60°/s il lato interessato ({inv}) mostra un picco estensorio inferiore al controlaterale ({pair} Nm).",
+        peakSynthExt60_similar:
+          "A 60°/s in estensione picchi molto simili sul lato interessato ({inv}) rispetto al controlaterale ({pair} Nm).",
+        peakSynthFlex60_invHigher:
+          "In flessione a 60°/s il {inv} è superiore al controlaterale ({pair} Nm).",
+        peakSynthFlex60_invLower:
+          "In flessione a 60°/s il {inv} è inferiore al controlaterale ({pair} Nm).",
+        peakSynthFlex60_invLowerSlight:
+          "In flessione a 60°/s il {inv} è leggermente inferiore al controlaterale ({pair} Nm).",
+        peakSynthFlex60_similar:
+          "In flessione a 60°/s picchi molto simili ({pair} Nm).",
+        peakSynthAgg_ext_invHigherAll: "{inv} è superiore in estensione",
+        peakSynthAgg_ext_invLowerAll: "{inv} è inferiore in estensione",
+        peakSynthAgg_ext_mixed:
+          "in estensione il rapporto {inv}/controlaterale non è omogeneo tra le velocità",
+        peakSynthAgg_flex_invHigherAll: "{inv} è superiore in flessione",
+        peakSynthAgg_flex_invLowerAll: "{inv} è inferiore in flessione",
+        peakSynthAgg_flex_mixed:
+          "in flessione il rapporto {inv}/controlaterale non è omogeneo tra le velocità",
+        peakSynthAllSpeeds: "Considerando tutte le velocità, {extAgg} e {flexAgg}.",
+        directionalInterp_dirInvolvedHigher:
+          "{inv} superiore al controlaterale",
+        directionalInterp_dirInvolvedSimilar:
+          "{inv} simile al controlaterale",
+        directionalInterp_dirInvolvedLower:
+          "{inv} inferiore al controlaterale",
+        directionalInterp_dirInvolvedLowerSlight:
+          "{inv} leggermente inferiore al controlaterale",
+        peakSideCompare_rightHigher: "DX > SX",
+        peakSideCompare_leftHigher: "SX > DX",
+        peakSideCompare_equal: "DX ≈ SX",
+        symBand_symHigh: "simmetria alta",
+        symBand_symAcceptable: "accettabile",
+        symBand_symModerateAsym: "asimmetria moderata",
+        symBand_symSevereAsym: "asimmetria importante",
+        contraDirectionalExt: "LSI direzionale est: {pct} — {dirInterp}.",
+        contraSymmetryExt: "Simmetria est min/max: {pct} — {band}",
+        contraDirectionalFlex: "LSI direzionale flex: {pct} — {dirInterp}.",
+        contraSymmetryFlex: "Simmetria flex min/max: {pct} — {band}",
+        clinicalCommentDirectionLabel: "Direzione (picco anatomico)",
+        clinicalCommentSymmetryLabel: "Simmetria min/max",
+        clinicalBulletDirectionalLineExt:
+          "LSI direzionale {dirPct} — {dirInterp}. Simmetria assoluta min/max: {symPct}.",
+        clinicalBulletDirectionalLineFlex:
+          "LSI direzionale {dirPct} — {dirInterp}. Simmetria assoluta min/max: {symPct}.",
+        peakTorqueInvolvedCaption:
+          "Lato interessato: {involved}. {contralateral} = controlaterale.",
+        peakTorqueMiniConclusionTitle: "Solo picco:",
+        peakMiniSymLowestFragment:
+          "; segnala però una simmetria min/max più bassa a {speed}°/s ({sym})",
+        peakMiniExt_invStrongerAllSpeeds:
+          "Solo picco: il {inv} supera il {contra} a tutte le velocità. Non indica un deficit di picco del lato interessato{symFrag}.",
+        peakMiniExt_invWeakerAllSpeeds:
+          "Solo picco: il {inv} è inferiore al {contra} a tutte le velocità in estensione{symFrag}.",
+        peakMiniFlex_invStrongerAllSpeeds:
+          "Solo picco: il {inv} supera il {contra} a tutte le velocità{symFrag}.",
+        peakMiniFlex_invWeakerAllSpeeds:
+          "Solo picco: il {inv} è inferiore al {contra} a tutte le velocità. Il deficit direzionale del lato interessato è lieve, con LSI direzionale tra {lsiMin} e {lsiMax}{symFrag}.",
+        peakMiniExt_sameWinnerMixedDir:
+          "A livello estensorio, il {dominant} ha il picco più alto a tutte le velocità, ma il rapporto lato interessato ({inv}) / controlaterale non è uniforme tra le velocità — interpretare con cautela.",
+        peakMiniFlex_sameWinnerMixedDir:
+          "A livello flessorio, il {dominant} ha il picco più alto a tutte le velocità, ma il rapporto lato interessato ({inv}) / controlaterale non è uniforme tra le velocità — interpretare con cautela.",
+        peakMiniMixedPattern:
+          "Il confronto tra velocità non è omogeneo per questo movimento: usare i valori nella tabella sopra.",
+        peakTorqueSideRight: "DX",
+        peakTorqueSideLeft: "SX",
+        peakTorqueSynthExt60Stronger:
+          "A 60°/s il lato {side} mostra un picco estensorio superiore al controlaterale, {dx} vs {sx} Nm.",
+        peakTorqueSynthExt60Equal:
+          "A 60°/s in estensione: {dx} vs {sx} Nm (simili).",
+        peakTorqueSynthFlex60Stronger:
+          "In flessione, invece, il lato {side} è {slight}superiore, {dx} vs {sx} Nm.",
+        peakTorqueSynthFlex60Equal:
+          "In flessione a 60°/s: {dx} vs {sx} Nm (simili).",
+        peakTorqueSynthSlightWord: "leggermente ",
+        peakTorqueSynthSlightEmpty: "",
+        peakTorqueSynthTitle: "Sintesi",
+        peakTorqueSynthDisclaimer:
+          "Questo grafico descrive solo il picco massimo di coppia: non valuta qualità della curva, mantenimento del torque, lavoro totale, fatica o deficit angolo-specifici.",
+        peakTorqueLimitsTitle: "Limiti:",
+        peakTorqueLimitsBody:
+          "Questo grafico descrive solo il picco di coppia massimo per velocità. Non permette di valutare qualità della curva, fatica, controllo motorio, deficit angolo-specifici, dolore, compensi o readiness al ritorno allo sport. Non confrontare estensione con flessione né equiparare le velocità; non trarre conclusioni cliniche definitive solo da questo grafico.",
+        peakTorqueLsiNote:
+          "LSI direzionale = lato interessato / controlaterale × 100 (può superare 100%: non è «simmetria»). Simmetria assoluta = min(DX,SX) / max(DX,SX) × 100 (non supera 100%).",
+        peakTorqueValidationTitle: "Dati insufficienti per il grafico coppia massimale",
+        peakTorqueErrorGeneric: "Verificare i valori di coppia massima (Nm) per entrambi i lati.",
+        peakTorqueErrorMissingValue:
+          "Valore di coppia massimale mancante o non valido per movimento/velocità indicati.",
+        peakTorqueMissingInvolvedSide:
+          "Indicare il lato interessato per calcolare l’LSI direzionale.",
+        peakTorqueMissingSpeed60: "Mancano i dati a 60°/s.",
+        peakTorqueMissingSpeed180: "Mancano i dati a 180°/s.",
+        peakTorqueMissingSpeed300: "Mancano i dati a 300°/s.",
         tableMeasuresLegend:
           "Legenda tabelle: °/s = velocità; Contr. = tipo di contrazione; Conc. = concentrica; N = numero ripetizioni. Colonne dati: coppia massima est/flex (Nm), angolo al CM (°), ROM (°), lavoro totale est/flex (J) per il lato del titolo (destro/sinistro). In «Calcoli automatici»: H/Q, LSI e coppia per kg se è indicato il lato interessato.",
         easytechImportTitle: "Importa PDF Easytech",
@@ -959,6 +1304,7 @@ export const translations = {
         easytechImportColumn: "Colonna",
         easytechImportProgressInit: "Preparazione…",
         easytechImportProgressRender: "Estrazione testo PDF…",
+        easytechImportProgressCharts: "Estrazione immagini grafici PDF…",
         easytechImportProgressOcr: "Elaborazione…",
         easytechImportNoSpeed: "Seleziona o correggi la velocità prima di importare.",
         easytechImportNoSide: "Indica quale colonna è destro e quale sinistro.",
@@ -1320,7 +1666,215 @@ export const translations = {
         lineLegendSx: "G (gauche)",
         diffBoxTitle: "DIFFÉRENCE (D − G), cm",
         saveTestPdf: "Enregistrer PDF",
+        saveTestPdf2: "Enregistrer PDF 2",
+        saveTestPdf3: "Enregistrer PDF 3 — courbes",
+        saveTestPdf4: "Enregistrer PDF 4 — analyse angulaire",
         saveTestPdfError: "Impossible de générer le PDF du test.",
+        isoPdf2Title: "TEST ISOCINÉTIQUE DU GENOU",
+        isoPdf2Subtitle: "Analyse de force et contrôle musculaire",
+        isoPdf2Objective: "Objectif : symétrie ≥ 90 %",
+        isoPdf2Patient: "Patient",
+        isoPdf2WhatMeasures: "Que mesure le test ?",
+        isoPdf2MainResults: "RÉSULTATS PRINCIPAUX",
+        isoPdf2RadarTitle: "Rapport fléchisseurs / extenseurs (%)",
+        isoPdf2RadarValueHint:
+          "Par axe : référence (turquoise) au-dessus, côté évalué (orange) en dessous — H/Q %.",
+        isoPdf2InjuredShort: "côté évalué",
+        isoPdf2Synthesis: "Synthèse et recommandations",
+        isoPdf2Rehab: "Focus rééducation",
+        isoPdf2FooterGoal:
+          "Objectif : atteindre une symétrie ≥ 90 % sur les principaux indicateurs avant le retour au sport et, dans le temps, se rapprocher des valeurs de référence spécifiques à la discipline pratiquée. Associer une bonne symétrie à un profil de force cohérent avec les exigences de l'activité réduit le risque de blessure et de récidive.",
+        isoPdf2AgeShort: "Âge",
+        isoPdf2SideEvaluated: "côté évalué",
+        isoPdf2SideHealthy: "côté sain",
+        isoPdf2What60: "Force maximale (couple maximal).",
+        isoPdf2What180: "Résistance de force (travail total).",
+        isoPdf2What300: "Force rapide et contrôle.",
+        isoPdf2SymmetryLegendTitle: "Légende symétrie",
+        isoPdf2SpeedForceMax: "FORCE MAXIMALE",
+        isoPdf2SpeedResist: "RÉSISTANCE",
+        isoPdf2SpeedFast: "FORCE RAPIDE\nCONTRÔLE",
+        isoPdf2UnitNm: "Couple maximal (Nm)",
+        isoPdf2UnitWork: "Travail total (J)",
+        isoPdf2SymSevere: "DÉFICIT MAJEUR",
+        isoPdf2SymModerate: "DÉFICIT MODÉRÉ",
+        isoPdf2SymGood: "BONNE SYMÉTRIE",
+        isoPdf2SymTierLt80: "< 80 %",
+        isoPdf2SymTier80to89: "80–89 %",
+        isoPdf2SymTierGte90: "≥ 90 %",
+        isoPdf2SymLegendLt80: "< 80 % — déficit majeur",
+        isoPdf2SymLegend80to89: "80–89 % — déficit modéré",
+        isoPdf2SymLegendGte90: "≥ 90 % — bonne symétrie",
+        isoPdf2SynthExtDeficitLeft:
+          "Le genou gauche montre un déficit de force du quadriceps (LSI extenseurs jusqu’à {{lsi}}), plus marqué aux basses/moyennes vitesses si c’est cohérent avec les données.",
+        isoPdf2SynthExtDeficitRight:
+          "Le genou droit montre un déficit de force du quadriceps (LSI extenseurs jusqu’à {{lsi}}), plus marqué aux basses/moyennes vitesses si c’est cohérent avec les données.",
+        isoPdf2SynthExtOkLeft:
+          "Le profil extenseurs du genou gauche est compatible avec une symétrie acceptable (LSI ≥ 90 % sur les principales métriques).",
+        isoPdf2SynthExtOkRight:
+          "Le profil extenseurs du genou droit est compatible avec une symétrie acceptable (LSI ≥ 90 % sur les principales métriques).",
+        isoPdf2SynthHqVaries:
+          " Le rapport fléchisseurs/extenseurs varie selon les vitesses : évaluer l’équilibre musculaire et la stratégie de rééducation.",
+        isoPdf2RehabQuadSlowFast:
+          "Augmenter la force du quadriceps (lent → rapide).",
+        isoPdf2RehabEndurance180:
+          "Améliorer l’endurance de force à 180°/s (travail total des extenseurs).",
+        isoPdf2RehabRapid300:
+          "Travailler le contrôle et la production de force rapide à 300°/s.",
+        isoPdf2RehabDefault:
+          "Maintenir une charge progressive et des contrôles symétriques réguliers.",
+        isoPdf2HeaderRight: "D",
+        isoPdf2HeaderLeft: "G",
+        isoPdf2HeaderSymmetry: "SYMÉTRIE",
+        isoPdf2MeasureExtQuad: "EXTENSION (QUADRICEPS)",
+        isoPdf2MeasureFlexHam: "FLEXION (ISCHIO-JAMBIERS)",
+        isoPdf3NoData:
+          "Données insuffisantes pour la comparaison de courbes (il faut au moins la ligne 60°/s avec les pics extenseurs et fléchisseurs).",
+        isoPdf3Kicker: "Comparaison de la meilleure courbe — répétition unique",
+        isoPdf3Title: "Comparaison qualitative couple–angle (60°/s)",
+        isoPdf3SpeedTag:
+          "Protocole : 60°/s — force maximale (centrique). Pics = maximum de séance par côté.",
+        isoPdf3StripVel: "Vitesse",
+        isoPdf3StripPeakExt: "Couple maximal — extension",
+        isoPdf3StripPeakFlex: "Couple maximal — flexion",
+        isoPdf3StripVs: "vs",
+        isoPdf3StripSym: "Symétrie des extenseurs (LSI)",
+        isoPdf3StripSymHint:
+          "Repère prudent : ≥90 % bonne ; 80–89 % modérée ; <80 % pertinente",
+        isoPdf3StripSintesi: "Synthèse rapide",
+        isoPdf3AxisAngle: "Angle (°)",
+        isoPdf3AxisTorque: "Couple (Nm)",
+        isoPdf3PanelRight: "Genou droit",
+        isoPdf3PanelLeft: "Genou gauche",
+        isoPdf3PeakExt: "PIC EXTENSION",
+        isoPdf3PeakFlex: "PIC FLEXION",
+        isoPdf3KpiPeakExt: "Pic extension (D / G)",
+        isoPdf3KpiPeakExtHint: "Nm — valeurs de séance à 60°/s",
+        isoPdf3KpiDeficit: "Écart des extenseurs",
+        isoPdf3KpiDeficitHint:
+          "Estimation du déficit côté évalué vs controlatéral (extension)",
+        isoPdf3KpiHq: "Rapport H/Q (D / G)",
+        isoPdf3KpiHqDelta: "Δ H/Q",
+        isoPdf3KpiSym: "Symétrie des extenseurs (LSI %)",
+        isoPdf3KpiSymHint:
+          "Repère prudent : ≥90 % bonne ; 80–89 % modérée ; <80 % pertinente",
+        isoPdf3ShapeTitle: "Lecture de la forme de courbe",
+        isoPdf3SymGaugeHint:
+          "Indicateur fonctionnel (LSI extenseurs {{pct}}) : à interpréter avec la forme de courbe, pas isolément.",
+        isoPdf3ReadTitle: "Synthèse biomécanique",
+        isoPdf3ImpactTitle: "Impact fonctionnel possible",
+        isoPdf3Footnote:
+          "Les courbes montrent deux lobes sur une même échelle angulaire (fenêtres extension / flexion dérivées des angles et ROM du tableau), avec axes identiques à droite et à gauche pour comparaison visuelle. Reconstituées à partir des pics/ROM en fiche si elles ne sont pas importées du PDF.",
+        isoPdf3RefertoTitle: "Courbes couple–angle extraites du rapport PDF (60°/s)",
+        isoPdf3RefertoCaption:
+          "Images extraites du PDF Easytech à l’import : même rendu que dans le rapport (y compris les répétitions / meilleures courbes mises en évidence par le logiciel).",
+        isoPdf3FootnotePdfRasters:
+          "Les images reproduisent les graphiques intégrés au PDF d’origine. Les métriques textuelles et la lecture qualitative à côté restent basées sur les valeurs tabulaires du dossier.",
+        isoPdf3N_symExtGood:
+          "Symétrie des pics en extension dans une plage compatible avec un bon équilibre entre les côtés.",
+        isoPdf3N_symExtMod:
+          "Symétrie des extenseurs modérément réduite : la production maximale du côté évalué reste proche mais non équivalente au controlatéral.",
+        isoPdf3N_symExtLow:
+          "Symétrie des extenseurs plus basse : la courbe d’extension du côté évalué suggère une baisse du couple maximal par rapport au controlatéral.",
+        isoPdf3N_shapeMoreVarLeft:
+          "Profil gauche avec une variabilité locale du couple plus marquée pendant la phase centrique, par rapport au droit.",
+        isoPdf3N_shapeMoreVarRight:
+          "Profil droit avec une variabilité locale du couple plus marquée pendant la phase centrique, par rapport au gauche.",
+        isoPdf3N_shapeBothSomeVar:
+          "Les deux courbes montrent une certaine variabilité : à relier au confort et à la qualité du mouvement sur l’appareil.",
+        isoPdf3N_shapeRelSmooth:
+          "Allures relativement continues : bonne base pour interpréter pics et temps de montée sans artefacts évidents.",
+        isoPdf3N_buildFasterLeft:
+          "Montée vers le pic extenseurs légèrement plus rapide à gauche : activation initiale plus précoce sur le segment angulaire observé.",
+        isoPdf3N_buildFasterRight:
+          "Montée vers le pic extenseurs légèrement plus rapide à droite : activation initiale plus précoce sur le segment angulaire observé.",
+        isoPdf3N_buildSimilar:
+          "Montée vers le pic extenseurs assez similaire entre les côtés sur le segment analysé.",
+        isoPdf3N_decayEarlierLeft:
+          "Après le pic extenseurs, tendance à une baisse de couple un peu plus marquée à gauche dans le segment terminal du ROM observé.",
+        isoPdf3N_decayEarlierRight:
+          "Après le pic extenseurs, tendance à une baisse de couple un peu plus marquée à droite dans le segment terminal du ROM observé.",
+        isoPdf3N_decaySimilar:
+          "Maintien du couple post-pic extenseurs comparable entre les côtés sur le segment observé.",
+        isoPdf3N_workVolumeLowerLeft:
+          "Aire sous la courbe globalement plus faible à gauche : volume de travail par répétition estimé plus limité.",
+        isoPdf3N_workVolumeLowerRight:
+          "Aire sous la courbe globalement plus faible à droite : volume de travail par répétition estimé plus limité.",
+        isoPdf3N_workVolumeSimilar:
+          "Volume de travail estimé à partir de l’aire de courbe assez similaire entre les côtés ; à croiser avec le travail tabulaire.",
+        isoPdf3N_hqSupportShift:
+          "Rapport fléchisseurs/extenseurs légèrement décalé : utile en appui s’il est cohérent avec le déficit des extenseurs.",
+        isoPdf3BulletPeak:
+          "Pic extenseurs : comparer la hauteur du pic et le timing avec la sensation de contrôle sur l’appareil.",
+        isoPdf3BulletShape:
+          "Forme de courbe : continuité et absence de micro-interruptions guident la lecture du contrôle neuromusculaire.",
+        isoPdf3BulletBuild:
+          "Montée : une pente plus douce peut s’associer à une moindre disponibilité de recrutement sur le segment initial.",
+        isoPdf3BulletDecay:
+          "Maintien post-pic : une chute plus rapide suggère une moindre tenue locale dans le segment final du ROM.",
+        isoPdf3BulletWork:
+          "Aire sous la courbe : synthèse visuelle du travail par répétition ; à intégrer au travail total enregistré.",
+        isoPdf3BulletControl:
+          "De légères oscillations peuvent refléter une variabilité de contrôle sans impliquer à elles seules un diagnostic.",
+        isoPdf3Impact1:
+          "Moindre efficacité possible dans les actions explosives courtes (accélérations, sauts) si le déficit des extenseurs persiste.",
+        isoPdf3Impact2:
+          "Contrôle de la production de couple potentiellement moins homogène lors des changements de rythme ou de direction.",
+        isoPdf3Impact3:
+          "Compensation neuromusculaire possible dans les tâches très exigeantes si la symétrie reste sous le seuil.",
+        isoPdf3Impact4:
+          "Performance dynamique à suivre avec progressions chargées et contrôles périodiques de la qualité du mouvement.",
+        isoPdf4NoData:
+          "Données insuffisantes pour le PDF4 (il faut la ligne 60°/s avec pics et ROM cohérents, comme pour le PDF3).",
+        isoPdf4Kicker: "PDF4 · analyse angle par angle",
+        isoPdf4Title: "Comparaison couple–angle échantillonnée et zones d’attention (60°/s)",
+        isoPdf4SpeedOnly: "Uniquement 60°/s — courbes reconstruites à partir des résumés de séance (modèle PDF3).",
+        isoPdf4Disclaimer:
+          "Les valeurs par angle sont échantillonnées sur des courbes synthétiques cohérentes avec le tableau isocinétique, pas sur les tracés bruts de l’appareil. Seuils LSI indicatifs : ≥90 % acceptable, 80–89 % modéré, <80 % à intégrer à l’examen clinique.",
+        isoPdf4LsiGlobalHint: "LSI pic extenseurs (tableau) : {{lsi}}.",
+        isoPdf4OverlayExt: "Superposition extension — droit vs gauche",
+        isoPdf4OverlayFlex: "Superposition flexion — droit vs gauche",
+        isoPdf4LegRight: "Droit",
+        isoPdf4LegLeft: "Gauche",
+        isoPdf4LsiStripTitle: "Profil LSI / symétrie par angle (pas de 5°)",
+        isoPdf4LsiAxis: "LSI % (côté évalué/controlatéral) ou symétrie min/max si côté non renseigné",
+        isoPdf4LsiAxisShort: "LSI / sim. (%)",
+        isoPdf4ZonesTitle: "Zones avec LSI sous seuil (80 % / 90 %)",
+        isoPdf4ZonesNone: "Aucune zone continue sous 90 % sur l’échantillonnage à 5° (pics et ROM réels restent à interpréter).",
+        isoPdf4ZoneMin: "LSI min. ~{{lsi}} %",
+        isoPdf4WorstHint:
+          "Valeur la plus basse sur l’échantillonnage : ~{{lsi}} % vers {{angle}}° ({{phase}}).",
+        isoPdf4TableTitle: "Table de données plausibles tous les {{step}}°",
+        isoPdf4ColAngle: "Angle (°)",
+        isoPdf4ColPhase: "Segment",
+        isoPdf4ColRight: "Nm droit",
+        isoPdf4ColLeft: "Nm gauche",
+        isoPdf4ColLsi: "LSI / sim. %",
+        isoPdf4PhaseExt: "Extension",
+        isoPdf4PhaseFlex: "Flexion",
+        isoPdf4PhaseExtShort: "Ext",
+        isoPdf4PhaseFlexShort: "Flx",
+        isoPdf4Footnote:
+          "Si le côté évalué est renseigné, la colonne LSI utilise (évalué/contralatéral)×100 ; sinon min/max×100. Toujours intégrer avec tests fonctionnels et examen clinique.",
+        isoPdf4EvalTitle: "Lecture intégrée (forme + échantillonnage angulaire)",
+        isoPdf4EvalFromPdf3: "D’après la forme de courbe et les métriques qualitatives (modèle PDF3) :",
+        isoPdf4EvalFromAngle: "D’après le profil LSI/symétrie tous les 5° :",
+        isoPdf4OpIntro:
+          "Observations synthétiques basées sur des courbes reconstruites et une grille angulaire ; elles ne remplacent pas l’examen clinique ni un diagnostic.",
+        isoPdf4OpDeficitBothPhases:
+          "Le profil angulaire montre une symétrie réduite en extension et en flexion : motif plus global qu’un segment isolé.",
+        isoPdf4OpDeficitDominatesExt:
+          "Les zones les plus critiques sont en extension : cohérent avec le quadriceps, le contrôle du premier arc et une possible inhibition/douleur.",
+        isoPdf4OpDeficitDominatesFlex:
+          "Les bandes sous seuil sont surtout en flexion : utile de corréler avec ischio-jambiers, flexion profonde et gestes sportifs.",
+        isoPdf4OpNotUniform:
+          "Le déficit n’est pas uniforme sur le ROM : alternances de LSI plus ou moins favorables à relier au confort, à la qualité du mouvement et aux tests fonctionnels.",
+        isoPdf4OpPeakMisleading:
+          "Même si le LSI au pic extenseur reste acceptable au tableau, l’échantillonnage montre des plages plus faibles : le pic seul ne résume pas la courbe.",
+        isoPdf4OpDecayInvolved:
+          "Côté évalué, la phase extenseur semble moins maintenir le couple après le pic que le controlatéral : explorer fatigue locale, douleur ou stratégie de production de force.",
+        isoPdf4OpClosing:
+          "Intégrer avec ROM actif, charge fonctionnelle, tests hop/sauts et symptômes ; au retest comparer les mêmes plages angulaires.",
         trialShort: "E.",
         dir: {
           anterior: "Antérieur",
@@ -1550,7 +2104,15 @@ export const translations = {
         hqLow: "Bas",
         hqExpected: "Attendu",
         hqHigh: "Élevé",
-        lsiRefTitle: "LSI — objectif",
+        lsiRefTitle: "Symétrie / LSI — repères indicatifs",
+        lsiRefIntro:
+          "Ces seuils concernent la symétrie min/max entre les pics D/G, ou le LSI directionnel lorsque le côté concerné est plus bas que le controlatéral :",
+        lsiRefSymHigh: "≥95 % forte symétrie",
+        lsiRefSymAcceptable: "90–94,9 % acceptable",
+        lsiRefSymModerate: "80–89,9 % asymétrie modérée",
+        lsiRefSymSevere: "<80 % asymétrie importante",
+        lsiRefDirectionalOver100:
+          "Si le LSI directionnel dépasse 100 %, ne pas le qualifier de «symétrie optimale» : le côté concerné dépasse le controlatéral au pic ; toujours indiquer aussi la symétrie min/max.",
         lsiRefOptimal: ">95 % Optimal",
         lsiRefAcceptable: "90–95 % Acceptable",
         lsiRefDeficit: "<90 % Déficit",
@@ -1681,6 +2243,7 @@ export const translations = {
         easytechImportColumn: "Colonne",
         easytechImportProgressInit: "Préparation…",
         easytechImportProgressRender: "Extraction du texte PDF…",
+        easytechImportProgressCharts: "Extraction des graphiques PDF…",
         easytechImportProgressOcr: "Traitement…",
         easytechImportNoSpeed: "Choisissez ou corrigez la vitesse avant d’importer.",
         easytechImportNoSide: "Indiquez quelle colonne est droite et quelle colonne est gauche.",
@@ -2364,7 +2927,66 @@ export const translations = {
         lineLegendSx: "L (links)",
         diffBoxTitle: "DIFFERENZ (R − L), cm",
         saveTestPdf: "PDF speichern",
+        saveTestPdf2: "PDF 2 speichern",
         saveTestPdfError: "PDF des Tests konnte nicht erstellt werden.",
+        isoPdf2Title: "ISOKINETISCHER KNIE-TEST",
+        isoPdf2Subtitle: "Kraftanalyse und Muskelkontrolle",
+        isoPdf2Objective: "Ziel: Symmetrie ≥ 90 %",
+        isoPdf2Patient: "Patient",
+        isoPdf2WhatMeasures: "Was misst der Test?",
+        isoPdf2MainResults: "HAUPTERGEBNISSE",
+        isoPdf2RadarTitle: "Verhältnis Beuger / Strecker (%)",
+        isoPdf2RadarValueHint:
+          "Pro Achse: Referenz (Türkis) oben, bewertete Seite (Orange) unten — H/Q %.",
+        isoPdf2InjuredShort: "bewertete Seite",
+        isoPdf2Synthesis: "Zusammenfassung und Empfehlungen",
+        isoPdf2Rehab: "Reha-Fokus",
+        isoPdf2FooterGoal:
+          "Ziel: vor der Rückkehr zum Sport eine Symmetrie ≥ 90 % bei den wichtigsten Kennzahlen erreichen und sich im Verlauf sportartspezifischen Referenzwerten annähern. Die Kombination aus ausreichender Symmetrie und einem Kraftprofil, das den Anforderungen der Aktivität entspricht, verringert das Risiko für Verletzung und Rezidiv.",
+        isoPdf2AgeShort: "Alter",
+        isoPdf2SideEvaluated: "bewertete Seite",
+        isoPdf2SideHealthy: "gesunde Seite",
+        isoPdf2What60: "Maximalkraft (Spitzendrehmoment).",
+        isoPdf2What180: "Kraftausdauer (Gesamtarbeit).",
+        isoPdf2What300: "Schnellkraft und Kontrolle.",
+        isoPdf2SymmetryLegendTitle: "Symmetrie-Legende",
+        isoPdf2SpeedForceMax: "MAXIMALKRAFT",
+        isoPdf2SpeedResist: "KRAFTAUSDAUER",
+        isoPdf2SpeedFast: "SCHNELLKRAFT\nKONTROLLE",
+        isoPdf2UnitNm: "Spitzendrehmoment (Nm)",
+        isoPdf2UnitWork: "Gesamtarbeit (J)",
+        isoPdf2SymSevere: "DEUTLICHES DEFIZIT",
+        isoPdf2SymModerate: "MODERATES DEFIZIT",
+        isoPdf2SymGood: "GUTE SYMMETRIE",
+        isoPdf2SymTierLt80: "< 80 %",
+        isoPdf2SymTier80to89: "80–89 %",
+        isoPdf2SymTierGte90: "≥ 90 %",
+        isoPdf2SymLegendLt80: "< 80 % — deutliches Defizit",
+        isoPdf2SymLegend80to89: "80–89 % — moderates Defizit",
+        isoPdf2SymLegendGte90: "≥ 90 % — gute Symmetrie",
+        isoPdf2SynthExtDeficitLeft:
+          "Das linke Knie zeigt ein Kraftdefizit des Quadriceps (Extensor-LSI bis {{lsi}}), bei niedrigen/mittleren Geschwindigkeiten ausgeprägter, sofern es zu den Daten passt.",
+        isoPdf2SynthExtDeficitRight:
+          "Das rechte Knie zeigt ein Kraftdefizit des Quadriceps (Extensor-LSI bis {{lsi}}), bei niedrigen/mittleren Geschwindigkeiten ausgeprägter, sofern es zu den Daten passt.",
+        isoPdf2SynthExtOkLeft:
+          "Das Extensorprofil des linken Knies ist mit einer akzeptablen Symmetrie vereinbar (LSI ≥ 90 % in den Hauptmetriken).",
+        isoPdf2SynthExtOkRight:
+          "Das Extensorprofil des rechten Knies ist mit einer akzeptablen Symmetrie vereinbar (LSI ≥ 90 % in den Hauptmetriken).",
+        isoPdf2SynthHqVaries:
+          " Das Beuger-Strecker-Verhältnis variiert über die Geschwindigkeiten: Muskelbalance und Rehastrategie bewerten.",
+        isoPdf2RehabQuadSlowFast:
+          "Quadricepskraft steigern (langsam → schnell).",
+        isoPdf2RehabEndurance180:
+          "Kraftausdauer bei 180°/s verbessern (Gesamtarbeit der Extensoren).",
+        isoPdf2RehabRapid300:
+          "Schnellkraftproduktion und Kontrolle bei 300°/s trainieren.",
+        isoPdf2RehabDefault:
+          "Progressive Belastung beibehalten und regelmäßige Symmetriekontrollen.",
+        isoPdf2HeaderRight: "R",
+        isoPdf2HeaderLeft: "L",
+        isoPdf2HeaderSymmetry: "SYMMETRIE",
+        isoPdf2MeasureExtQuad: "EXTENSION (QUADRIZEPS)",
+        isoPdf2MeasureFlexHam: "FLEXION (ISCHIOCRURALMUSKULATUR)",
         trialShort: "V.",
         dir: {
           anterior: "Anterior",
@@ -2594,7 +3216,15 @@ export const translations = {
         hqLow: "Niedrig",
         hqExpected: "Erwartet",
         hqHigh: "Hoch",
-        lsiRefTitle: "LSI — Ziel",
+        lsiRefTitle: "Symmetrie / LSI — Orientierungsbänder",
+        lsiRefIntro:
+          "Diese Grenzwerte gelten für die Min/Max-Symmetrie zwischen den Peak-Werten R/L oder für den direktionalen LSI, wenn die betroffene Seite niedriger ist als die kontralaterale:",
+        lsiRefSymHigh: "≥95 % hohe Symmetrie",
+        lsiRefSymAcceptable: "90–94,9 % akzeptabel",
+        lsiRefSymModerate: "80–89,9 % moderate Asymmetrie",
+        lsiRefSymSevere: "<80 % ausgeprägte Asymmetrie",
+        lsiRefDirectionalOver100:
+          "Bei direktionalem LSI >100 % nicht als «optimale Symmetrie» werten: betroffene Seite übertrifft den Peak kontralateral; immer auch Min/Max-Symmetrie angeben.",
         lsiRefOptimal: ">95 % Optimal",
         lsiRefAcceptable: "90–95 % Akzeptabel",
         lsiRefDeficit: "<90 % Defizit",
@@ -2725,6 +3355,7 @@ export const translations = {
         easytechImportColumn: "Spalte",
         easytechImportProgressInit: "Vorbereitung…",
         easytechImportProgressRender: "PDF-Text wird extrahiert…",
+        easytechImportProgressCharts: "PDF-Diagramme werden extrahiert…",
         easytechImportProgressOcr: "Verarbeitung…",
         easytechImportNoSpeed: "Bitte Geschwindigkeit wählen oder korrigieren.",
         easytechImportNoSide: "Bitte zuordnen, welche Spalte rechts und welche links ist.",
@@ -3395,7 +4026,63 @@ export const translations = {
     lineLegendSx: "I (izquierda)",
     diffBoxTitle: "DIFERENCIA (D − I), cm",
     saveTestPdf: "Guardar PDF",
+    saveTestPdf2: "Guardar PDF 2",
     saveTestPdfError: "No se pudo generar el PDF del test.",
+    isoPdf2Title: "TEST ISOCINÉTICO DE RODILLA",
+    isoPdf2Subtitle: "Análisis de fuerza y control muscular",
+    isoPdf2Objective: "Objetivo: simetría ≥ 90 %",
+    isoPdf2Patient: "Paciente",
+    isoPdf2WhatMeasures: "¿Qué mide el test?",
+    isoPdf2MainResults: "RESULTADOS PRINCIPALES",
+    isoPdf2RadarTitle: "Ratio flexores / extensores (%)",
+    isoPdf2RadarValueHint:
+      "Por eje: referencia (turquesa) arriba, lado evaluado (naranja) abajo — H/Q %.",
+    isoPdf2InjuredShort: "lado evaluado",
+    isoPdf2Synthesis: "Síntesis y recomendaciones",
+    isoPdf2Rehab: "Enfoque rehabilitación",
+    isoPdf2FooterGoal:
+      "Objetivo: alcanzar una simetría ≥ 90 % en las métricas principales antes del retorno al deporte y, con el tiempo, aproximarse a los valores de referencia específicos de la disciplina practicada. Combinar una simetría adecuada con un perfil de fuerza coherente con las exigencias de la actividad reduce el riesgo de lesión y de recidiva.",
+    isoPdf2AgeShort: "Edad",
+    isoPdf2SideEvaluated: "lado evaluado",
+    isoPdf2SideHealthy: "lado sano",
+    isoPdf2What60: "Fuerza máxima (par máximo).",
+    isoPdf2What180: "Resistencia de fuerza (trabajo total).",
+    isoPdf2What300: "Fuerza rápida y control.",
+    isoPdf2SymmetryLegendTitle: "Leyenda de simetría",
+    isoPdf2SpeedForceMax: "FUERZA MÁXIMA",
+    isoPdf2SpeedResist: "RESISTENCIA",
+    isoPdf2SpeedFast: "FUERZA RÁPIDA\nCONTROL",
+    isoPdf2UnitNm: "Par máximo (Nm)",
+    isoPdf2UnitWork: "Trabajo total (J)",
+    isoPdf2SymSevere: "DÉFICIT IMPORTANTE",
+    isoPdf2SymModerate: "DÉFICIT MODERADO",
+    isoPdf2SymGood: "BUENA SIMETRÍA",
+    isoPdf2SymTierLt80: "< 80 %",
+    isoPdf2SymTier80to89: "80–89 %",
+    isoPdf2SymTierGte90: "≥ 90 %",
+    isoPdf2SymLegendLt80: "< 80 % — déficit importante",
+    isoPdf2SymLegend80to89: "80–89 % — déficit moderado",
+    isoPdf2SymLegendGte90: "≥ 90 % — buena simetría",
+    isoPdf2SynthExtDeficitLeft:
+      "La rodilla izquierda muestra un déficit de fuerza del cuádriceps (LSI de extensores hasta {{lsi}}), más evidente a bajas/medias velocidades si es coherente con los datos.",
+    isoPdf2SynthExtDeficitRight:
+      "La rodilla derecha muestra un déficit de fuerza del cuádriceps (LSI de extensores hasta {{lsi}}), más evidente a bajas/medias velocidades si es coherente con los datos.",
+    isoPdf2SynthExtOkLeft:
+      "El perfil de extensores de la rodilla izquierda es compatible con una simetría aceptable (LSI ≥ 90 % en las métricas principales).",
+    isoPdf2SynthExtOkRight:
+      "El perfil de extensores de la rodilla derecha es compatible con una simetría aceptable (LSI ≥ 90 % en las métricas principales).",
+    isoPdf2SynthHqVaries:
+      " La relación flexores/extensores varía según la velocidad: valorar equilibrio muscular y estrategia de readaptación.",
+    isoPdf2RehabQuadSlowFast: "Aumentar la fuerza del cuádriceps (lento → rápido).",
+    isoPdf2RehabEndurance180:
+      "Mejorar la resistencia de fuerza a 180°/s (trabajo total de extensores).",
+    isoPdf2RehabRapid300: "Entrenar control y producción de fuerza rápida a 300°/s.",
+    isoPdf2RehabDefault: "Mantener carga progresiva y revisiones periódicas de simetría.",
+    isoPdf2HeaderRight: "D",
+    isoPdf2HeaderLeft: "I",
+    isoPdf2HeaderSymmetry: "SIMETRÍA",
+    isoPdf2MeasureExtQuad: "EXTENSIÓN (CUÁDRICEPS)",
+    isoPdf2MeasureFlexHam: "FLEXIÓN (ISQUIOTIBIALES)",
     trialShort: "I.",
     dir: {
       anterior: "Anterior",
@@ -3944,7 +4631,15 @@ dominantHand: {
         hqLow: "Bajo",
         hqExpected: "Esperado",
         hqHigh: "Alto",
-        lsiRefTitle: "LSI — objetivo",
+        lsiRefTitle: "Simetría / LSI — bandas orientativas",
+        lsiRefIntro:
+          "Estos umbrales aplican a la simetría min/max entre picos D/I o al LSI direccional cuando el lado afectado es menor que el controlateral:",
+        lsiRefSymHigh: "≥95 % alta simetría",
+        lsiRefSymAcceptable: "90–94,9 % aceptable",
+        lsiRefSymModerate: "80–89,9 % asimetría moderada",
+        lsiRefSymSevere: "<80 % asimetría importante",
+        lsiRefDirectionalOver100:
+          "Si el LSI direccional es >100 %, no etiquetarlo como «simetría óptima»: el lado afectado supera el controlateral en el pico; informar siempre también la simetría min/max.",
         lsiRefOptimal: ">95 % Óptimo",
         lsiRefAcceptable: "90–95 % Aceptable",
         lsiRefDeficit: "<90 % Déficit",
@@ -4075,6 +4770,7 @@ dominantHand: {
         easytechImportColumn: "Columna",
         easytechImportProgressInit: "Preparación…",
         easytechImportProgressRender: "Extrayendo texto del PDF…",
+        easytechImportProgressCharts: "Extrayendo gráficos del PDF…",
         easytechImportProgressOcr: "Procesando…",
         easytechImportNoSpeed: "Elija o corrija la velocidad antes de importar.",
         easytechImportNoSide: "Indique qué columna es derecha y cuál izquierda.",
@@ -4430,7 +5126,208 @@ dominantHand: {
         lineLegendSx: "L (left)",
         diffBoxTitle: "DIFFERENCE (R − L), cm",
         saveTestPdf: "Save PDF",
+        saveTestPdf2: "Save PDF 2",
+        saveTestPdf3: "Save PDF 3 — curves",
+        saveTestPdf4: "Save PDF 4 — angle analysis",
         saveTestPdfError: "Could not generate the test PDF.",
+        isoPdf2Title: "ISOKINETIC KNEE TEST",
+        isoPdf2Subtitle: "Strength and muscle control analysis",
+        isoPdf2Objective: "Goal: reach symmetry ≥ 90%",
+        isoPdf2Patient: "Patient",
+        isoPdf2WhatMeasures: "What does the test measure?",
+        isoPdf2MainResults: "MAIN RESULTS",
+        isoPdf2RadarTitle: "Flexor / extensor ratio (%)",
+        isoPdf2RadarValueHint:
+          "Per axis: reference (teal) above, involved side (orange) below — H/Q %.",
+        isoPdf2InjuredShort: "involved side",
+        isoPdf2Synthesis: "Summary and recommendations",
+        isoPdf2Rehab: "Rehabilitation focus",
+        isoPdf2FooterGoal:
+          "Goal: achieve ≥ 90% symmetry on primary outcome metrics before return to sport, and over time approach reference values specific to the sport practiced. Combining sound symmetry with a strength profile consistent with the demands of the activity reduces the risk of injury and re-injury.",
+        isoPdf2AgeShort: "Age",
+        isoPdf2SideEvaluated: "side tested",
+        isoPdf2SideHealthy: "healthy side",
+        isoPdf2What60: "Max strength (peak torque).",
+        isoPdf2What180: "Strength endurance (total work).",
+        isoPdf2What300: "Rapid force and control.",
+        isoPdf2SymmetryLegendTitle: "Symmetry legend",
+        isoPdf2SpeedForceMax: "MAX STRENGTH",
+        isoPdf2SpeedResist: "FORCE ENDURANCE",
+        isoPdf2SpeedFast: "RAPID FORCE\nCONTROL",
+        isoPdf2UnitNm: "Peak torque (Nm)",
+        isoPdf2UnitWork: "Total work (J)",
+        isoPdf2SymSevere: "MAJOR DEFICIT",
+        isoPdf2SymModerate: "MODERATE DEFICIT",
+        isoPdf2SymGood: "GOOD SYMMETRY",
+        isoPdf2SymTierLt80: "< 80%",
+        isoPdf2SymTier80to89: "80–89%",
+        isoPdf2SymTierGte90: "≥ 90%",
+        isoPdf2SymLegendLt80: "< 80% — major deficit",
+        isoPdf2SymLegend80to89: "80–89% — moderate deficit",
+        isoPdf2SymLegendGte90: "≥ 90% — good symmetry",
+        isoPdf2SynthExtDeficitLeft:
+          "The left knee shows quadriceps strength deficit (extensor LSI down to {{lsi}}), more evident at low/medium speeds if consistent with the data.",
+        isoPdf2SynthExtDeficitRight:
+          "The right knee shows quadriceps strength deficit (extensor LSI down to {{lsi}}), more evident at low/medium speeds if consistent with the data.",
+        isoPdf2SynthExtOkLeft:
+          "The left knee extensor profile is compatible with acceptable symmetry (LSI ≥ 90% on the main metrics).",
+        isoPdf2SynthExtOkRight:
+          "The right knee extensor profile is compatible with acceptable symmetry (LSI ≥ 90% on the main metrics).",
+        isoPdf2SynthHqVaries:
+          " The flexor/extensor ratio varies across speeds: assess muscle balance and rehabilitation strategy.",
+        isoPdf2RehabQuadSlowFast: "Increase quadriceps strength (slow → fast).",
+        isoPdf2RehabEndurance180:
+          "Improve strength endurance at 180°/s (total extensor work).",
+        isoPdf2RehabRapid300: "Train rapid force production and control at 300°/s.",
+        isoPdf2RehabDefault: "Maintain progressive loading and periodic symmetry checks.",
+        isoPdf2HeaderRight: "R",
+        isoPdf2HeaderLeft: "L",
+        isoPdf2HeaderSymmetry: "SYMMETRY",
+        isoPdf2MeasureExtQuad: "EXTENSION (QUADRICEPS)",
+        isoPdf2MeasureFlexHam: "FLEXION (HAMSTRINGS)",
+        isoPdf3NoData:
+          "Not enough data for curve comparison (need the 60°/s row with extensor/flexor peaks).",
+        isoPdf3Kicker: "Best-curve comparison — single repetition",
+        isoPdf3Title: "Qualitative torque–angle comparison (60°/s)",
+        isoPdf3SpeedTag:
+          "Protocol: 60°/s — max strength (concentric). Peaks = session maximum per side.",
+        isoPdf3StripVel: "Speed",
+        isoPdf3StripPeakExt: "Peak torque — extension",
+        isoPdf3StripPeakFlex: "Peak torque — flexion",
+        isoPdf3StripVs: "vs",
+        isoPdf3StripSym: "Extensor symmetry (LSI)",
+        isoPdf3StripSymHint: "Prudent guide: ≥90% good; 80–89% moderate; <80% relevant",
+        isoPdf3StripSintesi: "Quick summary",
+        isoPdf3AxisAngle: "Angle (°)",
+        isoPdf3AxisTorque: "Torque (Nm)",
+        isoPdf3PanelRight: "Right knee",
+        isoPdf3PanelLeft: "Left knee",
+        isoPdf3PeakExt: "PEAK EXTENSION",
+        isoPdf3PeakFlex: "PEAK FLEXION",
+        isoPdf3KpiPeakExt: "Extension peak (R / L)",
+        isoPdf3KpiPeakExtHint: "Nm — session values at 60°/s",
+        isoPdf3KpiDeficit: "Extensor difference",
+        isoPdf3KpiDeficitHint: "Estimated tested vs contralateral deficit (extension)",
+        isoPdf3KpiHq: "H/Q ratio (R / L)",
+        isoPdf3KpiHqDelta: "Δ H/Q",
+        isoPdf3KpiSym: "Extensor symmetry (LSI %)",
+        isoPdf3KpiSymHint: "Prudent guide: ≥90% good; 80–89% moderate; <80% relevant",
+        isoPdf3ShapeTitle: "Curve shape reading",
+        isoPdf3SymGaugeHint:
+          "Functional cue (extensor LSI {{pct}}): read together with curve shape, not in isolation.",
+        isoPdf3ReadTitle: "Biomechanical summary",
+        isoPdf3ImpactTitle: "Possible functional impact",
+        isoPdf3Footnote:
+          "Curves show two lobes on one axis: extension (≈ −10°–58°) and flexion (≈ 62°–130°), with identical scales on right and left for visual comparison. Reconstructed from stored peaks/ROM unless imported from the PDF.",
+        isoPdf3RefertoTitle: "Torque–angle curves from the PDF report (60°/s)",
+        isoPdf3RefertoCaption:
+          "Images extracted from the Easytech PDF on import: same on-page rendering as the report (including best repetitions highlighted by the device software).",
+        isoPdf3FootnotePdfRasters:
+          "Images reproduce embedded charts from the original PDF. Adjacent numeric metrics and qualitative reading remain based on tabular values in the record.",
+        isoPdf3N_symExtGood:
+          "Extension peak symmetry in a range compatible with good side-to-side balance.",
+        isoPdf3N_symExtMod:
+          "Moderately reduced extensor symmetry: tested-side max output is close but not equivalent to the contralateral limb.",
+        isoPdf3N_symExtLow:
+          "Lower extensor symmetry: the tested-side extension trace suggests reduced max force vs the contralateral limb.",
+        isoPdf3N_shapeMoreVarLeft:
+          "Left trace shows greater local torque variability during the concentric phase than the right.",
+        isoPdf3N_shapeMoreVarRight:
+          "Right trace shows greater local torque variability during the concentric phase than the left.",
+        isoPdf3N_shapeBothSomeVar:
+          "Both traces show some variability: relate to comfort and movement quality on the device.",
+        isoPdf3N_shapeRelSmooth:
+          "Relatively continuous traces: a sound basis to read peaks and rise times without obvious artefacts.",
+        isoPdf3N_buildFasterLeft:
+          "Slightly faster rise toward the extensor peak on the left: earlier activation on the observed angle segment.",
+        isoPdf3N_buildFasterRight:
+          "Slightly faster rise toward the extensor peak on the right: earlier activation on the observed angle segment.",
+        isoPdf3N_buildSimilar:
+          "Extensor build-up toward the peak is fairly similar between sides on the analysed segment.",
+        isoPdf3N_decayEarlierLeft:
+          "After the extensor peak, torque tends to drop a bit earlier on the left in the terminal ROM segment.",
+        isoPdf3N_decayEarlierRight:
+          "After the extensor peak, torque tends to drop a bit earlier on the right in the terminal ROM segment.",
+        isoPdf3N_decaySimilar:
+          "Post-peak extensor torque maintenance is comparable between sides on the observed segment.",
+        isoPdf3N_workVolumeLowerLeft:
+          "Overall smaller area under the curve on the left: estimated work per repetition is lower.",
+        isoPdf3N_workVolumeLowerRight:
+          "Overall smaller area under the curve on the right: estimated work per repetition is lower.",
+        isoPdf3N_workVolumeSimilar:
+          "Curve-area estimated work is fairly similar between sides; cross-check tabular work values.",
+        isoPdf3N_hqSupportShift:
+          "Flexor/extensor ratio slightly shifted: useful as support if consistent with extensor deficit.",
+        isoPdf3BulletPeak:
+          "Extensor peak: compare peak height and timing with perceived control on the device.",
+        isoPdf3BulletShape:
+          "Curve shape: continuity and lack of micro-gaps guide neuromuscular control reading.",
+        isoPdf3BulletBuild:
+          "Build-up: a gentler rise may associate with less recruitment readiness in the early segment.",
+        isoPdf3BulletDecay:
+          "Post-peak maintenance: a faster drop suggests less local sustainability in the late ROM segment.",
+        isoPdf3BulletWork:
+          "Curve area: visual summary of work per repetition; integrate with recorded total work.",
+        isoPdf3BulletControl:
+          "Small oscillations may reflect control variability without implying a diagnosis alone.",
+        isoPdf3Impact1:
+          "Possible lower efficiency in short explosive actions (accelerations, jumps) if extensor deficit persists.",
+        isoPdf3Impact2:
+          "Torque production control may be less uniform with changes of pace or direction.",
+        isoPdf3Impact3:
+          "Potential neuromuscular compensation in high-demand tasks if symmetry stays below threshold.",
+        isoPdf3Impact4:
+          "Dynamic performance to monitor with graded loading and periodic movement-quality checks.",
+        isoPdf4NoData:
+          "Not enough data for PDF4 (need the 60°/s row with peaks and coherent ROM, same as PDF3).",
+        isoPdf4Kicker: "PDF4 · angle-specific analysis",
+        isoPdf4Title: "Sampled torque–angle comparison and attention zones (60°/s)",
+        isoPdf4SpeedOnly: "60°/s only — curves reconstructed from session summaries (PDF3 model).",
+        isoPdf4Disclaimer:
+          "Per-angle values are sampled on synthetic curves consistent with the isokinetic table, not raw device traces. Indicative LSI bands: ≥90% acceptable, 80–89% moderate, <80% integrate with clinical exam.",
+        isoPdf4LsiGlobalHint: "Table extensor peak LSI: {{lsi}}.",
+        isoPdf4OverlayExt: "Overlay extension — right vs left",
+        isoPdf4OverlayFlex: "Overlay flexion — right vs left",
+        isoPdf4LegRight: "Right",
+        isoPdf4LegLeft: "Left",
+        isoPdf4LsiStripTitle: "LSI / symmetry profile by angle (5° samples)",
+        isoPdf4LsiAxis: "LSI % (involved/contralateral) or min/max symmetry if side not set",
+        isoPdf4LsiAxisShort: "LSI / sim. (%)",
+        isoPdf4ZonesTitle: "Zones below LSI threshold (80% / 90%)",
+        isoPdf4ZonesNone: "No continuous band under 90% on the 5° grid (still interpret real peaks and ROM).",
+        isoPdf4ZoneMin: "Min LSI ~{{lsi}}%",
+        isoPdf4WorstHint: "Lowest sampled value ~{{lsi}}% near {{angle}}° ({{phase}}).",
+        isoPdf4TableTitle: "Plausible data table every {{step}}°",
+        isoPdf4ColAngle: "Angle (°)",
+        isoPdf4ColPhase: "Branch",
+        isoPdf4ColRight: "Nm right",
+        isoPdf4ColLeft: "Nm left",
+        isoPdf4ColLsi: "LSI / sim. %",
+        isoPdf4PhaseExt: "Extension",
+        isoPdf4PhaseFlex: "Flexion",
+        isoPdf4PhaseExtShort: "Ext",
+        isoPdf4PhaseFlexShort: "Flex",
+        isoPdf4Footnote:
+          "With injured side set, LSI uses (involved/contralateral)×100; otherwise min/max×100. Always integrate with functional tests and clinical judgement.",
+        isoPdf4EvalTitle: "Integrated reading (curve shape + angle sampling)",
+        isoPdf4EvalFromPdf3: "From curve shape and qualitative metrics (PDF3 model):",
+        isoPdf4EvalFromAngle: "From LSI/symmetry profile (5° samples):",
+        isoPdf4OpIntro:
+          "Concise observations based on reconstructed curves and an angle grid; they do not replace clinical examination or diagnosis.",
+        isoPdf4OpDeficitBothPhases:
+          "The angle profile shows reduced symmetry in both extension and flexion: a more global pattern than a single isolated segment.",
+        isoPdf4OpDeficitDominatesExt:
+          "The weakest bands are mainly in extension: aligns with quadriceps focus, early-arc control, and possible pain/inhibition.",
+        isoPdf4OpDeficitDominatesFlex:
+          "Threshold breaches cluster in flexion: consider hamstrings, deep-flexion tasks, and sport-specific loading.",
+        isoPdf4OpNotUniform:
+          "The deficit is not uniform across ROM: where LSI rises and falls should be read with comfort, movement quality, and functional tests.",
+        isoPdf4OpPeakMisleading:
+          "Even if tabled extensor peak LSI is acceptable, angle sampling shows weaker bands: peak torque alone does not tell the whole story.",
+        isoPdf4OpDecayInvolved:
+          "On the involved side, extensor torque appears less sustained after the peak than on the contralateral limb—worth exploring local fatigue, pain, or output strategy.",
+        isoPdf4OpClosing:
+          "Integrate with active ROM, real-world load, hop/jump tests, and symptoms; on retest compare the same angle bands.",
         trialShort: "T.",
         dir: {
           anterior: "Anterior",
@@ -4660,7 +5557,15 @@ dominantHand: {
         hqLow: "Low",
         hqExpected: "Expected",
         hqHigh: "High",
-        lsiRefTitle: "LSI — target",
+        lsiRefTitle: "Symmetry / LSI — indicative bands",
+        lsiRefIntro:
+          "These bands apply to min/max symmetry between peak R/L values, or to directional LSI when the involved side is lower than the contralateral side:",
+        lsiRefSymHigh: "≥95% high symmetry",
+        lsiRefSymAcceptable: "90–94.9% acceptable",
+        lsiRefSymModerate: "80–89.9% moderate asymmetry",
+        lsiRefSymSevere: "<80% marked asymmetry",
+        lsiRefDirectionalOver100:
+          "If directional LSI is >100%, do not label it «optimal symmetry»: it means the involved side exceeds the contralateral peak; always report min/max symmetry separately.",
         lsiRefOptimal: ">95% Optimal",
         lsiRefAcceptable: "90–95% Acceptable",
         lsiRefDeficit: "<90% Deficit",
@@ -4739,6 +5644,141 @@ dominantHand: {
         workCompareChartUnit: "Scale: J",
         workChartRowExt: "Total work — extension",
         workChartRowFlex: "Total work — flexion",
+        peakTorqueMainTitle: "Peak torque",
+        peakTorqueMainQuestion:
+          "Which side produces the higher peak torque? (DX vs SX only, per movement and speed)",
+        peakTorqueDataCaption:
+          "Data: numeric table summary (session peak per speed), not raw torque–angle traces.",
+        peakTorquePanelExt: "Peak torque — Extension (quadriceps)",
+        peakTorquePanelFlex: "Peak torque — Flexion (hamstrings)",
+        peakTorquePanelSubtitle:
+          "Peak Nm right vs left at all three speeds",
+        peakTorqueUnitNm: "Unit: Nm (session peak torque)",
+        peakTorqueAxisNm: "Nm",
+        peakTorqueMetricsTitle: "Metrics per speed",
+        peakTorqueColStronger: "Stronger side",
+        peakTorqueColDiff: "Difference",
+        peakTorqueColDirectionalLsi: "Directional LSI",
+        peakTorqueColSymmetry: "Symmetry (min/max)",
+        peakTorqueColAsymmetryVsMax: "Asymmetry (vs max)",
+        peakTorqueColN: "N",
+        peakTorqueColBriefInterpretation: "Brief interpretation",
+        peakTorqueDataTypeLabel:
+          "Data type: numeric PDF summary / session peak torque, not raw torque–angle traces. Source: PDF_NUMERIC_SUMMARY.",
+        peakLegendInvolvedBar: "{short} — involved side",
+        peakLegendContralateralBar: "{short} — contralateral",
+        peakTorqueSeparateScalesNote:
+          "Separate vertical scales for extension vs flexion: do not compare bar heights across the two panels.",
+        peakTorqueTableRepsFootnote:
+          "N = protocol repetitions per speed (60°/s: 5; 180°/s: 20; 300°/s: 15).",
+        peakBriefSym_symHigh: "high symmetry",
+        peakBriefSym_symAcceptable: "acceptable symmetry",
+        peakBriefSym_symModerateAsym: "moderate asymmetry",
+        peakBriefSym_symSevereAsym: "marked asymmetry",
+        peakBriefSym_relativeWorst: "greatest asymmetry across speeds",
+        peakBriefSym_relativeBest: "best symmetry across speeds",
+        peakBriefSym_fallback: "variable symmetry",
+        peakBriefDir_equal: "very similar R/L peaks",
+        peakBriefDir_invHigher: "{inv} higher than contralateral",
+        peakBriefDir_invLower: "{inv} lower than contralateral",
+        peakBriefDir_invLowerSlight: "{inv} slightly lower than contralateral",
+        peakBriefCombined: "{dir}; {sym}",
+        peakSynthExt60_invHigher:
+          "At 60°/s the involved side ({inv}) shows higher extension peak torque than the contralateral side ({pair} Nm).",
+        peakSynthExt60_invLower:
+          "At 60°/s the involved side ({inv}) shows lower extension peak torque than the contralateral side ({pair} Nm).",
+        peakSynthExt60_similar:
+          "At 60°/s extension peaks are very similar on the involved side ({inv}) vs contralateral ({pair} Nm).",
+        peakSynthFlex60_invHigher:
+          "At 60°/s flexion the {inv} side is higher than contralateral ({pair} Nm).",
+        peakSynthFlex60_invLower:
+          "At 60°/s flexion the {inv} side is lower than contralateral ({pair} Nm).",
+        peakSynthFlex60_invLowerSlight:
+          "At 60°/s flexion the {inv} side is slightly lower than contralateral ({pair} Nm).",
+        peakSynthFlex60_similar:
+          "At 60°/s flexion peaks are very similar ({pair} Nm).",
+        peakSynthAgg_ext_invHigherAll: "{inv} is higher in extension",
+        peakSynthAgg_ext_invLowerAll: "{inv} is lower in extension",
+        peakSynthAgg_ext_mixed:
+          "extension peak ratio {inv}/contralateral is not uniform across speeds",
+        peakSynthAgg_flex_invHigherAll: "{inv} is higher in flexion",
+        peakSynthAgg_flex_invLowerAll: "{inv} is lower in flexion",
+        peakSynthAgg_flex_mixed:
+          "flexion peak ratio {inv}/contralateral is not uniform across speeds",
+        peakSynthAllSpeeds: "Across all speeds, {extAgg} and {flexAgg}.",
+        directionalInterp_dirInvolvedHigher:
+          "{inv} higher than contralateral",
+        directionalInterp_dirInvolvedSimilar:
+          "{inv} similar to contralateral",
+        directionalInterp_dirInvolvedLower:
+          "{inv} lower than contralateral",
+        directionalInterp_dirInvolvedLowerSlight:
+          "{inv} slightly lower than contralateral",
+        peakSideCompare_rightHigher: "R > L",
+        peakSideCompare_leftHigher: "L > R",
+        peakSideCompare_equal: "R ≈ L",
+        symBand_symHigh: "high symmetry",
+        symBand_symAcceptable: "acceptable",
+        symBand_symModerateAsym: "moderate asymmetry",
+        symBand_symSevereAsym: "marked asymmetry",
+        contraDirectionalExt: "Directional LSI ext: {pct} — {dirInterp}.",
+        contraSymmetryExt: "Ext min/max symmetry: {pct} — {band}",
+        contraDirectionalFlex: "Directional LSI flex: {pct} — {dirInterp}.",
+        contraSymmetryFlex: "Flex min/max symmetry: {pct} — {band}",
+        clinicalCommentDirectionLabel: "Direction (anatomical peak)",
+        clinicalCommentSymmetryLabel: "Min/max symmetry",
+        clinicalBulletDirectionalLineExt:
+          "Directional LSI {dirPct} — {dirInterp}. Absolute min/max symmetry: {symPct}.",
+        clinicalBulletDirectionalLineFlex:
+          "Directional LSI {dirPct} — {dirInterp}. Absolute min/max symmetry: {symPct}.",
+        peakTorqueInvolvedCaption:
+          "Involved side: {involved}. {contralateral} = contralateral.",
+        peakTorqueMiniConclusionTitle: "Peak-only note:",
+        peakMiniSymLowestFragment:
+          "; lowest min/max symmetry is at {speed}°/s ({sym})",
+        peakMiniExt_invStrongerAllSpeeds:
+          "Peak-only: {inv} exceeds {contra} at all speeds. This does not indicate an involved-side peak deficit{symFrag}.",
+        peakMiniExt_invWeakerAllSpeeds:
+          "Peak-only: {inv} is lower than {contra} in extension at all speeds{symFrag}.",
+        peakMiniFlex_invStrongerAllSpeeds:
+          "Peak-only: {inv} exceeds {contra} at all speeds{symFrag}.",
+        peakMiniFlex_invWeakerAllSpeeds:
+          "Peak-only: {inv} is lower than {contra} at all speeds. Directional involved-side deficit is mild, with directional LSI between {lsiMin} and {lsiMax}{symFrag}.",
+        peakMiniExt_sameWinnerMixedDir:
+          "Extension: {dominant} has the higher peak at every speed, but the involved ({inv}) / contralateral ratio is not uniform across speeds — interpret cautiously.",
+        peakMiniFlex_sameWinnerMixedDir:
+          "Flexion: {dominant} has the higher peak at every speed, but the involved ({inv}) / contralateral ratio is not uniform across speeds — interpret cautiously.",
+        peakMiniMixedPattern:
+          "Peak comparison is not uniform across speeds for this movement — use the table above.",
+        peakTorqueSideRight: "R",
+        peakTorqueSideLeft: "L",
+        peakTorqueSynthExt60Stronger:
+          "At 60°/s extension peak torque is higher on the {side} side vs the contralateral side, {dx} vs {sx} Nm.",
+        peakTorqueSynthExt60Equal:
+          "Extension at 60°/s: {dx} vs {sx} Nm (similar).",
+        peakTorqueSynthFlex60Stronger:
+          "In flexion, the {side} side is {slight}higher, {dx} vs {sx} Nm.",
+        peakTorqueSynthFlex60Equal:
+          "Flexion at 60°/s: {dx} vs {sx} Nm (similar).",
+        peakTorqueSynthSlightWord: "slightly ",
+        peakTorqueSynthSlightEmpty: "",
+        peakTorqueSynthTitle: "Summary",
+        peakTorqueSynthDisclaimer:
+          "This chart describes peak torque only: it does not assess curve quality, torque maintenance, total work, fatigue, or angle-specific deficits.",
+        peakTorqueLimitsTitle: "Limits:",
+        peakTorqueLimitsBody:
+          "This chart describes session peak torque only at each speed. It does not assess curve quality, fatigue, motor control, angle-specific deficits, pain, compensation patterns, or return-to-sport readiness. Do not compare extension with flexion or equate different speeds; do not draw definitive clinical conclusions from this chart alone.",
+        peakTorqueLsiNote:
+          "Directional LSI = involved / contralateral × 100 (may exceed 100% — not «symmetry»). Absolute symmetry = min(R,L) / max(R,L) × 100 (never exceeds 100%).",
+        peakTorqueValidationTitle: "Insufficient data for peak torque chart",
+        peakTorqueErrorGeneric: "Check peak torque values (Nm) for both sides.",
+        peakTorqueErrorMissingValue:
+          "Missing or invalid peak torque (Nm) for the indicated movement/speed.",
+        peakTorqueMissingInvolvedSide:
+          "Specify the involved side to compute directional LSI.",
+        peakTorqueMissingSpeed60: "Missing data at 60°/s.",
+        peakTorqueMissingSpeed180: "Missing data at 180°/s.",
+        peakTorqueMissingSpeed300: "Missing data at 300°/s.",
         tableMeasuresLegend:
           "Table legend: °/s = speed; Contr. = contraction type; Con. = concentric; N = repetitions. Columns: peak torque ext/flex (Nm), angle at peak torque (°), ROM (°), total work ext/flex (J) for the side in the block title. Under « Automatic calculations »: H/Q, LSI and torque per kg when involved side is set.",
         easytechImportTitle: "Import Easytech PDF",
@@ -4791,6 +5831,7 @@ dominantHand: {
         easytechImportColumn: "Column",
         easytechImportProgressInit: "Preparing…",
         easytechImportProgressRender: "Extracting PDF text…",
+        easytechImportProgressCharts: "Extracting PDF chart images…",
         easytechImportProgressOcr: "Processing…",
         easytechImportNoSpeed: "Select or fix speed before importing.",
         easytechImportNoSide: "Map which column is right and which is left.",

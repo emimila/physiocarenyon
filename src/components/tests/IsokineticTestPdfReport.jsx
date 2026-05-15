@@ -18,7 +18,7 @@ import {
   IsokineticReferencePanel,
   metricsForClinicalFocusRow,
 } from "../evaluations/IsokineticClinicalPanels";
-import IsokineticMaxTorqueGridChart from "../evaluations/IsokineticMaxTorqueGridChart";
+import IsokineticPeakTorqueReportChart from "./IsokineticPeakTorqueReportChart";
 
 function disp(v) {
   if (v === "" || v == null) return "—";
@@ -274,7 +274,7 @@ export default function IsokineticTestPdfReport({
       </div>
 
       <div
-        className="pdf-avoid-break isokinetic-pdf-torque-chart-wide"
+        className="isokinetic-pdf-torque-chart-wide"
         style={{
           width: "100%",
           maxWidth: "100%",
@@ -283,7 +283,12 @@ export default function IsokineticTestPdfReport({
           boxSizing: "border-box",
         }}
       >
-        <IsokineticMaxTorqueGridChart rows={rows} tt={tt} variant="form" />
+        <IsokineticPeakTorqueReportChart
+          rows={rows}
+          injuredSide={injured}
+          tt={tt}
+          variant="pdf"
+        />
       </div>
 
       <div

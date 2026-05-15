@@ -74,7 +74,28 @@ function applyEasytechPatchToIso(iso0, patch) {
     }
     return next;
   });
-  return { ...iso, rows };
+  let outIso = { ...iso, rows };
+  if (
+    speed === 60 &&
+    patch.easytechPdfCharts60 &&
+    typeof patch.easytechPdfCharts60 === "object" &&
+    Number(patch.easytechPdfCharts60.version) === 1 &&
+    Array.isArray(patch.easytechPdfCharts60.images) &&
+    patch.easytechPdfCharts60.images.length
+  ) {
+    const images = patch.easytechPdfCharts60.images.filter(
+      (im) =>
+        im &&
+        typeof im.dataUrl === "string" &&
+        im.dataUrl.startsWith("data:") &&
+        Number(im.nativeW) > 0 &&
+        Number(im.nativeH) > 0
+    );
+    if (images.length) {
+      outIso = { ...outIso, easytechPdfCharts60: { version: 1, images } };
+    }
+  }
+  return outIso;
 }
 
 function sideCell(iso, rowIndex, side, field, value, setEvaluationForm, evaluationForm, distrettoId, testId) {
@@ -160,7 +181,11 @@ export default function IsokineticTestFields({
     for (const p of patches) {
       nextIso = applyEasytechPatchToIso(nextIso, p);
     }
-    patchIso({ rows: nextIso.rows });
+    const partial = { rows: nextIso.rows };
+    if (nextIso.easytechPdfCharts60?.images?.length) {
+      partial.easytechPdfCharts60 = nextIso.easytechPdfCharts60;
+    }
+    patchIso(partial);
   }
 
   function selectRow(ri) {

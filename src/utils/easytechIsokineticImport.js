@@ -507,7 +507,8 @@ function getValidatedPair(rows, key) {
   return { droite: dr, gauche: ga };
 }
 
-function detectSpeed(rows) {
+/** Velocità (60 / 180 / 300) ricavata dalla riga «Vitesse Ext/Flex» del referto Easytech. */
+export function detectSpeed(rows) {
   const r = rowByKey(rows, "vitesseExtFlex");
   if (!r) return null;
   const rule = EASYTECH_FIELD_RULES.find((x) => x.jsonKey === "vitesseExtFlex");
@@ -531,10 +532,11 @@ function detectSpeed(rows) {
  *   - ptExt / ptFlex            <- Couple Maximal[Nm] (A/B = ext/flex)
  *   - anglePtExt / anglePtFlex  <- Angle @CM (A/B = ext/flex)
  *   - workExt / workFlex        <- Tot. Travail (A/B = ext/flex)
- *   - romExt / romFlex          <- Angle de mouvement maximal: coppia
- *                                  extension / flexion (primo valore → romExt,
- *                                  secondo → romFlex), come le altre righe a
- *                                  due numeri.
+ *   - romExt / romFlex          <- Angle de mouvement maximal: due estremi (°)
+ *                                  dell'arco di movimento sul referto (primo →
+ *                                  romExt, secondo → romFlex), non due ROM
+ *                                  “in ampiezza” separate; il PDF3/4 usa min/max
+ *                                  per l'asse angolare.
  */
 export function pageResultToIsokineticPatch(pageResult, opts) {
   const { side } = opts || {};

@@ -152,21 +152,49 @@ function pruneTest(t) {
     const clinicalFocusSpeed = [60, 180, 300].includes(rawFocus)
       ? rawFocus
       : 60;
+    const MAX_CHART_DATA_URL = 2_400_000;
+    const chartsRaw = iso.easytechPdfCharts60;
+    let easytechPdfCharts60 = null;
+    if (
+      chartsRaw &&
+      typeof chartsRaw === "object" &&
+      Number(chartsRaw.version) === 1 &&
+      Array.isArray(chartsRaw.images)
+    ) {
+      const images = chartsRaw.images
+        .map((im) => {
+          if (!im || typeof im.dataUrl !== "string") return null;
+          const dataUrl =
+            im.dataUrl.length > MAX_CHART_DATA_URL
+              ? im.dataUrl.slice(0, MAX_CHART_DATA_URL)
+              : im.dataUrl;
+          if (!dataUrl.startsWith("data:image/")) return null;
+          const nativeW = Math.min(4096, Math.max(0, Math.round(Number(im.nativeW)) || 0));
+          const nativeH = Math.min(4096, Math.max(0, Math.round(Number(im.nativeH)) || 0));
+          const objId = String(im.objId ?? "").slice(0, 120);
+          if (!nativeW || !nativeH) return null;
+          return { dataUrl, nativeW, nativeH, objId };
+        })
+        .filter(Boolean);
+      if (images.length) easytechPdfCharts60 = { version: 1, images };
+    }
+    const outIso = {
+      injuredSide:
+        iso.injuredSide === "left" || iso.injuredSide === "right"
+          ? iso.injuredSide
+          : "",
+      clinicalFocusSpeed,
+      weightConfirmation,
+      manualWeightKg: iso.manualWeightKg ?? "",
+      bodyWeightKgUsed: iso.bodyWeightKgUsed ?? "",
+      rows,
+    };
+    if (easytechPdfCharts60) outIso.easytechPdfCharts60 = easytechPdfCharts60;
     return {
       id: t.id,
       type: t.type,
       noteAltro: t.noteAltro ?? "",
-      isokinetic: {
-        injuredSide:
-          iso.injuredSide === "left" || iso.injuredSide === "right"
-            ? iso.injuredSide
-            : "",
-        clinicalFocusSpeed,
-        weightConfirmation,
-        manualWeightKg: iso.manualWeightKg ?? "",
-        bodyWeightKgUsed: iso.bodyWeightKgUsed ?? "",
-        rows,
-      },
+      isokinetic: outIso,
     };
   }
   if (t.type === "HOP_BATTERY") {

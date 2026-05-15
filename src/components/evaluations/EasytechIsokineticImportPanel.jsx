@@ -242,6 +242,10 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
     else if (map.col1 === "left") out.left = data1;
     if (map.col2 === "right") out.right = data2;
     else if (map.col2 === "left") out.left = data2;
+    const spd = Number(speed);
+    if (spd === 60 && p.easytechPdfCharts60?.images?.length) {
+      out.easytechPdfCharts60 = p.easytechPdfCharts60;
+    }
     return out;
   }
 
@@ -316,7 +320,10 @@ export default function EasytechIsokineticImportPanel({ tt, iso, onApplyPatch })
         (progress.cellIdx || 0);
       return Math.round((overallDone / overallTotal) * 100);
     }
-    if (progress.phase === "render" && progress.totalPages) {
+    if (
+      (progress.phase === "render" || progress.phase === "charts") &&
+      progress.totalPages
+    ) {
       return Math.round((((progress.page || 1) - 1) / progress.totalPages) * 100);
     }
     return null;
@@ -482,9 +489,11 @@ function ProgressBar({ pct, progress, tt }) {
   const phaseKey =
     progress?.phase === "ocr"
       ? "easytechImportProgressOcr"
-      : progress?.phase === "render"
-      ? "easytechImportProgressRender"
-      : "easytechImportProgressInit";
+      : progress?.phase === "charts"
+        ? "easytechImportProgressCharts"
+        : progress?.phase === "render"
+          ? "easytechImportProgressRender"
+          : "easytechImportProgressInit";
   const phaseLabel = tt(`tests.isokinetic.${phaseKey}`);
   const display = pct == null ? "…" : `${pct}%`;
   return (

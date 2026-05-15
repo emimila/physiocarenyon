@@ -1,0 +1,2 @@
+File in questa cartella erano in ~/Desktop/progetto!! (maggio 2026).
+La cartella progetto!! è stata rimossa per evitare duplicati: usa solo ~/Desktop/progetto.

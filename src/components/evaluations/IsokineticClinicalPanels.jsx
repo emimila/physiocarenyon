@@ -28,6 +28,69 @@ export function isokineticHqComment(band, tt) {
   return tt("tests.isokinetic.hqCommentExpected");
 }
 
+function involvedSideShortLabel(injuredSide, tt) {
+  if (injuredSide === "right") {
+    return tt("tests.isokinetic.peakTorqueSideRight") || "DX";
+  }
+  if (injuredSide === "left") {
+    return tt("tests.isokinetic.peakTorqueSideLeft") || "SX";
+  }
+  return "—";
+}
+
+function directionalInterpPhrase(
+  directionalClass,
+  invShort,
+  tt,
+  directionalPct = null
+) {
+  if (!directionalClass) return "—";
+  if (
+    directionalClass === "dirInvolvedLower" &&
+    directionalPct != null &&
+    Number.isFinite(directionalPct) &&
+    directionalPct >= 90 &&
+    directionalPct < 99.5
+  ) {
+    const ks = "tests.isokinetic.directionalInterp_dirInvolvedLowerSlight";
+    const rawSlight = tt(ks);
+    if (rawSlight && rawSlight !== ks) {
+      return rawSlight.replace(/\{inv\}/g, invShort);
+    }
+  }
+  const key = `tests.isokinetic.directionalInterp_${directionalClass}`;
+  const raw = tt(key);
+  if (!raw || raw === key) return "—";
+  return raw.replace(/\{inv\}/g, invShort);
+}
+
+function peakSideComparePhrase(compareKey, tt) {
+  if (!compareKey) return "—";
+  const key = `tests.isokinetic.peakSideCompare_${compareKey}`;
+  const raw = tt(key);
+  return !raw || raw === key ? "—" : raw;
+}
+
+function symmetryBandPhrase(symmetryClass, tt) {
+  if (!symmetryClass) return "—";
+  const key = `tests.isokinetic.symBand_${symmetryClass}`;
+  const raw = tt(key);
+  return !raw || raw === key ? "—" : raw;
+}
+
+function symmetryCommentBulletColor(symClass) {
+  const C = ISOKINETIC_STATUS_COLOR;
+  if (symClass === "symHigh") return C.optimal;
+  if (symClass === "symAcceptable") return C.acceptable;
+  if (symClass === "symModerateAsym") return C.warn;
+  if (symClass === "symSevereAsym") return C.deficit;
+  return "#94a3b8";
+}
+
+function directionCommentBulletColor() {
+  return "#64748b";
+}
+
 /** Barra LSI (stesso layout scheda / PDF). */
 export function IsokineticLsiBar({ label, value, statusClass, tt }) {
   const C = ISOKINETIC_STATUS_COLOR;
@@ -203,11 +266,18 @@ export function IsokineticReferencePanel({ tt }) {
       <p style={{ margin: "0 0 8px", fontWeight: 600 }}>
         {tt("tests.isokinetic.lsiRefTitle")}
       </p>
-      <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.45 }}>
-        <li>{tt("tests.isokinetic.lsiRefOptimal")}</li>
-        <li>{tt("tests.isokinetic.lsiRefAcceptable")}</li>
-        <li>{tt("tests.isokinetic.lsiRefDeficit")}</li>
+      <p style={{ margin: "0 0 8px", lineHeight: 1.45 }}>
+        {tt("tests.isokinetic.lsiRefIntro")}
+      </p>
+      <ul style={{ margin: "0 0 10px", paddingLeft: 16, lineHeight: 1.45 }}>
+        <li>{tt("tests.isokinetic.lsiRefSymHigh")}</li>
+        <li>{tt("tests.isokinetic.lsiRefSymAcceptable")}</li>
+        <li>{tt("tests.isokinetic.lsiRefSymModerate")}</li>
+        <li>{tt("tests.isokinetic.lsiRefSymSevere")}</li>
       </ul>
+      <p style={{ margin: 0, lineHeight: 1.45 }}>
+        {tt("tests.isokinetic.lsiRefDirectionalOver100")}
+      </p>
     </div>
   );
 }
@@ -235,55 +305,121 @@ export function IsokineticCommentList({ injuredSide, sel, tt }) {
         color: "#334155",
       }}
     >
-      <li style={{ marginBottom: 6 }}>
-        <span
+      <li style={{ marginBottom: 10 }}>
+        <strong>{tt("tests.isokinetic.extensors")}</strong>
+        <div
           style={{
-            display: "inline-block",
-            width: 8,
-            height: 8,
-            borderRadius: 999,
-            background:
-              sel.lsiExtClass === "optimal"
-                ? C.optimal
-                : sel.lsiExtClass === "acceptable"
-                  ? C.acceptable
-                  : C.deficit,
-            marginRight: 6,
-            verticalAlign: "middle",
+            marginTop: 6,
+            marginLeft: 2,
+            paddingLeft: 10,
+            borderLeft: "2px solid #e2e8f0",
           }}
-        />
-        <strong>{tt("tests.isokinetic.extensors")} (LSI):</strong>{" "}
-        {formatPct1(sel.lsiExt) ?? "—"} —{" "}
-        {sel.lsiExtClass === "optimal"
-          ? tt("tests.isokinetic.lsiLineOptimal")
-          : sel.lsiExtClass === "acceptable"
-            ? tt("tests.isokinetic.lsiLineAcceptable")
-            : tt("tests.isokinetic.lsiLineDeficit")}
+        >
+          <div
+            style={{
+              marginBottom: 6,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 6,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: directionCommentBulletColor(),
+                marginTop: 5,
+                flexShrink: 0,
+              }}
+            />
+            <span>
+              <strong>
+                {tt("tests.isokinetic.clinicalCommentDirectionLabel")}:
+              </strong>{" "}
+              {peakSideComparePhrase(sel.compareExt, tt)}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: symmetryCommentBulletColor(sel.symmetryExtClass),
+                marginTop: 5,
+                flexShrink: 0,
+              }}
+            />
+            <span>
+              <strong>
+                {tt("tests.isokinetic.clinicalCommentSymmetryLabel")}:
+              </strong>{" "}
+              {formatPct1(sel.symmetryExt) ?? "—"} —{" "}
+              {symmetryBandPhrase(sel.symmetryExtClass, tt)}
+            </span>
+          </div>
+        </div>
       </li>
-      <li style={{ marginBottom: 6 }}>
-        <span
+      <li style={{ marginBottom: 10 }}>
+        <strong>{tt("tests.isokinetic.flexors")}</strong>
+        <div
           style={{
-            display: "inline-block",
-            width: 8,
-            height: 8,
-            borderRadius: 999,
-            background:
-              sel.lsiFlexClass === "optimal"
-                ? C.optimal
-                : sel.lsiFlexClass === "acceptable"
-                  ? C.acceptable
-                  : C.deficit,
-            marginRight: 6,
-            verticalAlign: "middle",
+            marginTop: 6,
+            marginLeft: 2,
+            paddingLeft: 10,
+            borderLeft: "2px solid #e2e8f0",
           }}
-        />
-        <strong>{tt("tests.isokinetic.flexors")} (LSI):</strong>{" "}
-        {formatPct1(sel.lsiFlex) ?? "—"} —{" "}
-        {sel.lsiFlexClass === "optimal"
-          ? tt("tests.isokinetic.lsiLineOptimal")
-          : sel.lsiFlexClass === "acceptable"
-            ? tt("tests.isokinetic.lsiLineAcceptable")
-            : tt("tests.isokinetic.lsiLineDeficit")}
+        >
+          <div
+            style={{
+              marginBottom: 6,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 6,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: directionCommentBulletColor(),
+                marginTop: 5,
+                flexShrink: 0,
+              }}
+            />
+            <span>
+              <strong>
+                {tt("tests.isokinetic.clinicalCommentDirectionLabel")}:
+              </strong>{" "}
+              {peakSideComparePhrase(sel.compareFlex, tt)}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: symmetryCommentBulletColor(sel.symmetryFlexClass),
+                marginTop: 5,
+                flexShrink: 0,
+              }}
+            />
+            <span>
+              <strong>
+                {tt("tests.isokinetic.clinicalCommentSymmetryLabel")}:
+              </strong>{" "}
+              {formatPct1(sel.symmetryFlex) ?? "—"} —{" "}
+              {symmetryBandPhrase(sel.symmetryFlexClass, tt)}
+            </span>
+          </div>
+        </div>
       </li>
       <li style={{ marginBottom: 6 }}>
         <span
@@ -380,24 +516,66 @@ export function IsokineticCommentList({ injuredSide, sel, tt }) {
   );
 }
 
-/** Pannello confronto controlaterale (barre LSI + diff). */
+/** Due righe testuali: LSI direzionale + interpretazione dal lato interessato; simmetria min/max + banda. */
+function ContralateralDirectionalSymmetryBlock({
+  directionalPct,
+  directionalClass,
+  injuredSide,
+  symmetryPct,
+  symmetryClass,
+  tt,
+  titleDirectionalKey,
+  titleSymmetryKey,
+}) {
+  const invShort = involvedSideShortLabel(injuredSide, tt);
+  const dirInterp = directionalInterpPhrase(
+    directionalClass,
+    invShort,
+    tt,
+    directionalPct
+  );
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>
+        {(tt(titleDirectionalKey) || "")
+          .replace("{pct}", formatPct1(directionalPct) ?? "—")
+          .replace("{dirInterp}", dirInterp)}
+      </div>
+      <div style={{ fontSize: 11.5, color: "#475569", marginTop: 4 }}>
+        {(tt(titleSymmetryKey) || "")
+          .replace("{pct}", formatPct1(symmetryPct) ?? "—")
+          .replace("{band}", symmetryBandPhrase(symmetryClass, tt))}
+      </div>
+    </div>
+  );
+}
+
+/** Pannello confronto controlaterale (LSI direzionale vs simmetria + diff angolo/ROM). */
 export function IsokineticContralateralPanel({ injuredSide, sel, tt }) {
   if (!injuredSide || !sel) {
     return <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>—</p>;
   }
   return (
     <>
-      <IsokineticLsiBar
-        label={tt("tests.isokinetic.lsiExtShort")}
-        value={sel.lsiExt}
-        statusClass={sel.lsiExtClass}
+      <ContralateralDirectionalSymmetryBlock
+        directionalPct={sel.lsiExt}
+        directionalClass={sel.directionalExtClass}
+        injuredSide={injuredSide}
+        symmetryPct={sel.symmetryExt}
+        symmetryClass={sel.symmetryExtClass}
         tt={tt}
+        titleDirectionalKey="tests.isokinetic.contraDirectionalExt"
+        titleSymmetryKey="tests.isokinetic.contraSymmetryExt"
       />
-      <IsokineticLsiBar
-        label={tt("tests.isokinetic.lsiFlexShort")}
-        value={sel.lsiFlex}
-        statusClass={sel.lsiFlexClass}
+      <ContralateralDirectionalSymmetryBlock
+        directionalPct={sel.lsiFlex}
+        directionalClass={sel.directionalFlexClass}
+        injuredSide={injuredSide}
+        symmetryPct={sel.symmetryFlex}
+        symmetryClass={sel.symmetryFlexClass}
         tt={tt}
+        titleDirectionalKey="tests.isokinetic.contraDirectionalFlex"
+        titleSymmetryKey="tests.isokinetic.contraSymmetryFlex"
       />
       <IsokineticDiffBar
         label={tt("tests.isokinetic.diffAngleExt")}

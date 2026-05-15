@@ -4,6 +4,9 @@ import { distrettoActiveTests } from "../../utils/sanitizeEvaluation";
 import { exportHtmlToPdf } from "../../utils/exportHtmlToPdf";
 import YBalanceTestReportCharts from "./YBalanceTestReportCharts";
 import IsokineticTestPdfReport from "./IsokineticTestPdfReport";
+import IsokineticKneeDashboardPdf2 from "./IsokineticKneeDashboardPdf2";
+import IsokineticCurveComparePdf3 from "./IsokineticCurveComparePdf3";
+import IsokineticCurveAnalysisPdf4 from "./IsokineticCurveAnalysisPdf4";
 import HopBatteryReportCharts from "./HopBatteryReportCharts";
 
 const CHART_Y_BALANCE = "y_balance";
@@ -26,6 +29,9 @@ export default function PatientTestChartsPanel({ selected, tt }) {
   const [chartType, setChartType] = useState(CHART_Y_BALANCE);
   const [sessionId, setSessionId] = useState("");
   const testPdfRef = useRef(null);
+  const testPdf2Ref = useRef(null);
+  const testPdf3Ref = useRef(null);
+  const testPdf4Ref = useRef(null);
   const [isExportingTestPdf, setIsExportingTestPdf] = useState(false);
 
   const sessionsWithY = useMemo(
@@ -121,13 +127,100 @@ export default function PatientTestChartsPanel({ selected, tt }) {
     );
   }, [session, distrettoId, tt]);
 
-  async function runExportPdf(filename) {
+  async function runExportPdf(filename, orientation = "portrait") {
     const el = testPdfRef.current;
     if (!el) return;
     setIsExportingTestPdf(true);
     await new Promise((r) => requestAnimationFrame(() => r()));
     try {
-      await exportHtmlToPdf(el, { filename });
+      await exportHtmlToPdf(el, { filename, orientation });
+    } catch (e) {
+      console.error(e);
+      alert(tt("patient.testCharts.saveTestPdfError"));
+    } finally {
+      setIsExportingTestPdf(false);
+    }
+  }
+
+  async function runExportPdf2(filename) {
+    const el = testPdf2Ref.current;
+    if (!el) return;
+    setIsExportingTestPdf(true);
+    await new Promise((r) => requestAnimationFrame(() => r()));
+    try {
+      await exportHtmlToPdf(el, {
+        filename,
+        orientation: "landscape",
+        stampHeader: false,
+        fitOnePage: true,
+        margin: [0.08, 0.09, 0.08, 0.09],
+        image: { type: "png", quality: 1 },
+        html2canvas: {
+          backgroundColor: "#ffffff",
+          scale: 2,
+          scrollX: 0,
+          scrollY: 0,
+        },
+        pagebreak: { mode: ["css", "legacy"], before: [], after: [], avoid: [] },
+      });
+    } catch (e) {
+      console.error(e);
+      alert(tt("patient.testCharts.saveTestPdfError"));
+    } finally {
+      setIsExportingTestPdf(false);
+    }
+  }
+
+  async function runExportPdf3(filename) {
+    const el = testPdf3Ref.current;
+    if (!el) return;
+    setIsExportingTestPdf(true);
+    await new Promise((r) => requestAnimationFrame(() => r()));
+    try {
+      await exportHtmlToPdf(el, {
+        filename,
+        orientation: "landscape",
+        stampHeader: false,
+        fitOnePage: true,
+        margin: [0.08, 0.09, 0.08, 0.09],
+        image: { type: "png", quality: 1 },
+        html2canvas: {
+          backgroundColor: "#ffffff",
+          scale: 2,
+          scrollX: 0,
+          scrollY: 0,
+        },
+        pagebreak: { mode: ["css", "legacy"], before: [], after: [], avoid: [] },
+      });
+    } catch (e) {
+      console.error(e);
+      alert(tt("patient.testCharts.saveTestPdfError"));
+    } finally {
+      setIsExportingTestPdf(false);
+    }
+  }
+
+  async function runExportPdf4(filename) {
+    const el = testPdf4Ref.current;
+    if (!el) return;
+    setIsExportingTestPdf(true);
+    await new Promise((r) => requestAnimationFrame(() => r()));
+    try {
+      await exportHtmlToPdf(el, {
+        filename,
+        orientation: "landscape",
+        stampHeader: false,
+        fitOnePage: false,
+        margin: [0.08, 0.09, 0.08, 0.09],
+        image: { type: "png", quality: 1 },
+        html2canvas: {
+          backgroundColor: "#ffffff",
+          scale: 2,
+          scrollX: 0,
+          scrollY: 0,
+        },
+        pagebreak: { mode: ["css", "legacy"], before: [], after: [], avoid: [] },
+      });
     } catch (e) {
       console.error(e);
       alert(tt("patient.testCharts.saveTestPdfError"));
@@ -295,7 +388,16 @@ export default function PatientTestChartsPanel({ selected, tt }) {
 
           {chartType === CHART_ISOKINETIC && isoTest ? (
             <>
-              <div className="no-pdf" style={{ marginBottom: 12 }}>
+              <div
+                className="no-pdf"
+                style={{
+                  marginBottom: 12,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+              >
                 <button
                   type="button"
                   disabled={isExportingTestPdf}
@@ -309,12 +411,110 @@ export default function PatientTestChartsPanel({ selected, tt }) {
                     ? tt("common.loading", "…")
                     : tt("patient.testCharts.saveTestPdf")}
                 </button>
+                <button
+                  type="button"
+                  disabled={isExportingTestPdf}
+                  onClick={() =>
+                    runExportPdf2(
+                      `Test_Isokinetic_dashboard_${safeFilenamePart(selected?.nome)}_${safeFilenamePart(selected?.cognome)}_${safeFilenamePart(session?.data)}.pdf`
+                    )
+                  }
+                >
+                  {isExportingTestPdf
+                    ? tt("common.loading", "…")
+                    : tt("patient.testCharts.saveTestPdf2")}
+                </button>
+                <button
+                  type="button"
+                  disabled={isExportingTestPdf}
+                  onClick={() =>
+                    runExportPdf3(
+                      `Test_Isokinetic_curves_60_${safeFilenamePart(selected?.nome)}_${safeFilenamePart(selected?.cognome)}_${safeFilenamePart(session?.data)}.pdf`
+                    )
+                  }
+                >
+                  {isExportingTestPdf
+                    ? tt("common.loading", "…")
+                    : tt("patient.testCharts.saveTestPdf3")}
+                </button>
+                <button
+                  type="button"
+                  disabled={isExportingTestPdf}
+                  onClick={() =>
+                    runExportPdf4(
+                      `Test_Isokinetic_pdf4_angle_${safeFilenamePart(selected?.nome)}_${safeFilenamePart(selected?.cognome)}_${safeFilenamePart(session?.data)}.pdf`
+                    )
+                  }
+                >
+                  {isExportingTestPdf
+                    ? tt("common.loading", "…")
+                    : tt("patient.testCharts.saveTestPdf4")}
+                </button>
               </div>
               <div
                 ref={testPdfRef}
                 className={`pdf-root ${isExportingTestPdf ? "pdf-exporting" : ""}`}
               >
                 <IsokineticTestPdfReport
+                  patient={selected}
+                  session={session}
+                  test={isoTest}
+                  districtLabel={districtLabel}
+                  tt={tt}
+                />
+              </div>
+              <div
+                ref={testPdf2Ref}
+                className={`pdf-root pdf-root--iso-dash2 ${isExportingTestPdf ? "pdf-exporting" : ""}`}
+                style={{
+                  marginTop: 16,
+                  background: "#0b111b",
+                  borderRadius: 10,
+                  padding: 8,
+                  boxSizing: "border-box",
+                }}
+              >
+                <div className="iso-dash2-pdf-sheet">
+                  <IsokineticKneeDashboardPdf2
+                    patient={selected}
+                    session={session}
+                    test={isoTest}
+                    districtLabel={districtLabel}
+                    tt={tt}
+                  />
+                </div>
+              </div>
+              <div
+                ref={testPdf3Ref}
+                className={`pdf-root pdf-root--iso-pdf3 ${isExportingTestPdf ? "pdf-exporting" : ""}`}
+                style={{
+                  marginTop: 16,
+                  background: "#05080d",
+                  borderRadius: 10,
+                  padding: 8,
+                  boxSizing: "border-box",
+                }}
+              >
+                <IsokineticCurveComparePdf3
+                  patient={selected}
+                  session={session}
+                  test={isoTest}
+                  districtLabel={districtLabel}
+                  tt={tt}
+                />
+              </div>
+              <div
+                ref={testPdf4Ref}
+                className={`pdf-root pdf-root--iso-pdf4 ${isExportingTestPdf ? "pdf-exporting" : ""}`}
+                style={{
+                  marginTop: 16,
+                  background: "#e8ecf2",
+                  borderRadius: 10,
+                  padding: 8,
+                  boxSizing: "border-box",
+                }}
+              >
+                <IsokineticCurveAnalysisPdf4
                   patient={selected}
                   session={session}
                   test={isoTest}
